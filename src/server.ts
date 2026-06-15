@@ -1,4 +1,4 @@
-const express = require("express");
+import express from "express";
 
 const app = express();
 
@@ -8,7 +8,6 @@ app.get("/", (req, res) => {
     message: "Server is running",
   });
 });
-
 
 const PORT = 5000;
 
