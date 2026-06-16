@@ -1,0 +1,146 @@
+import { Request, Response, NextFunction } from "express";
+import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
+
+import { CreateUserUseCase } from "../../application/use-cases/CreateUserUseCase";
+import { LoginUseCase } from "../../application/use-cases/LoginUseCase";
+import { RefreshTokenUseCase } from "../../application/use-cases/RefreshTokenUseCase";
+import { LogoutUseCase } from "../../application/use-cases/LogoutUseCase";
+import { GetCurrentUserUseCase } from "../../application/use-cases/GetCurrentUserUseCase";
+
+import { refreshTokenCookieOptions } from "../config/cookieOptions";
+import { ApiResponse } from "../../../../shared/utils/apiResponse";
+
+export class AuthController {
+  constructor(
+    private readonly createUserUseCase: CreateUserUseCase,
+    private readonly loginUseCase: LoginUseCase,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
+    private readonly getCurrentUserUseCase: GetCurrentUserUseCase
+  ) { }
+
+  createUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const user = await this.createUserUseCase.execute(
+        req.body
+      );
+
+      res.status(201).json(
+        ApiResponse.success({
+          message: "User created successfully",
+          data: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+          }
+        })
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  login = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const result =
+        await this.loginUseCase.execute(
+          req.body
+        );
+
+      res.cookie(
+        "refreshToken",
+        result.refreshToken,
+        refreshTokenCookieOptions
+      );
+
+      res.status(200).json(
+        ApiResponse.success(result.authResponse)
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  refreshToken = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const refreshToken =
+        req.cookies?.refreshToken;
+
+      const result =
+        await this.refreshTokenUseCase.execute(
+          refreshToken
+        );
+
+      res.cookie(
+        "refreshToken",
+        result.refreshToken,
+        refreshTokenCookieOptions
+      );
+
+      res.status(200).json(
+        ApiResponse.success(result.authResponse)
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  logout = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const refreshToken =
+        req.cookies?.refreshToken;
+
+      await this.logoutUseCase.execute(
+        refreshToken
+      );
+
+      res.clearCookie("refreshToken");
+
+      res.status(200).json(
+        ApiResponse.success({ message: "Logged out successfully" })
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  me = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+
+      const user =
+        await this.getCurrentUserUseCase.execute(
+          authReq.user.userId
+        );
+
+      res.status(200).json({
+        success: true,
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+}

@@ -1,16 +1,78 @@
-import express from "express";
+import dotenv from "dotenv";
 
-const app = express();
+dotenv.config();
 
-app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Server is running",
-  });
-});
+import app from "./app";
 
-const PORT = 5000;
+import { env } from "./shared/config/env";
+import {
+  connectDB,
+  sequelize, // 👈 Replaced 'pool' with 'sequelize'
+} from "./shared/config/db";
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const startServer = async (): Promise<void> => {
+  try {
+    await connectDB();
+
+    const server = app.listen(
+      env.PORT,
+      () => {
+        console.log(`
+🚀 Server running on port ${env.PORT}
+🌍 Environment: ${process.env.NODE_ENV}
+        `);
+      }
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Graceful Shutdown
+    |--------------------------------------------------------------------------
+    */
+
+    const shutdown = async () => {
+      console.log(
+        "\n🛑 Shutting down server..."
+      );
+
+      server.close(async () => {
+        try {
+          // 👈 Replaced pool.end() with the native Sequelize close handler
+          await sequelize.close();
+
+          console.log(
+            "✅ Sequelize PostgreSQL connections closed gracefully"
+          );
+
+          process.exit(0);
+        } catch (error) {
+          console.error(
+            "❌ Shutdown error",
+            error
+          );
+
+          process.exit(1);
+        }
+      });
+    };
+
+    process.on(
+      "SIGINT",
+      shutdown
+    );
+
+    process.on(
+      "SIGTERM",
+      shutdown
+    );
+  } catch (error) {
+    console.error(
+      "❌ Failed to start server",
+      error
+    );
+
+    process.exit(1);
+  }
+};
+
+startServer();
