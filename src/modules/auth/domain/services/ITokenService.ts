@@ -7,19 +7,12 @@ export interface TokenPayload {
 }
 
 export interface ITokenService {
-  generateAccessToken(
-    payload: TokenPayload
-  ): string;
+  
+  generateAccessToken(payload: TokenPayload): string;
 
-  generateRefreshToken(
-    payload: TokenPayload
-  ): string;
+  generateRefreshToken(payload: TokenPayload): string;
 
-  verifyAccessToken(
-    token: string
-  ): TokenPayload;
+  verifyAccessToken(token: string): TokenPayload | null;
 
-  verifyRefreshToken(
-    token: string
-  ): TokenPayload;
+  verifyRefreshToken(token: string): TokenPayload | null;
 }

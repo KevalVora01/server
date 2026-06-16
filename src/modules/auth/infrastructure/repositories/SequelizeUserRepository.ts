@@ -1,17 +1,9 @@
-import {
-  IUserRepository,
-  CreateUserData,
-} from "../../domain/repositories/IUserRepository";
-
-import {
-  User,
-  UserRole,
-} from "../../domain/entities/User";
-
+import { IUserRepository } from "../../domain/repositories/IUserRepository";
+import { User } from "../../domain/entities/User";
 import { UserModel } from "../models/UserModel";
 
 export class SequelizeUserRepository implements IUserRepository {
-  
+
   async findById(id: number): Promise<User | null> {
     const userModel = await UserModel.findByPk(id);
 
@@ -34,48 +26,52 @@ export class SequelizeUserRepository implements IUserRepository {
     return this.toEntity(userModel);
   }
 
-  async create(data: CreateUserData): Promise<User> {
+  async create(user: User): Promise<User> {
     const createdModel = await UserModel.create({
-      name: data.name,
-      email: data.email,
-      passwordHash: data.passwordHash,
-      phone: data.phone,
-      role: data.role as UserRole,
+      name: user.name,
+      email: user.email,
+      passwordHash: user.passwordHash,
+      phone: user.phone,
+      role: user.role,
+      isActive: user.isActive,
     });
 
     return this.toEntity(createdModel);
   }
 
   async update(user: User): Promise<User> {
-    // Look up the record first to make sure we update the specific instance
-    const userModel = await UserModel.findByPk(user.id);
-    
-    if (!userModel) {
-      throw new Error(`User with ID ${user.id} not found for updates.`);
+    if (!user.id) {
+      throw new Error("Cannot update a user without a valid database ID.");
     }
 
-    // Assign domain changes to the database model
-    userModel.name = user.name;
-    userModel.email = user.email;
-    userModel.phone = user.phone;
-    userModel.role = user.role;
-    userModel.isActive = user.isActive;
+    const [affectedCount] = await UserModel.update(
+      {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        isActive: user.isActive,
+      },
+      {
+        where: { id: user.id },
+      }
+    );
 
-    // Save changes back to PostgreSQL
-    await userModel.save();
+    if (affectedCount === 0) {
+      throw new Error(`User with ID ${user.id} not found or no changes made.`);
+    }
 
-    return this.toEntity(userModel);
+    const updatedModel = await UserModel.findByPk(user.id);
+    return this.toEntity(updatedModel!);
   }
 
   async deactivate(id: number): Promise<void> {
-    // Optimized single-step update to set is_active to false
     await UserModel.update(
       { isActive: false },
       { where: { id } }
     );
   }
 
-  // Maps the Sequelize Model instance data into our pure Domain Entity
   private toEntity(model: UserModel): User {
     return new User({
       id: model.id,

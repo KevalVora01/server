@@ -1,5 +1,6 @@
 import { Model, DataTypes, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
 import { sequelize } from '../../../../shared/config/db';
+import { UserModel } from './UserModel';
 
 export class RefreshTokenModel extends Model<InferAttributes<RefreshTokenModel>, InferCreationAttributes<RefreshTokenModel>> {
   declare id: CreationOptional<number>;
@@ -20,9 +21,9 @@ RefreshTokenModel.init(
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: 'user_id', // Maps to user_id in your database [cite: 75]
+      field: 'user_id',
       references: {
-        model: 'users', // Name of the target table
+        model: 'users',
         key: 'id',
       },
       onDelete: 'CASCADE',
@@ -48,6 +49,11 @@ RefreshTokenModel.init(
   },
   {
     sequelize,
-    tableName: 'refresh_tokens', // Name of the table in your database
+    tableName: 'refresh_tokens',
+    underscored: true,
   }
 );
+
+// Establish explicit bidirectional ORM mapping rules
+UserModel.hasMany(RefreshTokenModel, { foreignKey: 'userId', as: 'refreshTokens' });
+RefreshTokenModel.belongsTo(UserModel, { foreignKey: 'userId', as: 'user' });

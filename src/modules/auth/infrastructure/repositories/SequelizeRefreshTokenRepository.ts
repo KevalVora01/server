@@ -1,19 +1,16 @@
 import { Op } from "sequelize";
-import {
-  IRefreshTokenRepository,
-  CreateRefreshTokenData,
-} from "../../domain/repositories/IRefreshTokenRepository";
-
+import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { RefreshToken } from "../../domain/entities/RefreshToken";
 import { RefreshTokenModel } from "../models/RefreshTokenModel";
 
 export class SequelizeRefreshTokenRepository implements IRefreshTokenRepository {
   
-  async create(data: CreateRefreshTokenData): Promise<RefreshToken> {
+  // 1. Accepts a complete RefreshToken Domain Entity instead of the deleted raw data contract
+  async create(refreshToken: RefreshToken): Promise<RefreshToken> {
     const createdModel = await RefreshTokenModel.create({
-      userId: data.userId,
-      token: data.token,
-      expiresAt: data.expiresAt,
+      userId: refreshToken.userId,
+      token: refreshToken.token,
+      expiresAt: refreshToken.expiresAt,
     });
 
     return this.toEntity(createdModel);
@@ -47,13 +44,13 @@ export class SequelizeRefreshTokenRepository implements IRefreshTokenRepository 
     await RefreshTokenModel.destroy({
       where: {
         expiresAt: {
-          [Op.lt]: new Date(), // Generates: WHERE expires_at < NOW()
+          [Op.lt]: new Date(),
         },
       },
     });
   }
 
-  // Safely map Sequelize model attributes to Domain Entity properties
+  // Safely maps Sequelize model attributes to Domain Entity properties
   private toEntity(model: RefreshTokenModel): RefreshToken {
     return new RefreshToken({
       id: model.id,

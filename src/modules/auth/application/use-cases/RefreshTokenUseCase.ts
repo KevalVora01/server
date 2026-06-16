@@ -1,13 +1,8 @@
 import { AuthResponseDto } from "../dtos/AuthResponseDto";
-
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
-
-import {
-  ITokenService,
-  TokenPayload,
-} from "../../domain/services/ITokenService";
-
+import { ITokenService, TokenPayload } from "../../domain/services/ITokenService";
+import { RefreshToken } from "../../domain/entities/RefreshToken"; // 💡 Import the RefreshToken entity class
 import {
   InvalidRefreshTokenError,
   RefreshTokenNotFoundError,
@@ -27,42 +22,33 @@ export class RefreshTokenUseCase {
     authResponse: AuthResponseDto;
     refreshToken: string;
   }> {
+    // 1. Structural Check: Confirm a token string was actually provided
     if (!refreshToken) {
       throw new InvalidRefreshTokenError();
     }
 
-    let payload: TokenPayload;
-
-    try {
-      payload =
-        this.tokenService.verifyRefreshToken(
-          refreshToken
-        );
-    } catch {
+    // 2. Cryptographic Parse: Cleanly evaluate the signature without heavy try/catch wrappers
+    const payload = this.tokenService.verifyRefreshToken(refreshToken);
+    
+    if (!payload) {
       throw new InvalidRefreshTokenError();
     }
 
-    const storedToken =
-      await this.refreshTokenRepository.findByToken(
-        refreshToken
-      );
+    // 3. Database Check: Match incoming token string against active persistence rows
+    const storedToken = await this.refreshTokenRepository.findByToken(refreshToken);
 
     if (!storedToken) {
       throw new RefreshTokenNotFoundError();
     }
 
+    // 4. Expiry Validation: Purge the token if its lifespan has natively lapsed
     if (storedToken.isExpired()) {
-      await this.refreshTokenRepository.deleteByToken(
-        refreshToken
-      );
-
+      await this.refreshTokenRepository.deleteByToken(refreshToken);
       throw new InvalidRefreshTokenError();
     }
 
-    const user =
-      await this.userRepository.findById(
-        payload.userId
-      );
+    // 5. Account Evaluation: Identify the owning user account
+    const user = await this.userRepository.findById(payload.userId);
 
     if (!user) {
       throw new UserNotFoundError();
@@ -72,48 +58,33 @@ export class RefreshTokenUseCase {
       throw new InvalidRefreshTokenError();
     }
 
+    // 6. Token Generation: Fabricate fresh rotational payloads
     const newPayload: TokenPayload = {
-      userId: user.id,
+      userId: user.id!, //  Explicit non-null assertion resolves the compilation type check
       email: user.email,
       role: user.role,
     };
 
-    const newAccessToken =
-      this.tokenService.generateAccessToken(
-        newPayload
-      );
+    const newAccessToken = this.tokenService.generateAccessToken(newPayload);
+    const newRefreshTokenString = this.tokenService.generateRefreshToken(newPayload);
 
-    const newRefreshToken =
-      this.tokenService.generateRefreshToken(
-        newPayload
-      );
+    // 7. Refresh Token Rotation (RTR): Invalidate the old token and register the new one
+    await this.refreshTokenRepository.deleteByToken(refreshToken);
 
-    // Refresh Token Rotation
-    await this.refreshTokenRepository.deleteByToken(
-      refreshToken
-    );
-
-    await this.refreshTokenRepository.create({
-      userId: user.id,
-      token: newRefreshToken,
-      expiresAt: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
-      ),
+    const refreshTokenInstance = RefreshToken.create({
+      userId: user.id!,
+      token: newRefreshTokenString,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 Days Lifespan
     });
 
-    return {
-      refreshToken: newRefreshToken,
+    await this.refreshTokenRepository.create(refreshTokenInstance);
 
+    // 8. Output Mapping
+    return {
+      refreshToken: newRefreshTokenString,
       authResponse: {
         accessToken: newAccessToken,
-
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          role: user.role,
-        },
+        user: user.toResponseObject(), 
       },
     };
   }

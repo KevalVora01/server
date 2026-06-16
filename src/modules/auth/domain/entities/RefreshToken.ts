@@ -1,5 +1,5 @@
 export interface RefreshTokenProps {
-  id: number;
+  id?: number;         
   userId: number;
   token: string;
   expiresAt: Date;
@@ -10,10 +10,20 @@ export class RefreshToken {
   private props: RefreshTokenProps;
 
   constructor(props: RefreshTokenProps) {
+    if (!props.token || props.token.trim().length === 0) {
+      throw new Error("Token string cannot be empty");
+    }
     this.props = props;
   }
 
-  get id(): number {
+  public static create(props: Omit<RefreshTokenProps, 'id' | 'createdAt'>): RefreshToken {
+    return new RefreshToken({
+      ...props,
+      createdAt: new Date()
+    });
+  }
+
+  get id(): number | undefined {
     return this.props.id;
   }
 
@@ -37,10 +47,11 @@ export class RefreshToken {
     return this.props.expiresAt.getTime() < Date.now();
   }
 
-  toJSON() {
+  toObject() {
     return {
       id: this.props.id,
       userId: this.props.userId,
+      token: this.props.token,
       expiresAt: this.props.expiresAt,
       createdAt: this.props.createdAt,
     };

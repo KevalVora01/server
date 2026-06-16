@@ -23,8 +23,19 @@ export class User {
     this.props = props;
   }
 
-  get id(): number {
-    return this.props.id?? -1;
+  public static create(
+    props: Omit<UserProps, 'id' | 'isActive' | 'createdAt' | 'updatedAt'>
+  ): User {
+    return new User({
+      ...props,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  get id(): number | undefined {
+    return this.props.id;
   }
 
   get name(): string {
@@ -59,7 +70,10 @@ export class User {
     return this.props.updatedAt;
   }
 
+  // --- Domain Logic Methods ---
+
   updateName(name: string): void {
+    if (!name || name.trim().length === 0) throw new Error("Name cannot be empty");
     this.props.name = name;
     this.props.updatedAt = new Date();
   }
@@ -88,7 +102,7 @@ export class User {
     return this.props.role === role;
   }
 
-  toJSON() {
+  toResponseObject() {
     return {
       id: this.props.id,
       name: this.props.name,
@@ -97,7 +111,6 @@ export class User {
       role: this.props.role,
       isActive: this.props.isActive,
       createdAt: this.props.createdAt,
-      updatedAt: this.props.updatedAt,
     };
   }
 }

@@ -6,12 +6,12 @@ export class LogoutUseCase {
   ) {}
 
   async execute(refreshToken: string): Promise<void> {
+    // Graceful early exit: If there's no token, there's nothing to delete
     if (!refreshToken) {
       return;
     }
 
-    await this.refreshTokenRepository.deleteByToken(
-      refreshToken
-    );
+    // Invalidate the session by purging the token from the database
+    await this.refreshTokenRepository.deleteByToken(refreshToken);
   }
 }

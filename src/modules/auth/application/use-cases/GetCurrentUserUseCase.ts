@@ -1,7 +1,5 @@
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
-
 import { UserResponseDto } from "../dtos/UserResponseDto";
-
 import {
   UserNotFoundError,
   InactiveUserError,
@@ -12,26 +10,20 @@ export class GetCurrentUserUseCase {
     private readonly userRepository: IUserRepository
   ) {}
 
-  async execute(
-    userId: number
-  ): Promise<UserResponseDto> {
-    const user =
-      await this.userRepository.findById(userId);
+  async execute(userId: number): Promise<UserResponseDto> {
+    // 1. Fetch user from infrastructure via the Repository contract
+    const user = await this.userRepository.findById(userId);
 
     if (!user) {
       throw new UserNotFoundError();
     }
 
+    // 2. Domain check: Prevent inactive accounts from querying details
     if (!user.isActive) {
       throw new InactiveUserError();
     }
 
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-    };
+    // 3. Transformation: Use the entity's built-in conversion method.
+    return user.toResponseObject();
   }
 }

@@ -7,7 +7,7 @@ import app from "./app";
 import { env } from "./shared/config/env";
 import {
   connectDB,
-  sequelize, // 👈 Replaced 'pool' with 'sequelize'
+  sequelize,
 } from "./shared/config/db";
 
 const startServer = async (): Promise<void> => {

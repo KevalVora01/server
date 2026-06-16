@@ -1,15 +1,10 @@
 import { LoginDto } from "../dtos/LoginDto";
 import { AuthResponseDto } from "../dtos/AuthResponseDto";
-
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
-
 import { IPasswordHasher } from "../../domain/services/IPasswordHasher";
-import {
-  ITokenService,
-  TokenPayload,
-} from "../../domain/services/ITokenService";
-
+import { ITokenService, TokenPayload } from "../../domain/services/ITokenService";
+import { RefreshToken } from "../../domain/entities/RefreshToken"; // 💡 Import the RefreshToken entity class
 import {
   InvalidCredentialsError,
   InactiveUserError,
@@ -21,7 +16,7 @@ export class LoginUseCase {
     private readonly refreshTokenRepository: IRefreshTokenRepository,
     private readonly passwordHasher: IPasswordHasher,
     private readonly tokenService: ITokenService
-  ) { }
+  ) {}
 
   async execute(
     dto: LoginDto
@@ -29,69 +24,56 @@ export class LoginUseCase {
     authResponse: AuthResponseDto;
     refreshToken: string;
   }> {
-    const user = await this.userRepository.findByEmail(
-      dto.email
-    );
+    // 1. Core Lookup: Look up the user profile by email address
+    const user = await this.userRepository.findByEmail(dto.email);
 
     if (!user) {
       throw new InvalidCredentialsError();
     }
 
+    // 2. Domain Validation: Ensure the target user account isn't locked out or deleted
     if (!user.isActive) {
       throw new InactiveUserError();
     }
 
-    const passwordMatches =
-      await this.passwordHasher.compare(
-        dto.password,
-        user.passwordHash
-      );
+    // 3. Cryptography: Compare plain text inputs with stored Argon2/Bcrypt hash
+    const passwordMatches = await this.passwordHasher.compare(
+      dto.password,
+      user.passwordHash
+    );
 
     if (!passwordMatches) {
       throw new InvalidCredentialsError();
     }
 
+    // 4. Token Provisioning: Package user details into structural payload signatures
     const payload: TokenPayload = {
-      userId: user.id,
+      userId: user.id!, // Explicit non-null assertion confirms the DB primary key exists
       email: user.email,
       role: user.role,
     };
 
-    const accessToken =
-      this.tokenService.generateAccessToken(
-        payload
-      );
+    const accessToken = this.tokenService.generateAccessToken(payload);
+    const refreshTokenString = this.tokenService.generateRefreshToken(payload);
 
-    const refreshToken =
-      this.tokenService.generateRefreshToken(
-        payload
-      );
+    const refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 Days Lifespan
 
-    const refreshTokenExpiresAt =
-      new Date(
-        Date.now() +
-        7 * 24 * 60 * 60 * 1000
-      );
-
-    await this.refreshTokenRepository.create({
-      userId: user.id,
-      token: refreshToken,
+    // 5. Entity Instantiation: Wrap raw parameters into a true Domain Entity instance
+    const refreshTokenInstance = RefreshToken.create({
+      userId: user.id!,
+      token: refreshTokenString,
       expiresAt: refreshTokenExpiresAt,
     });
 
-    return {
-      refreshToken,
+    // 6. Persistence: Pass the completed Entity class instance down to your repository
+    await this.refreshTokenRepository.create(refreshTokenInstance);
 
+    // 7. Transformation: Map output layers cleanly using domain methods
+    return {
+      refreshToken: refreshTokenString,
       authResponse: {
         accessToken,
-
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          role: user.role,
-        },
+        user: user.toResponseObject(),
       },
     };
   }

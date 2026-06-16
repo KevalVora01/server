@@ -1,12 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
-
 import { CreateUserUseCase } from "../../application/use-cases/CreateUserUseCase";
 import { LoginUseCase } from "../../application/use-cases/LoginUseCase";
 import { RefreshTokenUseCase } from "../../application/use-cases/RefreshTokenUseCase";
 import { LogoutUseCase } from "../../application/use-cases/LogoutUseCase";
 import { GetCurrentUserUseCase } from "../../application/use-cases/GetCurrentUserUseCase";
-
 import { refreshTokenCookieOptions } from "../config/cookieOptions";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 
@@ -17,7 +15,7 @@ export class AuthController {
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly logoutUseCase: LogoutUseCase,
     private readonly getCurrentUserUseCase: GetCurrentUserUseCase
-  ) { }
+  ) {}
 
   createUser = async (
     req: Request,
@@ -25,20 +23,12 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const user = await this.createUserUseCase.execute(
-        req.body
-      );
+      const user = await this.createUserUseCase.execute(req.body);
 
       res.status(201).json(
         ApiResponse.success({
           message: "User created successfully",
-          data: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            role: user.role,
-          }
+          data: user.toResponseObject(),
         })
       );
     } catch (error) {
@@ -52,10 +42,7 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const result =
-        await this.loginUseCase.execute(
-          req.body
-        );
+      const result = await this.loginUseCase.execute(req.body);
 
       res.cookie(
         "refreshToken",
@@ -63,9 +50,7 @@ export class AuthController {
         refreshTokenCookieOptions
       );
 
-      res.status(200).json(
-        ApiResponse.success(result.authResponse)
-      );
+      res.status(200).json(ApiResponse.success(result.authResponse));
     } catch (error) {
       next(error);
     }
@@ -77,13 +62,9 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const refreshToken =
-        req.cookies?.refreshToken;
+      const refreshToken = req.cookies?.refreshToken;
 
-      const result =
-        await this.refreshTokenUseCase.execute(
-          refreshToken
-        );
+      const result = await this.refreshTokenUseCase.execute(refreshToken);
 
       res.cookie(
         "refreshToken",
@@ -91,9 +72,7 @@ export class AuthController {
         refreshTokenCookieOptions
       );
 
-      res.status(200).json(
-        ApiResponse.success(result.authResponse)
-      );
+      res.status(200).json(ApiResponse.success(result.authResponse));
     } catch (error) {
       next(error);
     }
@@ -105,12 +84,9 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const refreshToken =
-        req.cookies?.refreshToken;
+      const refreshToken = req.cookies?.refreshToken;
 
-      await this.logoutUseCase.execute(
-        refreshToken
-      );
+      await this.logoutUseCase.execute(refreshToken);
 
       res.clearCookie("refreshToken");
 
@@ -130,15 +106,11 @@ export class AuthController {
     try {
       const authReq = req as AuthenticatedRequest;
 
-      const user =
-        await this.getCurrentUserUseCase.execute(
-          authReq.user.userId
-        );
+      const user = await this.getCurrentUserUseCase.execute(
+        authReq.user.userId
+      );
 
-      res.status(200).json({
-        success: true,
-        data: user,
-      });
+      res.status(200).json(ApiResponse.success(user));
     } catch (error) {
       next(error);
     }

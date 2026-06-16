@@ -1,5 +1,6 @@
 import { Sequelize } from 'sequelize';
 import { env } from './env';
+import { runDatabaseSeeders } from "../../../database/seeders/mainSeeder";
 
 // Initialize the Sequelize instance using your existing environment variables
 export const sequelize = new Sequelize({
@@ -33,7 +34,9 @@ export const connectDB = async (): Promise<void> => {
     
     // 2. Synchronize models with the database tables
     await sequelize.sync({ alter: true }); 
-    // console.log('🔄 All database tables synchronized successfully.');
+    console.log('🔄 All database tables synchronized successfully.');
+
+    await runDatabaseSeeders();
 
   } catch (error) {
     console.error('❌ PostgreSQL connection failed via Sequelize', error);

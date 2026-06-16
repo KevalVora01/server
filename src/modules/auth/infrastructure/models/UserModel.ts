@@ -36,7 +36,7 @@ UserModel.init(
     passwordHash: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      field: 'password_hash', // Forces explicit mapping to database column
+      field: 'password_hash',
     },
     phone: {
       type: DataTypes.STRING(15),
@@ -46,7 +46,8 @@ UserModel.init(
       type: DataTypes.STRING(20),
       allowNull: false,
       validate: {
-        isIn: [[UserRole.ADMIN, UserRole.RESIDENT, UserRole.SECURITY]],
+        // Dynamically extracts all valid roles. If you update the Enum, this updates instantly!
+        isIn: [Object.values(UserRole)],
       },
     },
     isActive: {
@@ -67,5 +68,6 @@ UserModel.init(
   {
     sequelize,
     tableName: 'users',
+    underscored: true, // Automatically applies snake_case to implicit timestamps/foreign keys if needed
   }
 );

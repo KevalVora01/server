@@ -1,55 +1,40 @@
-import {
-  Request,
-  Response,
-  NextFunction,
-} from "express";
-
-import { JwtTokenService } from "../../modules/auth/infrastructure/services/JwtTokenService";
+import { Request, Response, NextFunction } from "express";
+import { ITokenService } from "../../modules/auth/domain/services/ITokenService";
 import { AuthenticatedRequest } from "../types/AuthenticatedRequest";
+import { ApiResponse } from "../utils/apiResponse";
 
-export const jwtMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  try {
-    const authHeader =
-      req.headers.authorization;
+export const createJwtMiddleware = (tokenService: ITokenService) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      const authHeader = req.headers.authorization;
 
-    if (
-      !authHeader ||
-      !authHeader.startsWith("Bearer ")
-    ) {
-      res.status(401).json({
-        success: false,
-        message: "Access token is required",
-      });
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        res.status(401).json(
+          ApiResponse.error("Access token is required")
+        );
+        return;
+      }
 
-      return;
+      const token = authHeader.split(" ")[1];
+
+      const payload = tokenService.verifyAccessToken(token);
+
+      if (!payload) {
+        res.status(401).json(
+          ApiResponse.error("Invalid or expired session token.")
+        );
+        return;
+      }
+
+      (req as AuthenticatedRequest).user = {
+        userId: payload.userId,
+        email: payload.email,
+        role: payload.role,
+      };
+
+      next();
+    } catch (error) {
+      next(error);
     }
-
-    const token =
-      authHeader.split(" ")[1];
-
-    const tokenService =
-      new JwtTokenService();
-
-    const payload =
-      tokenService.verifyAccessToken(
-        token
-      );
-
-    (req as AuthenticatedRequest).user = {
-      userId: payload.userId,
-      email: payload.email,
-      role: payload.role,
-    };
-
-    next();
-  } catch {
-    res.status(401).json({
-      success: false,
-      message: "Invalid or expired token",
-    });
-  }
+  };
 };

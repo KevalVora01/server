@@ -1,10 +1,6 @@
-import {
-  Request,
-  Response,
-  NextFunction,
-} from "express";
-
+import { Request, Response, NextFunction } from "express";
 import { AppError } from "../../modules/auth/domain/errors/AuthErrors";
+import { ApiResponse } from "../utils/apiResponse";
 
 export const errorHandler = (
   error: Error,
@@ -12,19 +8,17 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  console.error(error);
+
+  console.error(`[Error Handler Triggered]:`, error);
 
   if (error instanceof AppError) {
-    res.status(error.statusCode).json({
-      success: false,
-      message: error.message,
-    });
-
+    res.status(error.statusCode).json(
+      ApiResponse.error(error.message)
+    );
     return;
   }
 
-  res.status(500).json({
-    success: false,
-    message: "Internal Server Error",
-  });
+  res.status(500).json(
+    ApiResponse.error("Internal Server Error")
+  );
 };
