@@ -7,6 +7,7 @@ import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
 
 import { rbacMiddleware } from "../../../../shared/middleware/rbacMiddleware";
 import { UserRole } from "../../domain/entities/User";
+import { validateLogin, validateRegister } from '../validators/authValidators';
 
 const router = Router();
 
@@ -20,6 +21,7 @@ const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
 
 router.post(
   "/login",
+  validateLogin,
   authController.login
 );
 
@@ -55,6 +57,7 @@ router.post(
   "/users",
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN),
+  validateRegister,
   authController.createUser
 );
 

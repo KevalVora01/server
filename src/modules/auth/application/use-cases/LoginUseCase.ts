@@ -16,7 +16,7 @@ export class LoginUseCase {
     private readonly refreshTokenRepository: IRefreshTokenRepository,
     private readonly passwordHasher: IPasswordHasher,
     private readonly tokenService: ITokenService
-  ) {}
+  ) { }
 
   async execute(
     dto: LoginDto
@@ -46,7 +46,10 @@ export class LoginUseCase {
       throw new InvalidCredentialsError();
     }
 
-    // 4. Token Provisioning: Package user details into structural payload signatures
+    // 4. Role-Based Access Control: Verify the user is logging in with the correct role
+    if (user.role !== dto.role) throw new InvalidCredentialsError();
+
+    // 5. Token Provisioning: Package user details into structural payload signatures
     const payload: TokenPayload = {
       userId: user.id!, // Explicit non-null assertion confirms the DB primary key exists
       email: user.email,
@@ -58,17 +61,17 @@ export class LoginUseCase {
 
     const refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 Days Lifespan
 
-    // 5. Entity Instantiation: Wrap raw parameters into a true Domain Entity instance
+    // 6. Entity Instantiation: Wrap raw parameters into a true Domain Entity instance
     const refreshTokenInstance = RefreshToken.create({
       userId: user.id!,
       token: refreshTokenString,
       expiresAt: refreshTokenExpiresAt,
     });
 
-    // 6. Persistence: Pass the completed Entity class instance down to your repository
+    // 7. Persistence: Pass the completed Entity class instance down to your repository
     await this.refreshTokenRepository.create(refreshTokenInstance);
 
-    // 7. Transformation: Map output layers cleanly using domain methods
+    // 8. Transformation: Map output layers cleanly using domain methods
     return {
       refreshToken: refreshTokenString,
       authResponse: {
