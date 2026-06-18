@@ -3,7 +3,7 @@ import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshToken
 import { RefreshToken } from "../../domain/entities/RefreshToken";
 import { RefreshTokenModel } from "../models/RefreshTokenModel";
 
-export class SequelizeRefreshTokenRepository implements IRefreshTokenRepository {
+export class RefreshTokenRepository implements IRefreshTokenRepository {
   
   // 1. Accepts a complete RefreshToken Domain Entity instead of the deleted raw data contract
   async create(refreshToken: RefreshToken): Promise<RefreshToken> {

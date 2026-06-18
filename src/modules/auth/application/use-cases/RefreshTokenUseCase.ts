@@ -2,7 +2,7 @@ import { AuthResponseDto } from "../dtos/AuthResponseDto";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { ITokenService, TokenPayload } from "../../domain/services/ITokenService";
-import { RefreshToken } from "../../domain/entities/RefreshToken"; // 💡 Import the RefreshToken entity class
+import { RefreshToken } from "../../domain/entities/RefreshToken"; 
 import {
   InvalidRefreshTokenError,
   RefreshTokenNotFoundError,

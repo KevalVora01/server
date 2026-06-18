@@ -1,69 +1,58 @@
-import { body, validationResult } from 'express-validator';
-import type { Request, Response, NextFunction } from 'express';
+import Joi from 'joi';
+import { handleValidationError } from '../../../../shared/utils/validateRequest';
 
-// ─── Handle validation errors ─────────────────────────────────────
-const handleValidationErrors = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    res.status(400).json({
-      success: false,
-      error: 'Validation failed',
-      details: errors.array().map((err) => err.msg),
-    });
-    return;
-  }
-  next();
-};
 
-// ─── Register validator ───────────────────────────────────────────
-export const validateRegister = [
-  body('name')
-    .trim()
-    .notEmpty().withMessage('Name is required')
-    .isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
+// ─── Schemas ──────────────────────────────────────────────────────
+const registerSchema = Joi.object({
+  name: Joi.string().trim().min(2).required().messages({
+    'string.empty': 'Name is required',
+    'string.min': 'Name must be at least 2 characters',
+  }),
 
-  body('email')
-    .trim()
-    .notEmpty().withMessage('Email is required')
-    .isEmail().withMessage('Please provide a valid email'),
+  email: Joi.string().trim().email().required().messages({
+    'string.empty': 'Email is required',
+    'string.email': 'Please provide a valid email',
+  }),
 
-  body('password')
-    .notEmpty().withMessage('Password is required')
-    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
-    .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
-    .matches(/[0-9]/).withMessage('Password must contain at least one number')
-    .matches(/[\W_]/).withMessage('Password must contain at least one special character'),
+  password: Joi.string()
+    .min(8)
+    .pattern(/[A-Z]/)
+    .pattern(/[0-9]/)
+    .pattern(/[\W_]/)
+    .required()
+    .messages({
+      'string.empty': 'Password is required',
+      'string.min': 'Password must be at least 8 characters',
+      'string.pattern.base': 'Password must contain at least one uppercase letter, one number, and one special character',
+    }),
 
-  body('phone')
-    .trim()
-    .notEmpty().withMessage('Phone is required')
-    .isLength({ min: 10, max: 10 }).withMessage('Phone must be exactly 10 digits')
-    .isNumeric().withMessage('Phone must contain only numbers'),
+  phone: Joi.string().trim().length(10).pattern(/^[0-9]+$/).required().messages({
+    'string.empty': 'Phone is required',
+    'string.length': 'Phone must be exactly 10 digits',
+    'string.pattern.base': 'Phone must contain only numbers',
+  }),
 
-  body('role')
-    .optional()
-    .isIn(['admin', 'resident', 'security']).withMessage('Invalid role'),
+  role: Joi.string().valid('admin', 'resident', 'security').optional().messages({
+    'any.only': 'Invalid role',
+  }),
+});
 
-  handleValidationErrors,
-];
+const loginSchema = Joi.object({
+  email: Joi.string().trim().email().required().messages({
+    'string.empty': 'Email is required',
+    'string.email': 'Please provide a valid email',
+  }),
 
-// ─── Login validator ──────────────────────────────────────────────
-export const validateLogin = [
-  body('email')
-    .trim()
-    .notEmpty().withMessage('Email is required')
-    .isEmail().withMessage('Please provide a valid email'),
+  password: Joi.string().required().messages({
+    'string.empty': 'Password is required',
+  }),
 
-  body('password')
-    .notEmpty().withMessage('Password is required'),
+  role: Joi.string().valid('admin', 'resident', 'security').required().messages({
+    'string.empty': 'Role is required',
+    'any.only': 'Invalid role — must be admin, resident or security',
+  }),
+});
 
-  body('role')
-    .notEmpty().withMessage('Role is required')
-    .isIn(['admin', 'resident', 'security']).withMessage('Invalid role — must be admin, resident or security'),
-
-  handleValidationErrors,
-];
+// ─── Exported validators ──────────────────────────────────────────
+export const validateRegister = [handleValidationError(registerSchema, 'body')];
+export const validateLogin = [handleValidationError(loginSchema, 'body')];

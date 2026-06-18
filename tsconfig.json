@@ -9,13 +9,15 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "typeRoots": [
       "./node_modules/@types",
       "./src/types"
     ]
   },
   "include": [
-    "src/**/*", 
+    "src/**/*",
     "database/**/*"
   ],
   "exclude": [

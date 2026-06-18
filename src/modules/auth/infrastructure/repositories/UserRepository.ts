@@ -2,7 +2,7 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { User } from "../../domain/entities/User";
 import { UserModel } from "../models/UserModel";
 
-export class SequelizeUserRepository implements IUserRepository {
+export class UserRepository implements IUserRepository {
 
   async findById(id: number): Promise<User | null> {
     const userModel = await UserModel.findByPk(id);

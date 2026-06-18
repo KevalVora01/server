@@ -1,5 +1,5 @@
-import { SequelizeUserRepository } from "./infrastructure/repositories/SequelizeUserRepository";
-import { SequelizeRefreshTokenRepository } from "./infrastructure/repositories/SequelizeRefreshTokenRepository";
+import { UserRepository } from "./infrastructure/repositories/UserRepository";
+import { RefreshTokenRepository } from "./infrastructure/repositories/RefreshTokenRepository";
 import { BcryptPasswordHasher } from "./infrastructure/services/BcryptPasswordHasher";
 import { JwtTokenService } from "./infrastructure/services/JwtTokenService";
 import { CreateUserUseCase } from "./application/use-cases/CreateUserUseCase";
@@ -10,8 +10,8 @@ import { GetCurrentUserUseCase } from "./application/use-cases/GetCurrentUserUse
 import { AuthController } from "./presentation/controllers/authController";
 
 // 1. Core Infrastructure Adapters
-const userRepository = new SequelizeUserRepository();
-const refreshTokenRepository = new SequelizeRefreshTokenRepository();
+const userRepository = new UserRepository();
+const refreshTokenRepository = new RefreshTokenRepository();
 const passwordHasher = new BcryptPasswordHasher();
 const tokenService = new JwtTokenService();
 

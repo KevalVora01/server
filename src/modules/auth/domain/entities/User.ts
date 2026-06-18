@@ -70,6 +70,17 @@ export class User {
     return this.props.updatedAt;
   }
 
+  updateName(name: string): void {
+    if (!name || name.trim().length === 0) throw new Error("Name cannot be empty");
+    this.props.name = name;
+    this.props.updatedAt = new Date();
+  }
+
+  updatePhone(phone: string): void {
+    this.props.phone = phone;
+    this.props.updatedAt = new Date();
+  }
+
   toResponseObject() {
     return {
       id: this.props.id,

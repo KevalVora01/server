@@ -1,3 +1,4 @@
+import { seedResidentProfile } from "./residentSeeder";
 import { seedDefaultUsers } from "./userSeeder";
 
 // Global Database Seeder Entrypoint
@@ -8,6 +9,7 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   
   // Run all your seeding scripts sequentially
   await seedDefaultUsers();
+  await seedResidentProfile();
 
   console.log("[Database Seeder]: Seeding sequence complete.");
   console.log("-----------------------------------------");
