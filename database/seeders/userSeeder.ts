@@ -2,9 +2,7 @@ import { UserModel } from "../../src/modules/auth/infrastructure/models/UserMode
 import { UserRole } from "../../src/modules/auth/domain/entities/User";
 import { BcryptPasswordHasher } from "../../src/modules/auth/infrastructure/services/BcryptPasswordHasher";
 
-// Seeds a default Admin user if the users table is completely empty.
-
-export const seedAdminUser = async (): Promise<void> => {
+export const seedDefaultUsers = async (): Promise<void> => {
   try {
     const userCount = await UserModel.count();
 
@@ -13,25 +11,50 @@ export const seedAdminUser = async (): Promise<void> => {
       return;
     }
 
-    console.log("[Database Seeder]: Users table is empty. Generating default admin user...");
+    console.log("[Database Seeder]: Users table is empty. Generating default users...");
 
     const passwordHasher = new BcryptPasswordHasher();
-    const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || "Admin@123"; 
-    const hashedPassword = await passwordHasher.hash(defaultPassword);
 
-    await UserModel.create({
-      name: "System Administrator",
-      email: process.env.DEFAULT_ADMIN_EMAIL || "admin@society.com",
-      passwordHash: hashedPassword,
-      phone: "0000000000",
-      role: UserRole.ADMIN,
-      isActive: true,
-    });
+    const users = [
+      {
+        name: "System Administrator",
+        email: "admin@society.com",
+        password: "Admin@123",
+        phone: "0000000000",
+        role: UserRole.ADMIN,
+      },
+      {
+        name: "Default Resident",
+        email: "resident@society.com",
+        password: "Resident@123",
+        phone: "0000000001",
+        role: UserRole.RESIDENT,
+      },
+      {
+        name: "Security Guard",
+        email: "security@society.com",
+        password: "Security@123",
+        phone: "0000000002",
+        role: UserRole.SECURITY,
+      },
+    ];
 
-    console.log(`[Database Seeder]: Default admin user successfully created!`);
-    console.log(`[Database Seeder]: Email: ${process.env.DEFAULT_ADMIN_EMAIL || "admin@society.com"}`);
+    for (const user of users) {
+      const hashedPassword = await passwordHasher.hash(user.password);
+      await UserModel.create({
+        name: user.name,
+        email: user.email,
+        passwordHash: hashedPassword,
+        phone: user.phone,
+        role: user.role,
+        isActive: true,
+      });
+      console.log(`[Database Seeder]: Created ${user.role} — ${user.email}`);
+    }
+
+    console.log("[Database Seeder]: Default users successfully seeded!");
 
   } catch (error) {
-    console.error("[Database Seeder] CRITICAL: Failed to seed default admin user:", error);
+    console.error("[Database Seeder] CRITICAL: Failed to seed default users:", error);
   }
 };
