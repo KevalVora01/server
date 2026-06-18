@@ -43,12 +43,8 @@ UserModel.init(
       allowNull: false,
     },
     role: {
-      type: DataTypes.STRING(20),
+      type: DataTypes.ENUM(...Object.values(UserRole)),
       allowNull: false,
-      validate: {
-        // Dynamically extracts all valid roles. If you update the Enum, this updates instantly!
-        isIn: [Object.values(UserRole)],
-      },
     },
     isActive: {
       type: DataTypes.BOOLEAN,
