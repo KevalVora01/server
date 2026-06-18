@@ -70,38 +70,6 @@ export class User {
     return this.props.updatedAt;
   }
 
-  // --- Domain Logic Methods ---
-
-  updateName(name: string): void {
-    if (!name || name.trim().length === 0) throw new Error("Name cannot be empty");
-    this.props.name = name;
-    this.props.updatedAt = new Date();
-  }
-
-  updatePhone(phone: string): void {
-    this.props.phone = phone;
-    this.props.updatedAt = new Date();
-  }
-
-  updatePassword(hashedPassword: string): void {
-    this.props.passwordHash = hashedPassword;
-    this.props.updatedAt = new Date();
-  }
-
-  deactivate(): void {
-    this.props.isActive = false;
-    this.props.updatedAt = new Date();
-  }
-
-  activate(): void {
-    this.props.isActive = true;
-    this.props.updatedAt = new Date();
-  }
-
-  hasRole(role: UserRole): boolean {
-    return this.props.role === role;
-  }
-
   toResponseObject() {
     return {
       id: this.props.id,
