@@ -1,5 +1,5 @@
 import { DataTypes, Model, Optional } from "sequelize";
-import { sequelize } from "../../../../shared/config/db";
+import { sequelize } from "../../../../shared/config/sequelize";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 
 interface ResidentAttributes {

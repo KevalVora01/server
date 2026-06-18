@@ -1,5 +1,5 @@
 import { Model, DataTypes, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
-import { sequelize } from '../../../../shared/config/db';
+import { sequelize } from "../../../../shared/config/sequelize"
 import { UserRole } from '../../domain/entities/User';
 
 export class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttributes<UserModel>> {
