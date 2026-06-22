@@ -1,5 +1,3 @@
-// src/modules/residents/application/use-cases/ListResidentsUseCase.ts
-
 import { IResidentRepository, ListResidentsFilters } from "../../domain/repositories/IResidentRepository";
 import { PaginatedResult } from "../../../../shared/types/Pagination";
 import { Resident } from "../../domain/entities/Resident";
