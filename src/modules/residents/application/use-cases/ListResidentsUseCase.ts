@@ -17,7 +17,7 @@ export class ListResidentsUseCase {
       apartmentId: dto.apartmentId,
       isOwner: dto.isOwner,
       search: dto.search,
-      isActive: dto.isActive ?? true,
+      isActive: dto.isActive,
     };
 
     return this.residentRepository.findAll(filters);

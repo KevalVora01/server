@@ -89,6 +89,8 @@ export class Resident {
       moveOutDate: this.props.moveOutDate,
       isActive: this.props.isActive,
       createdAt: this.props.createdAt,
+      user: (this as any).user ?? null,
+      apartment: (this as any).apartment ?? null,
     };
   }
 }

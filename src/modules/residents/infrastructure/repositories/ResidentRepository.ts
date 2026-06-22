@@ -63,16 +63,19 @@ export class ResidentRepository implements IResidentRepository {
   }
 
   async findAll(filters: ListResidentsFilters): Promise<PaginatedResult<Resident>> {
-    const where: any = {
-      isActive: filters.isActive ?? true,
-    };
+
+    const where: Record<string, unknown> = {};
+
+    if (filters.isActive !== undefined) {
+      where.isActive = filters.isActive;
+    }
 
     if (filters.apartmentId) where.apartmentId = filters.apartmentId;
     if (filters.isOwner !== undefined) where.isOwner = filters.isOwner;
 
-    const userWhere: any = {};
+    const userWhere: Record<string, unknown> = {};
     if (filters.search) {
-      userWhere[Op.or] = [
+      (userWhere as any)[Op.or] = [
         { name: { [Op.iLike]: `%${filters.search}%` } },
         { email: { [Op.iLike]: `%${filters.search}%` } },
       ];
@@ -96,7 +99,12 @@ export class ResidentRepository implements IResidentRepository {
     });
 
     return buildPaginatedResult(
-      rows.map(this.toEntity.bind(this)),
+      rows.map((row) => {
+        const resident = this.toEntity(row);
+        (resident as any).user = (row as any).user ?? null;
+        (resident as any).apartment = null; // until ApartmentModel is built
+        return resident;
+      }),
       count,
       filters.pageNumber,
       filters.pageSize

@@ -15,7 +15,7 @@ export class ResidentController {
     private readonly listResidentsUseCase: ListResidentsUseCase,
     private readonly updateResidentUseCase: UpdateResidentUseCase,
     private readonly deactivateResidentUseCase: DeactivateResidentUseCase
-  ) {}
+  ) { }
 
   createResident = async (
     req: Request,
@@ -81,7 +81,10 @@ export class ResidentController {
       res.status(200).json(
         ApiResponse.success({
           message: "Residents fetched successfully",
-          data: result,
+          data: {
+            ...result,
+            items: result.items.map((r) => r.toResponseObject()),
+          },
         })
       );
     } catch (error) {
