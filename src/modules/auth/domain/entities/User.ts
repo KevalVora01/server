@@ -81,6 +81,11 @@ export class User {
     this.props.updatedAt = new Date();
   }
 
+  updatePassword(hashedPassword: string): void {
+    this.props.passwordHash = hashedPassword;
+    this.props.updatedAt = new Date();
+  }
+
   toResponseObject() {
     return {
       id: this.props.id,

@@ -7,7 +7,7 @@ import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
 
 import { rbacMiddleware } from "../../../../shared/middleware/rbacMiddleware";
 import { UserRole } from "../../domain/entities/User";
-import { validateLogin, validateRegister } from '../validators/authValidators';
+import { validateForgotPassword, validateLogin, validateRegister, validateResetPassword } from '../validators/authValidators';
 
 const router = Router();
 
@@ -33,6 +33,24 @@ router.post(
 router.post(
   "/logout",
   authController.logout
+);
+
+/*
+|--------------------------------------------------------------------------
+| Password Reset Routes (Public)
+|--------------------------------------------------------------------------
+*/
+
+router.post(
+  "/forgot-password",
+  validateForgotPassword,
+  authController.forgotPassword
+);
+
+router.post(
+  "/reset-password",
+  validateResetPassword,
+  authController.resetPassword
 );
 
 /*

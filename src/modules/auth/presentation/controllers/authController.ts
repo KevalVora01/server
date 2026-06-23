@@ -7,6 +7,8 @@ import { LogoutUseCase } from "../../application/use-cases/LogoutUseCase";
 import { GetCurrentUserUseCase } from "../../application/use-cases/GetCurrentUserUseCase";
 import { refreshTokenCookieOptions } from "../config/cookieOptions";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
+import { ForgotPasswordUseCase } from "../../application/use-cases/ForgotPasswordUseCase";
+import { ResetPasswordUseCase } from "../../application/use-cases/ResetPasswordUseCase";
 
 export class AuthController {
   constructor(
@@ -14,8 +16,10 @@ export class AuthController {
     private readonly loginUseCase: LoginUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly logoutUseCase: LogoutUseCase,
-    private readonly getCurrentUserUseCase: GetCurrentUserUseCase
-  ) {}
+    private readonly getCurrentUserUseCase: GetCurrentUserUseCase,
+    private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
+  ) { }
 
   createUser = async (
     req: Request,
@@ -111,6 +115,45 @@ export class AuthController {
       );
 
       res.status(200).json(ApiResponse.success(user));
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  forgotPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      await this.forgotPasswordUseCase.execute(req.body);
+
+      // always return success — never reveal if email exists
+      res.status(200).json(
+        ApiResponse.success({
+          message: "If an account exists with this email, a reset link has been sent.",
+          data: null,
+        })
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resetPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      await this.resetPasswordUseCase.execute(req.body);
+
+      res.status(200).json(
+        ApiResponse.success({
+          message: "Password reset successfully. You can now log in with your new password.",
+          data: null,
+        })
+      );
     } catch (error) {
       next(error);
     }

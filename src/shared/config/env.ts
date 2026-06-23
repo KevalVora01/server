@@ -3,7 +3,7 @@ export const env = {
 
   CLIENT_URL: process.env.CLIENT_URL,
 
-  NODE_ENV : process.env.NODE_ENV || "development",
+  NODE_ENV: process.env.NODE_ENV || "development",
 
   DATABASE_HOST:
     process.env.DATABASE_HOST || "localhost",
@@ -31,4 +31,10 @@ export const env = {
 
   JWT_REFRESH_EXPIRES_IN:
     process.env.JWT_REFRESH_EXPIRES_IN || "7d",
+
+  RESEND_API_KEY:
+    process.env.RESEND_API_KEY,
+
+  RESEND_FROM_EMAIL:
+    process.env.RESEND_FROM_EMAIL,
 };

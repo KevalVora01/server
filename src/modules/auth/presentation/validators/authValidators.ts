@@ -53,6 +53,34 @@ const loginSchema = Joi.object({
   }),
 });
 
+const forgotPasswordSchema = Joi.object({
+  email: Joi.string().trim().email().required().messages({
+    'string.empty': 'Email is required',
+    'string.email': 'Please provide a valid email',
+  }),
+});
+
+const resetPasswordSchema = Joi.object({
+  token: Joi.string().required().messages({
+    'string.empty': 'Reset token is required',
+  }),
+
+  newPassword: Joi.string()
+    .min(8)
+    .pattern(/[A-Z]/)
+    .pattern(/[0-9]/)
+    .pattern(/[\W_]/)
+    .required()
+    .messages({
+      'string.empty': 'Password is required',
+      'string.min': 'Password must be at least 8 characters',
+      'string.pattern.base': 'Password must contain at least one uppercase letter, one number, and one special character',
+    }),
+});
+
 // ─── Exported validators ──────────────────────────────────────────
 export const validateRegister = [handleValidationError(registerSchema, 'body')];
 export const validateLogin = [handleValidationError(loginSchema, 'body')];
+
+export const validateForgotPassword = [handleValidationError(forgotPasswordSchema, 'body')];
+export const validateResetPassword = [handleValidationError(resetPasswordSchema, 'body')];
