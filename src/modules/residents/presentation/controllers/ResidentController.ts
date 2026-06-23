@@ -42,20 +42,23 @@ export class ResidentController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const resident = await this.getResidentUseCase.execute(
-        Number(req.params.id)
-      );
+      const resident = await this.getResidentUseCase.execute(Number(req.params.id));
 
       res.status(200).json(
         ApiResponse.success({
           message: "Resident fetched successfully",
-          data: resident.toResponseObject(),
+          data: {
+            ...resident.toResponseObject(),
+            user: (resident as any).user ?? null,
+            apartment: (resident as any).apartment ?? null,
+          },
         })
       );
     } catch (error) {
       next(error);
     }
   };
+
 
   listResidents = async (
     req: Request,

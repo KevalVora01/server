@@ -37,8 +37,7 @@ export class ResidentRepository implements IResidentRepository {
   async findById(id: number): Promise<Resident | null> {
     const model = await ResidentModel.findOne({
       where: {
-        id,
-        isActive: true,
+        id
       },
       include: [
         {
@@ -50,7 +49,11 @@ export class ResidentRepository implements IResidentRepository {
     });
 
     if (!model) return null;
-    return this.toEntity(model);
+
+    const resident = this.toEntity(model);
+    (resident as any).user = (model as any).user ?? null;
+    (resident as any).apartment = null; // until ApartmentModel is built
+    return resident;
   }
 
   async findByUserId(userId: number): Promise<Resident | null> {

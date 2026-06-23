@@ -14,9 +14,9 @@ export class GetResidentUseCase {
       throw new ResidentNotFoundError();
     }
 
-    if (!resident.isActive) {
-      throw new ResidentNotFoundError(); // treat inactive as not found
-    }    
+    // if (!resident.isActive) {
+    //   throw new ResidentNotFoundError(); // treat inactive as not found
+    // }    
 
     return resident;
   }
