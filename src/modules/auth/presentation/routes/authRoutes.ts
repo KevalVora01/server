@@ -7,7 +7,7 @@ import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
 
 import { rbacMiddleware } from "../../../../shared/middleware/rbacMiddleware";
 import { UserRole } from "../../domain/entities/User";
-import { validateForgotPassword, validateLogin, validateRegister, validateResetPassword } from '../validators/authValidators';
+import { validateChangePassword, validateForgotPassword, validateLogin, validateRegister, validateResetPassword, validateUpdateProfile } from '../validators/authValidators';
 
 const router = Router();
 
@@ -63,6 +63,20 @@ router.get(
   "/me",
   jwtMiddleware,
   authController.me
+);
+
+router.put(
+  "/me",
+  jwtMiddleware,
+  validateUpdateProfile,
+  authController.updateProfile
+);
+
+router.put(
+  "/me/password",
+  jwtMiddleware,
+  validateChangePassword,
+  authController.changePassword
 );
 
 /*

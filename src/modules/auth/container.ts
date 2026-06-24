@@ -12,6 +12,8 @@ import { GetCurrentUserUseCase } from "./application/use-cases/GetCurrentUserUse
 import { ForgotPasswordUseCase } from "./application/use-cases/ForgotPasswordUseCase";
 import { ResetPasswordUseCase } from "./application/use-cases/ResetPasswordUseCase";
 import { AuthController } from "./presentation/controllers/authController";
+import { UpdateProfileUseCase } from "./application/use-cases/UpdateProfileUseCase";
+import { ChangePasswordUseCase } from "./application/use-cases/ChangePasswordUseCase";
 
 // 1. Core Infrastructure Adapters
 const userRepository = new UserRepository();
@@ -29,6 +31,8 @@ const logoutUseCase = new LogoutUseCase(refreshTokenRepository);
 const getCurrentUserUseCase = new GetCurrentUserUseCase(userRepository);
 const forgotPasswordUseCase = new ForgotPasswordUseCase(userRepository, passwordResetTokenRepository, emailService);
 const resetPasswordUseCase = new ResetPasswordUseCase(userRepository, passwordResetTokenRepository, passwordHasher);
+const updateProfileUseCase = new UpdateProfileUseCase(userRepository);
+const changePasswordUseCase = new ChangePasswordUseCase(userRepository, passwordHasher);
 
 // 3. Presentation Layer Controller Delivery Singleton
 export const authController = new AuthController(
@@ -39,4 +43,6 @@ export const authController = new AuthController(
   getCurrentUserUseCase,
   forgotPasswordUseCase,
   resetPasswordUseCase,
+  updateProfileUseCase,
+  changePasswordUseCase,
 );
