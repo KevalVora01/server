@@ -37,4 +37,22 @@ export const env = {
 
   RESEND_FROM_EMAIL:
     process.env.RESEND_FROM_EMAIL,
+
+  SMTP_HOST:
+    process.env.SMTP_HOST,
+
+  SMTP_PORT:
+    Number(process.env.SMTP_PORT) || 587,
+
+  SMTP_USER:
+    process.env.SMTP_USER,
+
+  SMTP_PASSWORD:
+    process.env.SMTP_PASSWORD,
+
+  SMTP_FROM_NAME:
+    process.env.SMTP_FROM_NAME,
+
+  SMTP_FROM_EMAIL:
+    process.env.SMTP_FROM_EMAIL,
 };

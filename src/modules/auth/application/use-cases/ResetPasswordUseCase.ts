@@ -8,7 +8,7 @@ export class ResetPasswordUseCase {
     private readonly userRepository: IUserRepository,
     private readonly passwordResetTokenRepository: IPasswordResetTokenRepository,
     private readonly passwordHasher: IPasswordHasher
-  ) {}
+  ) { }
 
   async execute(dto: ResetPasswordDto): Promise<void> {
     // 1. Find token in DB

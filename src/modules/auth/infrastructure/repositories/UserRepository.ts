@@ -51,6 +51,7 @@ export class UserRepository implements IUserRepository {
         phone: user.phone,
         role: user.role,
         isActive: user.isActive,
+        passwordHash: user.passwordHash,
       },
       {
         where: { id: user.id },

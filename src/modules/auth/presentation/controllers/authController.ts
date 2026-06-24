@@ -146,6 +146,7 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
+      console.log('resetPassword hit:', req.body); // ← add this
       await this.resetPasswordUseCase.execute(req.body);
 
       res.status(200).json(

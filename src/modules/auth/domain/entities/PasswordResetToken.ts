@@ -15,7 +15,7 @@ export class PasswordResetToken {
 
   public static create(userId: number, token: string): PasswordResetToken {
     const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 30); // expires in 30 minutes
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10); // expires in 10 minutes
 
     return new PasswordResetToken({
       userId,

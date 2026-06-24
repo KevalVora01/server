@@ -3,7 +3,7 @@ import { RefreshTokenRepository } from "./infrastructure/repositories/RefreshTok
 import { PasswordResetTokenRepository } from "./infrastructure/repositories/PasswordResetTokenRepository";
 import { BcryptPasswordHasher } from "./infrastructure/services/BcryptPasswordHasher";
 import { JwtTokenService } from "./infrastructure/services/JwtTokenService";
-import { ResendEmailService } from "./infrastructure/services/ResendEmailService";
+import { NodemailerEmailService } from "./infrastructure/services/NodemailerEmailService";
 import { CreateUserUseCase } from "./application/use-cases/CreateUserUseCase";
 import { LoginUseCase } from "./application/use-cases/LoginUseCase";
 import { RefreshTokenUseCase } from "./application/use-cases/RefreshTokenUseCase";
@@ -19,7 +19,7 @@ const refreshTokenRepository = new RefreshTokenRepository();
 const passwordResetTokenRepository = new PasswordResetTokenRepository();
 const passwordHasher = new BcryptPasswordHasher();
 const tokenService = new JwtTokenService();
-const emailService = new ResendEmailService();
+const emailService = new NodemailerEmailService();
 
 // 2. Intermediary Business Use Case Layer
 const createUserUseCase = new CreateUserUseCase(userRepository, passwordHasher);

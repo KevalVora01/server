@@ -38,7 +38,7 @@ export class ForgotPasswordUseCase {
 
     // 8. Send email
     console.log(`Password reset link for ${user.email}: ${resetLink}`);
-    await this.emailService.sendEmail({
+    await this.emailService.sendEmail({ 
       to: user.email,
       subject: "Reset your password — Civic Horizon",
       html: `
@@ -47,7 +47,7 @@ export class ForgotPasswordUseCase {
           <p style="color: #6b7280;">
             You requested a password reset for your Civic Horizon account.
             Click the button below to set a new password.
-            This link expires in <strong>30 minutes</strong>.
+            This link expires in <strong>10 minutes</strong>.
           </p>
           <a href="${resetLink}"
             style="display: inline-block; background: #111827; color: #fff;
