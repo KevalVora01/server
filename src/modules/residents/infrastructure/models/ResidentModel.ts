@@ -1,6 +1,7 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../../../../shared/config/sequelize";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
+import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 
 interface ResidentAttributes {
   id: number;
@@ -15,12 +16,11 @@ interface ResidentAttributes {
 }
 
 interface ResidentCreationAttributes
-  extends Optional<ResidentAttributes, "id" | "moveOutDate" | "isActive" | "createdAt" | "updatedAt"> {}
+  extends Optional<ResidentAttributes, "id" | "moveOutDate" | "isActive" | "createdAt" | "updatedAt"> { }
 
 export class ResidentModel
   extends Model<ResidentAttributes, ResidentCreationAttributes>
-  implements ResidentAttributes
-{
+  implements ResidentAttributes {
   declare id: number;
   declare userId: number;
   declare apartmentId: number;
@@ -50,6 +50,10 @@ ResidentModel.init(
     apartmentId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: ApartmentModel,  // ← add this
+        key: "id",
+      },
     },
     isOwner: {
       type: DataTypes.BOOLEAN,
@@ -90,3 +94,6 @@ ResidentModel.init(
 
 ResidentModel.belongsTo(UserModel, { foreignKey: "userId", as: "user" });
 UserModel.hasOne(ResidentModel, { foreignKey: "userId", as: "resident" });
+
+ResidentModel.belongsTo(ApartmentModel, { foreignKey: "apartmentId", as: "apartment" });
+ApartmentModel.hasMany(ResidentModel, { foreignKey: "apartmentId", as: "residents" });

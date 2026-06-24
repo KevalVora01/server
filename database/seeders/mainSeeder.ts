@@ -1,3 +1,4 @@
+import { seedApartmentsAndResidents } from "./apartmentSeeder";
 import { seedResidentProfile } from "./residentSeeder";
 import { seedDefaultUsers } from "./userSeeder";
 
@@ -10,6 +11,7 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   // Run all your seeding scripts sequentially
   await seedDefaultUsers();
   await seedResidentProfile();
+  await seedApartmentsAndResidents();
 
   console.log("[Database Seeder]: Seeding sequence complete.");
   console.log("-----------------------------------------");

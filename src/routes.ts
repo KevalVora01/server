@@ -1,15 +1,18 @@
 import { Router } from 'express';
 import authRoutes from './modules/auth/presentation/routes/authRoutes';
 import residentRoutes from './modules/residents/presentation/routes/ResidentRoutes';
+import apartmentRoutes from './modules/apartments/presentation/routes/apartmentRoutes';
 
 const router = Router();
 
 // ─── Auth ─────────────────────────────────────────────────────────
 router.use('/auth', authRoutes);
+
 router.use('/residents',  residentRoutes);
 
+router.use("/apartments", apartmentRoutes);
+
 // ─── Add more modules here as you build them ──────────────────────
-// router.use('/apartments', apartmentRoutes);
 // router.use('/complaints', complaintRoutes);
 // router.use('/notices',    noticeRoutes);
 // router.use('/invoices',   invoiceRoutes);

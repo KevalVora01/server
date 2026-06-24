@@ -1,0 +1,101 @@
+import { IApartmentRepository, ListApartmentsFilters, ApartmentWithOccupancy } from "../../domain/repositories/IApartmentRepository";
+import { Apartment } from "../../domain/entities/Apartment";
+import { PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
+import { ApartmentModel } from "../models/ApartmentModel";
+import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
+
+export class ApartmentRepository implements IApartmentRepository {
+
+  private toEntity(model: ApartmentModel): Apartment {
+    return new Apartment({
+      id: model.id,
+      block: model.block,
+      floorNumber: model.floorNumber,
+      flateNumber: model.flateNumber,
+      areaSqft: model.areaSqft,
+      type: model.type,
+      createdAt: model.createdAt,
+      updatedAt: model.updatedAt,
+    });
+  }
+
+  async create(apartment: Apartment): Promise<Apartment> {
+    const created = await ApartmentModel.create({
+      block: apartment.block,
+      floorNumber: apartment.floorNumber,
+      flateNumber: apartment.flateNumber,
+      areaSqft: apartment.areaSqft,
+      type: apartment.type,
+    });
+
+    return this.toEntity(created);
+  }
+
+  async findById(id: number): Promise<Apartment | null> {
+    const model = await ApartmentModel.findByPk(id);
+    if (!model) return null;
+    return this.toEntity(model);
+  }
+
+  async findByBlockAndFlateNumber(block: string, flateNumber: string): Promise<Apartment | null> {
+    const model = await ApartmentModel.findOne({
+      where: { block, flateNumber },
+    });
+    if (!model) return null;
+    return this.toEntity(model);
+  }
+
+  async findAll(filters: ListApartmentsFilters): Promise<PaginatedResult<ApartmentWithOccupancy>> {
+    const where: Record<string, unknown> = {};
+
+    if (filters.block) where.block = filters.block;
+    if (filters.floorNumber) where.floorNumber = filters.floorNumber;
+    if (filters.type) where.type = filters.type;
+
+    const offset = (filters.pageNumber - 1) * filters.pageSize;
+
+    const { count, rows } = await ApartmentModel.findAndCountAll({
+      where,
+      include: [
+        {
+          model: ResidentModel,
+          as: "residents",
+          where: { isActive: true },
+          required: false, // LEFT JOIN
+          attributes: ["id"],
+        },
+      ],
+      limit: filters.pageSize,
+      offset,
+      order: [["block", "ASC"], ["flate_number", "ASC"]],
+      distinct: true, // needed for correct count with include
+    });
+
+    return buildPaginatedResult(
+      rows.map((row) => ({
+        apartment: this.toEntity(row),
+        isOccupied: ((row as any).residents?.length ?? 0) > 0,
+      })),
+      count,
+      filters.pageNumber,
+      filters.pageSize
+    );
+  }
+
+  async update(apartment: Apartment): Promise<Apartment> {
+    await ApartmentModel.update(
+      {
+        block: apartment.block,
+        floorNumber: apartment.floorNumber,
+        flateNumber: apartment.flateNumber,
+        areaSqft: apartment.areaSqft,
+        type: apartment.type,
+        updatedAt: apartment.updatedAt,
+      },
+      { where: { id: apartment.id } }
+    );
+
+    const updated = await ApartmentModel.findByPk(apartment.id);
+    return this.toEntity(updated!);
+  }
+}

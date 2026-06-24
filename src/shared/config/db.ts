@@ -6,6 +6,7 @@ import { runDatabaseSeeders } from "../../../database/seeders/mainSeeder";
 import "../../modules/auth/infrastructure/models/UserModel";
 import "../../modules/residents/infrastructure/models/ResidentModel";
 import "../../modules/auth/infrastructure/models/PasswordResetTokenModel";
+import "../../modules/apartments/infrastructure/models/ApartmentModel";
 
 export const connectDB = async (): Promise<void> => {
   try {
