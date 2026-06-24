@@ -76,12 +76,14 @@ export const seedApartmentsAndResidents = async (): Promise<void> => {
       // assign apartment — cycle through available apartments
       const apartment = allApartments[i % allApartments.length];
 
+      const month = String((i % 12) + 1).padStart(2, '0');
+
       // create resident profile
       await ResidentModel.create({
         userId: user.id,
         apartmentId: apartment.id,
         isOwner: i % 2 === 0, // alternate owner/tenant
-        moveInDate: new Date(`2024-0${(i % 9) + 1}-01`),
+        moveInDate: new Date(`2024-${month}-01`),
         isActive: true,
       });
 
