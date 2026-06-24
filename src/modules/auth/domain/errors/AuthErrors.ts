@@ -48,4 +48,16 @@ export class InvalidRefreshTokenError extends AppError {
   }
 }
 
+export class InvalidResetTokenError extends AppError {
+  constructor() {
+    super("Invalid or expired reset token", 400);
+  }
+}
+
+export class ExpiredResetTokenError extends AppError {
+  constructor() {
+    super("Reset token has expired. Please request a new one.", 400);
+  }
+}
+
 export { AppError };

@@ -4,7 +4,7 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshTokenRepository";
 import { IPasswordHasher } from "../../domain/services/IPasswordHasher";
 import { ITokenService, TokenPayload } from "../../domain/services/ITokenService";
-import { RefreshToken } from "../../domain/entities/RefreshToken"; // 💡 Import the RefreshToken entity class
+import { RefreshToken } from "../../domain/entities/RefreshToken";
 import {
   InvalidCredentialsError,
   InactiveUserError,

@@ -2,6 +2,7 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IPasswordResetTokenRepository } from "../../domain/repositories/IPasswordResetTokenRepository";
 import { IPasswordHasher } from "../../domain/services/IPasswordHasher";
 import { ResetPasswordDto } from "../dtos/ResetPasswordDto";
+import { ExpiredResetTokenError, InvalidResetTokenError, UserNotFoundError } from "../../domain/errors/AuthErrors";
 
 export class ResetPasswordUseCase {
   constructor(
@@ -16,19 +17,19 @@ export class ResetPasswordUseCase {
 
     // 2. Check token exists
     if (!tokenEntity) {
-      throw new Error("Invalid or expired reset token");
+      throw new InvalidResetTokenError();
     }
 
     // 3. Check token not expired using domain method
     if (tokenEntity.isExpired()) {
       await this.passwordResetTokenRepository.deleteByToken(dto.token);
-      throw new Error("Reset token has expired. Please request a new one.");
+      throw new ExpiredResetTokenError();
     }
 
     // 4. Find user
     const user = await this.userRepository.findById(tokenEntity.userId);
     if (!user || !user.isActive) {
-      throw new Error("User not found or inactive");
+      throw new UserNotFoundError();
     }
 
     // 5. Hash new password
