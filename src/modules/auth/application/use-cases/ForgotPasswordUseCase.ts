@@ -27,7 +27,7 @@ export class ForgotPasswordUseCase {
     // 4. Generate secure random token
     const rawToken = crypto.randomBytes(32).toString("hex");
 
-    // 5. Create token entity with 30 min expiry
+    // 5. Create token entity with 10 min expiry
     const tokenEntity = PasswordResetToken.create(user.id!, rawToken);
 
     // 6. Save token to DB
