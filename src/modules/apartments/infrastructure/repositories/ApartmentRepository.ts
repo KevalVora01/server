@@ -98,4 +98,23 @@ export class ApartmentRepository implements IApartmentRepository {
     const updated = await ApartmentModel.findByPk(apartment.id);
     return this.toEntity(updated!);
   }
+
+  async getStats(): Promise<{ totalOccupied: number; totalVacant: number }> {
+    const total = await ApartmentModel.count();
+    const occupied = await ApartmentModel.count({
+      distinct: true,
+      col: 'id',
+      include: [{
+        model: ResidentModel,
+        as: "residents",
+        where: { isActive: true },
+        required: true,
+      }],
+    });
+
+    return {
+      totalOccupied: occupied,
+      totalVacant: total - occupied,
+    };
+  }
 }

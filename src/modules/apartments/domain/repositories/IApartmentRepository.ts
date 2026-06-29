@@ -18,4 +18,5 @@ export interface IApartmentRepository {
   findByBlockAndFlateNumber(block: string, flateNumber: string): Promise<Apartment | null>;
   findAll(filters: ListApartmentsFilters): Promise<PaginatedResult<ApartmentWithOccupancy>>;
   update(apartment: Apartment): Promise<Apartment>;
+  getStats(): Promise<{ totalOccupied: number; totalVacant: number }>;
 }

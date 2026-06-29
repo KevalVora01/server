@@ -1,17 +1,13 @@
-export class ApartmentNotFoundError extends Error {
-  public readonly statusCode = 404;
+import { AppError } from "../../../../shared/errors/AppError";
 
+export class ApartmentNotFoundError extends AppError {
   constructor() {
-    super("Apartment not found");
-    this.name = "ApartmentNotFoundError";
+    super("Apartment not found", 404);
   }
 }
 
-export class ApartmentAlreadyExistsError extends Error {
-  public readonly statusCode = 409;
-
+export class ApartmentAlreadyExistsError extends AppError {
   constructor() {
-    super("An apartment with this block and flat number already exists");
-    this.name = "ApartmentAlreadyExistsError";
+    super("An apartment with this block and flat number already exists", 409);
   }
 }

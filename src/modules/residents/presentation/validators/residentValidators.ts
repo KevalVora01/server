@@ -32,10 +32,8 @@ const createResidentSchema = Joi.object({
     'string.pattern.base': 'Phone must contain only numbers',
   }),
 
-  apartmentId: Joi.number().integer().positive().required().messages({
+  apartmentId: Joi.number().integer().optional().messages({
     'number.base': 'Apartment ID must be a number',
-    'number.positive': 'Apartment ID must be a positive number',
-    'any.required': 'Apartment ID is required',
   }),
 
   isOwner: Joi.boolean().required().messages({

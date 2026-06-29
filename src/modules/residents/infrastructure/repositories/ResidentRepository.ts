@@ -4,6 +4,7 @@ import { Resident } from "../../domain/entities/Resident";
 import { PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
 import { ResidentModel } from "../models/ResidentModel";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
+import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 
 export class ResidentRepository implements IResidentRepository {
 
@@ -36,14 +37,17 @@ export class ResidentRepository implements IResidentRepository {
 
   async findById(id: number): Promise<Resident | null> {
     const model = await ResidentModel.findOne({
-      where: {
-        id
-      },
+      where: { id },
       include: [
         {
           model: UserModel,
           as: "user",
           attributes: ["id", "name", "email", "phone"],
+        },
+        {
+          model: ApartmentModel,
+          as: "apartment",
+          attributes: ["id", "block", "floorNumber", "flateNumber", "type"],
         },
       ],
     });
@@ -52,7 +56,7 @@ export class ResidentRepository implements IResidentRepository {
 
     const resident = this.toEntity(model);
     (resident as any).user = (model as any).user ?? null;
-    (resident as any).apartment = null; // until ApartmentModel is built
+    (resident as any).apartment = (model as any).apartment ?? null;
     return resident;
   }
 
@@ -95,6 +99,11 @@ export class ResidentRepository implements IResidentRepository {
           attributes: ["id", "name", "email", "phone"],
           where: Object.keys(userWhere).length > 0 ? userWhere : undefined,
         },
+        {
+          model: ApartmentModel,
+          as: "apartment",
+          attributes: ["id", "block", "floorNumber", "flateNumber", "type"],
+        },
       ],
       limit: filters.pageSize,
       offset,
@@ -105,7 +114,7 @@ export class ResidentRepository implements IResidentRepository {
       rows.map((row) => {
         const resident = this.toEntity(row);
         (resident as any).user = (row as any).user ?? null;
-        (resident as any).apartment = null; // until ApartmentModel is built
+        (resident as any).apartment = (row as any).apartment ?? null;
         return resident;
       }),
       count,

@@ -1,3 +1,4 @@
+
 import type { Request, Response, NextFunction } from "express";
 import { CreateApartmentUseCase } from "../../application/use-cases/CreateApartmentUseCase";
 import { GetApartmentUseCase } from "../../application/use-cases/GetApartmentUseCase";
@@ -12,7 +13,7 @@ export class ApartmentController {
     private readonly getApartmentUseCase: GetApartmentUseCase,
     private readonly listApartmentsUseCase: ListApartmentsUseCase,
     private readonly updateApartmentUseCase: UpdateApartmentUseCase,
-  ) {}
+  ) { }
 
   createApartment = async (
     req: Request,
@@ -60,7 +61,7 @@ export class ApartmentController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const result = await this.listApartmentsUseCase.execute({
+      const { list, stats } = await this.listApartmentsUseCase.execute({
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
         block: req.query.block as string | undefined,
@@ -74,11 +75,18 @@ export class ApartmentController {
         ApiResponse.success({
           message: "Apartments fetched successfully",
           data: {
-            ...result,
-            items: result.items.map(({ apartment, isOccupied }) => ({
+            ...list,
+            items: list.items.map(({ apartment, isOccupied }) => ({
               ...apartment.toResponseObject(),
               isOccupied,
             })),
+            stats: {
+              totalOccupied: stats.totalOccupied,
+              totalVacant: stats.totalVacant,
+              occupancyRate: stats.totalOccupied + stats.totalVacant > 0
+                ? Math.round((stats.totalOccupied / (stats.totalOccupied + stats.totalVacant)) * 100)
+                : 0,
+            },
           },
         })
       );

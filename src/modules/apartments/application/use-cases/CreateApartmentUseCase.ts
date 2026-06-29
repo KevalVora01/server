@@ -1,5 +1,3 @@
-// src/modules/apartments/application/use-cases/CreateApartmentUseCase.ts
-
 import { IApartmentRepository } from "../../domain/repositories/IApartmentRepository";
 import { CreateApartmentDto } from "../dtos/CreateApartmentDto";
 import { Apartment } from "../../domain/entities/Apartment";
