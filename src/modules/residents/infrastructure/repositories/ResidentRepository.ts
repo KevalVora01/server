@@ -129,11 +129,11 @@ export class ResidentRepository implements IResidentRepository {
         apartmentId: resident.apartmentId,
         isOwner: resident.isOwner,
         moveOutDate: resident.moveOutDate,
+        isActive: resident.isActive,
         updatedAt: resident.updatedAt,
       },
       { where: { id: resident.id } }
     );
-
     const updated = await ResidentModel.findByPk(resident.id);
     return this.toEntity(updated!);
   }

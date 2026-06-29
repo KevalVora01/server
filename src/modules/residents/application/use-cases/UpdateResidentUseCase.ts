@@ -8,7 +8,7 @@ export class UpdateResidentUseCase {
   constructor(
     private readonly residentRepository: IResidentRepository,
     private readonly userRepository: IUserRepository
-  ) {}
+  ) { }
 
   async execute(id: number, dto: UpdateResidentDto): Promise<Resident> {
     // 1. Check resident exists and is active
@@ -21,22 +21,25 @@ export class UpdateResidentUseCase {
     }
 
     // 2. Update user fields if provided
-    if (dto.name || dto.phone) {
+    if (dto.name !== undefined || dto.phone !== undefined) {
       const user = await this.userRepository.findById(resident.userId);
-      if (user) {
-        if (dto.name) user.updateName(dto.name);
-        if (dto.phone) user.updatePhone(dto.phone);
-        await this.userRepository.update(user);
-      }
+      if (!user) throw new ResidentNotFoundError();
+      if (dto.name !== undefined) user.updateName(dto.name);
+      if (dto.phone !== undefined) user.updatePhone(dto.phone);
+      await this.userRepository.update(user);
     }
 
     // 3. Update resident fields if provided
-    if (dto.apartmentId) resident.updateApartment(dto.apartmentId);
+    if (dto.apartmentId !== undefined) resident.updateApartment(dto.apartmentId);
     if (dto.isOwner !== undefined) resident.updateIsOwner(dto.isOwner);
     if (dto.moveOutDate) resident.updateMoveOutDate(dto.moveOutDate);
 
-    const updatedResident = await this.residentRepository.update(resident);
+    // 4. If moveOutDate is set — deactivate resident and user
+    if (dto.moveOutDate) {
+      resident.deactivate();
+      await this.userRepository.deactivate(resident.userId);
+    }
 
-    return updatedResident;
+    return await this.residentRepository.update(resident);
   }
 }

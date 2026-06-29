@@ -3,5 +3,5 @@ export interface UpdateResidentDto {
   phone?: string;
   apartmentId?: number;
   isOwner?: boolean;
-  moveOutDate?: Date;
+  moveOutDate?: Date | string | null;
 }

@@ -64,6 +64,11 @@ export class Resident {
     return this.props.updatedAt;
   }
 
+  deactivate(): void {
+    this.props.isActive = false;
+    this.props.updatedAt = new Date();
+  }
+
   updateApartment(apartmentId: number): void {
     this.props.apartmentId = apartmentId;
     this.props.updatedAt = new Date();
@@ -74,10 +79,10 @@ export class Resident {
     this.props.updatedAt = new Date();
   }
 
-  updateMoveOutDate(moveOutDate: Date): void {
-    this.props.moveOutDate = moveOutDate;
-    this.props.updatedAt = new Date();
-  }
+  updateMoveOutDate(moveOutDate: Date | string): void {
+  this.props.moveOutDate = new Date(moveOutDate);
+  this.props.updatedAt = new Date();
+}
 
   toResponseObject() {
     return {

@@ -68,10 +68,12 @@ const updateResidentSchema = Joi.object({
     'boolean.base': 'isOwner must be a boolean',
   }),
 
-  moveOutDate: Joi.date().iso().optional().messages({
-    'date.base': 'Move out date must be a valid date',
-    'date.format': 'Move out date must be in ISO format',
-  }),
+  moveOutDate: Joi.date().iso().max('now').optional().allow(null, '')
+    .messages({
+      'date.base': 'Move out date must be a valid date',
+      'date.format': 'Move out date must be in ISO format',
+      'date.max': 'Move out date cannot be in the future',
+    }),
 }).min(1).messages({
   'object.min': 'At least one field is required to update',
 });
