@@ -37,9 +37,8 @@ const createApartmentSchema = Joi.object({
 });
 
 const updateApartmentSchema = Joi.object({
-  block: Joi.string().trim().uppercase().min(1).max(10).optional().messages({
-    'string.min': 'Block must be at least 1 character',
-    'string.max': 'Block must be at most 10 characters',
+  block: Joi.string().trim().uppercase().length(1).optional().messages({
+    'string.length': 'Block must be a single character',
   }),
 
   floorNumber: Joi.number().integer().min(0).max(100).optional().messages({
@@ -48,9 +47,9 @@ const updateApartmentSchema = Joi.object({
     'number.max': 'Floor number must be at most 100',
   }),
 
-  flateNumber: Joi.string().trim().min(1).max(20).optional().messages({
-    'string.min': 'Flat number must be at least 1 character',
-    'string.max': 'Flat number must be at most 20 characters',
+  unitNumber: Joi.string().trim().min(1).max(10).optional().messages({
+    'string.min': 'Unit number must be at least 1 character',
+    'string.max': 'Unit number must be at most 10 characters',
   }),
 
   areaSqft: Joi.number().positive().optional().messages({

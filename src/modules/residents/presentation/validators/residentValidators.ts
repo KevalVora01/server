@@ -40,12 +40,6 @@ const createResidentSchema = Joi.object({
     'boolean.base': 'isOwner must be a boolean',
     'any.required': 'isOwner is required',
   }),
-
-  moveInDate: Joi.date().iso().required().messages({
-    'date.base': 'Move in date must be a valid date',
-    'date.format': 'Move in date must be in ISO format',
-    'any.required': 'Move in date is required',
-  }),
 });
 
 const updateResidentSchema = Joi.object({

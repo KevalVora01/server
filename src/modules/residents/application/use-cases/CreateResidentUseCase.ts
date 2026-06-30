@@ -5,7 +5,7 @@ import { CreateResidentDto } from "../dtos/CreateResidentDto";
 import { Resident } from "../../domain/entities/Resident";
 import { User, UserRole } from "../../../auth/domain/entities/User";
 import { UserAlreadyExistsError } from "../../../auth/domain/errors/AuthErrors";
-import { ResidentAlreadyExistsError } from "../../domain/errors/ResidentErrors";
+import { ApartmentAlreadyOccupiedError } from "../../domain/errors/ResidentErrors";
 
 export class CreateResidentUseCase {
   constructor(
@@ -21,7 +21,15 @@ export class CreateResidentUseCase {
       throw new UserAlreadyExistsError();
     }
 
-    // 2. Create the user row with role = RESIDENT
+    // 2. Check apartment doesn't already have an active resident
+    if (dto.apartmentId) {
+      const existingActiveResident = await this.residentRepository.findActiveByApartmentId(dto.apartmentId);
+      if (existingActiveResident) {
+        throw new ApartmentAlreadyOccupiedError();
+      }
+    }
+
+    // 3. Create the user row with role = RESIDENT
     const passwordHash = await this.passwordHasher.hash(dto.password);
     const userInstance = User.create({
       name: dto.name,
@@ -32,18 +40,12 @@ export class CreateResidentUseCase {
     });
     const savedUser = await this.userRepository.create(userInstance);
 
-    // 3. Check a resident profile doesn't already exist for this user
-    const existingResident = await this.residentRepository.findByUserId(savedUser.id!);
-    if (existingResident) {
-      throw new ResidentAlreadyExistsError();
-    }
-
-    // 4. Create the resident row linked to the saved user
+    // 4. Create the resident row — moveInDate auto-set to today
     const residentInstance = Resident.create({
       userId: savedUser.id!,
       apartmentId: dto.apartmentId,
       isOwner: dto.isOwner,
-      moveInDate: dto.moveInDate,
+      moveInDate: new Date(),
     });
     const savedResident = await this.residentRepository.create(residentInstance);
 

@@ -5,5 +5,4 @@ export interface CreateResidentDto {
   password: string;
   apartmentId: number;
   isOwner: boolean;
-  moveInDate: Date;
 }

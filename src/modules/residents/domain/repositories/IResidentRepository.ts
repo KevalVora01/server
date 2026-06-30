@@ -12,6 +12,7 @@ export interface IResidentRepository {
   create(resident: Resident): Promise<Resident>;
   findById(id: number): Promise<Resident | null>;
   findByUserId(userId: number): Promise<Resident | null>;
+  findActiveByApartmentId(apartmentId: number): Promise<Resident | null>;
   findAll(filters: ListResidentsFilters): Promise<PaginatedResult<Resident>>;
   update(resident: Resident): Promise<Resident>;
   deactivate(id: number): Promise<void>;
