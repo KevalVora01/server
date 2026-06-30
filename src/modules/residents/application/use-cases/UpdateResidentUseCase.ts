@@ -30,7 +30,6 @@ export class UpdateResidentUseCase {
     }
 
     // 3. Update resident fields if provided
-    if (dto.apartmentId !== undefined) resident.updateApartment(dto.apartmentId);
     if (dto.isOwner !== undefined) resident.updateIsOwner(dto.isOwner);
     if (dto.moveOutDate) resident.updateMoveOutDate(dto.moveOutDate);
 
