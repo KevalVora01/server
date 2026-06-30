@@ -66,7 +66,7 @@ export class ResidentController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const result = await this.listResidentsUseCase.execute({
+      const { list, stats } = await this.listResidentsUseCase.execute({
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
         apartmentId: req.query.apartmentId
@@ -85,8 +85,13 @@ export class ResidentController {
         ApiResponse.success({
           message: "Residents fetched successfully",
           data: {
-            ...result,
-            items: result.items.map((r) => r.toResponseObject()),
+            ...list,
+            items: list.items.map((r) => r.toResponseObject()),
+            stats: {
+              totalActive: stats.totalActive,
+              totalOwners: stats.totalOwners,
+              totalTenants: stats.totalTenants,
+            },
           },
         })
       );

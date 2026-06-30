@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { IResidentRepository, ListResidentsFilters } from "../../domain/repositories/IResidentRepository";
+import { IResidentRepository, ListResidentsFilters, ResidentStats } from "../../domain/repositories/IResidentRepository";
 import { Resident } from "../../domain/entities/Resident";
 import { PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
 import { ResidentModel } from "../models/ResidentModel";
@@ -152,4 +152,15 @@ export class ResidentRepository implements IResidentRepository {
     if (!model) return null;
     return this.toEntity(model);
   }
+
+  async getStats(): Promise<ResidentStats> {
+    const [totalActive, totalOwners, totalTenants] = await Promise.all([
+      ResidentModel.count({ where: { isActive: true } }),
+      ResidentModel.count({ where: { isOwner: true, isActive: true } }),
+      ResidentModel.count({ where: { isOwner: false, isActive: true } }),
+    ]);
+  
+    return { totalActive, totalOwners, totalTenants };
+  }
 }
+

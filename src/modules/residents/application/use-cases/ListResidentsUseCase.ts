@@ -1,14 +1,19 @@
-import { IResidentRepository, ListResidentsFilters } from "../../domain/repositories/IResidentRepository";
+import { IResidentRepository, ListResidentsFilters, ResidentStats } from "../../domain/repositories/IResidentRepository";
 import { PaginatedResult } from "../../../../shared/types/Pagination";
 import { Resident } from "../../domain/entities/Resident";
 import { ListResidentsDto } from "../dtos/ListResidentsDto";
 
+export interface ResidentsListResult {
+  list: PaginatedResult<Resident>;
+  stats: ResidentStats;
+}
+
 export class ListResidentsUseCase {
   constructor(
     private readonly residentRepository: IResidentRepository
-  ) {}
+  ) { }
 
-  async execute(dto: ListResidentsDto): Promise<PaginatedResult<Resident>> {
+  async execute(dto: ListResidentsDto): Promise<ResidentsListResult> {
     const filters: ListResidentsFilters = {
       pageNumber: dto.pageNumber,
       pageSize: dto.pageSize,
@@ -18,6 +23,11 @@ export class ListResidentsUseCase {
       isActive: dto.isActive,
     };
 
-    return this.residentRepository.findAll(filters);
+    const [list, stats] = await Promise.all([
+      this.residentRepository.findAll(filters),
+      this.residentRepository.getStats(),
+    ]);
+
+    return { list, stats };
   }
 }

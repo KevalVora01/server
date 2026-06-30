@@ -8,6 +8,13 @@ export interface ListResidentsFilters extends PaginatedRequest {
   search?: string;
 }
 
+export interface ResidentStats {
+  totalActive: number;
+  totalOwners: number;
+  totalTenants: number;
+}
+
+
 export interface IResidentRepository {
   create(resident: Resident): Promise<Resident>;
   findById(id: number): Promise<Resident | null>;
@@ -16,4 +23,5 @@ export interface IResidentRepository {
   findAll(filters: ListResidentsFilters): Promise<PaginatedResult<Resident>>;
   update(resident: Resident): Promise<Resident>;
   deactivate(id: number): Promise<void>;
+  getStats(): Promise<ResidentStats>;
 }
