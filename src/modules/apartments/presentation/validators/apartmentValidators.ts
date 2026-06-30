@@ -18,10 +18,15 @@ const createApartmentSchema = Joi.object({
     'any.required': 'Floor number is required',
   }),
 
-  unitNumber: Joi.string().trim().min(1).max(10).required().messages({
+  unitNumber: Joi.string().trim().pattern(/^\d{1,2}$/).custom((value, helpers) => {
+    if (Number(value) === 0) {
+      return helpers.error('unitNumber.zero');
+    }
+    return value;
+  }).required().messages({
     'string.empty': 'Unit number is required',
-    'string.min': 'Unit number must be at least 1 character',
-    'string.max': 'Unit number must be at most 10 characters',
+    'string.pattern.base': 'Unit number must be 1 or 2 digits (e.g. 01, 12)',
+    'unitNumber.zero': 'Unit number cannot be 0',
   }),
 
   areaSqft: Joi.number().positive().required().messages({
@@ -47,9 +52,15 @@ const updateApartmentSchema = Joi.object({
     'number.max': 'Floor number must be at most 100',
   }),
 
-  unitNumber: Joi.string().trim().min(1).max(10).optional().messages({
-    'string.min': 'Unit number must be at least 1 character',
-    'string.max': 'Unit number must be at most 10 characters',
+  unitNumber: Joi.string().trim().pattern(/^\d{1,2}$/).custom((value, helpers) => {
+    if (Number(value) === 0) {
+      return helpers.error('unitNumber.zero');
+    }
+    return value;
+  }).required().messages({
+    'string.empty': 'Unit number is required',
+    'string.pattern.base': 'Unit number must be 1 or 2 digits (e.g. 01, 12)',
+    'unitNumber.zero': 'Unit number cannot be 0',
   }),
 
   areaSqft: Joi.number().positive().optional().messages({

@@ -23,13 +23,13 @@ export const seedDefaultUsers = async (): Promise<void> => {
         phone: "0000000000",
         role: UserRole.ADMIN,
       },
-      {
-        name: "Default Resident",
-        email: "resident@society.com",
-        password: "Resident@123",
-        phone: "0000000001",
-        role: UserRole.RESIDENT,
-      },
+      // {
+      //   name: "Default Resident",
+      //   email: "resident@society.com",
+      //   password: "Resident@123",
+      //   phone: "0000000001", 
+      //   role: UserRole.RESIDENT,
+      // },
       {
         name: "Security Guard",
         email: "security@society.com",
