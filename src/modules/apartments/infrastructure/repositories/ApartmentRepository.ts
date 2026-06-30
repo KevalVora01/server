@@ -11,7 +11,7 @@ export class ApartmentRepository implements IApartmentRepository {
       id: model.id,
       block: model.block,
       floorNumber: model.floorNumber,
-      flateNumber: model.flateNumber,
+      unitNumber: model.unitNumber,
       areaSqft: model.areaSqft,
       type: model.type,
       createdAt: model.createdAt,
@@ -23,7 +23,7 @@ export class ApartmentRepository implements IApartmentRepository {
     const created = await ApartmentModel.create({
       block: apartment.block,
       floorNumber: apartment.floorNumber,
-      flateNumber: apartment.flateNumber,
+      unitNumber: apartment.unitNumber,
       areaSqft: apartment.areaSqft,
       type: apartment.type,
     });
@@ -37,9 +37,9 @@ export class ApartmentRepository implements IApartmentRepository {
     return this.toEntity(model);
   }
 
-  async findByBlockAndFlateNumber(block: string, flateNumber: string): Promise<Apartment | null> {
+  async findByBlockFloorAndUnit(block: string, floorNumber: number, unitNumber: string): Promise<Apartment | null> {
     const model = await ApartmentModel.findOne({
-      where: { block, flateNumber },
+      where: { block, floorNumber, unitNumber },
     });
     if (!model) return null;
     return this.toEntity(model);
@@ -67,7 +67,7 @@ export class ApartmentRepository implements IApartmentRepository {
       ],
       limit: filters.pageSize,
       offset,
-      order: [["block", "ASC"], ["flate_number", "ASC"]],
+      order: [["block", "ASC"], ["floor_number", "ASC"], ["unit_number", "ASC"]],
       distinct: true, // needed for correct count with include
     });
 
@@ -87,7 +87,7 @@ export class ApartmentRepository implements IApartmentRepository {
       {
         block: apartment.block,
         floorNumber: apartment.floorNumber,
-        flateNumber: apartment.flateNumber,
+        unitNumber: apartment.unitNumber,
         areaSqft: apartment.areaSqft,
         type: apartment.type,
         updatedAt: apartment.updatedAt,

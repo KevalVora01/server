@@ -6,29 +6,28 @@ import { UserRole } from "../../src/modules/auth/domain/entities/User";
 import { BcryptPasswordHasher } from "../../src/modules/auth/infrastructure/services/BcryptPasswordHasher";
 
 const apartments = [
-  { block: "A", floorNumber: 1, flateNumber: "A-101", areaSqft: 850,  type: ApartmentType.ONE_BHK },
-  { block: "A", floorNumber: 1, flateNumber: "A-102", areaSqft: 1100, type: ApartmentType.TWO_BHK },
-  { block: "A", floorNumber: 2, flateNumber: "A-201", areaSqft: 1250, type: ApartmentType.TWO_BHK },
-  { block: "A", floorNumber: 2, flateNumber: "A-202", areaSqft: 1500, type: ApartmentType.THREE_BHK },
-  { block: "B", floorNumber: 1, flateNumber: "B-101", areaSqft: 600,  type: ApartmentType.STUDIO },
-  { block: "B", floorNumber: 1, flateNumber: "B-102", areaSqft: 850,  type: ApartmentType.ONE_BHK },
-  { block: "B", floorNumber: 2, flateNumber: "B-201", areaSqft: 1100, type: ApartmentType.TWO_BHK },
-  { block: "B", floorNumber: 3, flateNumber: "B-301", areaSqft: 1800, type: ApartmentType.FOUR_BHK },
-  { block: "C", floorNumber: 1, flateNumber: "C-101", areaSqft: 950,  type: ApartmentType.ONE_BHK },
-  { block: "C", floorNumber: 2, flateNumber: "C-201", areaSqft: 1350, type: ApartmentType.THREE_BHK },
+  { block: "A", floorNumber: 1, unitNumber: "01", areaSqft: 850, type: ApartmentType.ONE_BHK },
+  { block: "A", floorNumber: 1, unitNumber: "02", areaSqft: 1100, type: ApartmentType.TWO_BHK },
+  { block: "A", floorNumber: 2, unitNumber: "01", areaSqft: 1250, type: ApartmentType.TWO_BHK },
+  { block: "A", floorNumber: 2, unitNumber: "02", areaSqft: 1500, type: ApartmentType.THREE_BHK },
+  { block: "B", floorNumber: 1, unitNumber: "01", areaSqft: 600, type: ApartmentType.STUDIO },
+  { block: "B", floorNumber: 1, unitNumber: "02", areaSqft: 850, type: ApartmentType.ONE_BHK },
+  { block: "B", floorNumber: 2, unitNumber: "01", areaSqft: 1100, type: ApartmentType.TWO_BHK },
+  { block: "B", floorNumber: 3, unitNumber: "01", areaSqft: 1800, type: ApartmentType.FOUR_BHK },
+  { block: "C", floorNumber: 1, unitNumber: "01", areaSqft: 950, type: ApartmentType.ONE_BHK },
+  { block: "C", floorNumber: 2, unitNumber: "01", areaSqft: 1350, type: ApartmentType.THREE_BHK },
 ];
 
 const residents = [
-  { name: "Rahul Sharma",   email: "rahul@society.com",   phone: "9876543210" },
-  { name: "Priya Patel",    email: "priya@society.com",   phone: "9876543211" },
-  { name: "Amit Joshi",     email: "amit@society.com",    phone: "9876543212" },
-  { name: "Neha Singh",     email: "neha@society.com",    phone: "9876543213" },
-  { name: "Ravi Kumar",     email: "ravi@society.com",    phone: "9876543214" },
-  { name: "Sunita Mehta",   email: "sunita@society.com",  phone: "9876543215" },
-  { name: "Vikram Desai",   email: "vikram@society.com",  phone: "9876543216" },
-  { name: "Anjali Gupta",   email: "anjali@society.com",  phone: "9876543217" },
-  { name: "Suresh Reddy",   email: "suresh@society.com",  phone: "9876543218" },
-  { name: "Kavita Nair",    email: "kavita@society.com",  phone: "9876543219" },
+  { name: "Rahul Sharma", email: "rahul@society.com", phone: "9876543210" },
+  { name: "Priya Patel", email: "priya@society.com", phone: "9876543211" },
+  { name: "Amit Joshi", email: "amit@society.com", phone: "9876543212" },
+  { name: "Neha Singh", email: "neha@society.com", phone: "9876543213" },
+  { name: "Ravi Kumar", email: "ravi@society.com", phone: "9876543214" },
+  { name: "Sunita Mehta", email: "sunita@society.com", phone: "9876543215" },
+  { name: "Vikram Desai", email: "vikram@society.com", phone: "9876543216" },
+  { name: "Anjali Gupta", email: "anjali@society.com", phone: "9876543217" },
+  // only 8 residents now — 2 fewer than apartments, leaving 2 vacant
 ];
 
 export const seedApartmentsAndResidents = async (): Promise<void> => {
@@ -54,7 +53,10 @@ export const seedApartmentsAndResidents = async (): Promise<void> => {
     const passwordHasher = new BcryptPasswordHasher();
     const hashedPassword = await passwordHasher.hash("Resident@123");
 
-    const allApartments = await ApartmentModel.findAll({ attributes: ["id"] });
+    const allApartments = await ApartmentModel.findAll({
+      attributes: ["id"],
+      order: [["id", "ASC"]],
+    });
 
     for (let i = 0; i < residents.length; i++) {
       const r = residents[i];
@@ -73,8 +75,9 @@ export const seedApartmentsAndResidents = async (): Promise<void> => {
         isActive: true,
       });
 
-      // assign apartment — cycle through available apartments
-      const apartment = allApartments[i % allApartments.length];
+      // assign apartment — one-to-one, no cycling, no overlap
+      // since residents.length (8) < apartments.length (10), last 2 stay vacant
+      const apartment = allApartments[i];
 
       const month = String((i % 12) + 1).padStart(2, '0');
 

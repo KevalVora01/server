@@ -9,20 +9,18 @@ export class CreateApartmentUseCase {
   ) { }
 
   async execute(dto: CreateApartmentDto): Promise<Apartment> {
-    // 1. Generate flateNumber from block + floorNumber + unitNumber
-    const flateNumber = `${dto.block}-${dto.floorNumber}${dto.unitNumber.padStart(2, "0")}`;
-
-    // 2. Check unique block + flateNumber combination
-    const existing = await this.apartmentRepository.findByBlockAndFlateNumber(
+    // 1. Check unique block + floor + unit combination
+    const existing = await this.apartmentRepository.findByBlockFloorAndUnit(
       dto.block,
-      flateNumber
+      dto.floorNumber,
+      dto.unitNumber
     );
 
     if (existing) {
       throw new ApartmentAlreadyExistsError();
     }
 
-    // 3. Create apartment entity
+    // 2. Create apartment entity — flateNumber is computed automatically by the entity
     const apartmentInstance = Apartment.create({
       block: dto.block,
       floorNumber: dto.floorNumber,
@@ -31,7 +29,7 @@ export class CreateApartmentUseCase {
       type: dto.type,
     });
 
-    // 4. Save to DB
+    // 3. Save to DB
     return await this.apartmentRepository.create(apartmentInstance);
   }
 }

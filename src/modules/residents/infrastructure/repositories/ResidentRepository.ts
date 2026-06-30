@@ -47,7 +47,7 @@ export class ResidentRepository implements IResidentRepository {
         {
           model: ApartmentModel,
           as: "apartment",
-          attributes: ["id", "block", "floorNumber", "flateNumber", "type"],
+          attributes: ["id", "block", "floorNumber", "unitNumber", "type"],
         },
       ],
     });
@@ -102,7 +102,7 @@ export class ResidentRepository implements IResidentRepository {
         {
           model: ApartmentModel,
           as: "apartment",
-          attributes: ["id", "block", "floorNumber", "flateNumber", "type"],
+          attributes: ["id", "block", "floorNumber", "unitNumber", "type"],
         },
       ],
       limit: filters.pageSize,
@@ -159,7 +159,7 @@ export class ResidentRepository implements IResidentRepository {
       ResidentModel.count({ where: { isOwner: true, isActive: true } }),
       ResidentModel.count({ where: { isOwner: false, isActive: true } }),
     ]);
-  
+
     return { totalActive, totalOwners, totalTenants };
   }
 }

@@ -6,7 +6,7 @@ interface ApartmentAttributes {
   id: number;
   block: string;
   floorNumber: number;
-  flateNumber: string;
+  unitNumber: string;
   areaSqft: number;
   type: ApartmentType;
   createdAt: Date;
@@ -14,16 +14,15 @@ interface ApartmentAttributes {
 }
 
 interface ApartmentCreationAttributes
-  extends Optional<ApartmentAttributes, "id" | "createdAt" | "updatedAt"> {}
+  extends Optional<ApartmentAttributes, "id" | "createdAt" | "updatedAt"> { }
 
 export class ApartmentModel
   extends Model<ApartmentAttributes, ApartmentCreationAttributes>
-  implements ApartmentAttributes
-{
+  implements ApartmentAttributes {
   declare id: number;
   declare block: string;
   declare floorNumber: number;
-  declare flateNumber: string;
+  declare unitNumber: string;
   declare areaSqft: number;
   declare type: ApartmentType;
   declare createdAt: Date;
@@ -38,14 +37,14 @@ ApartmentModel.init(
       primaryKey: true,
     },
     block: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(1),
       allowNull: false,
     },
     floorNumber: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    flateNumber: {
+    unitNumber: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -75,7 +74,7 @@ ApartmentModel.init(
     indexes: [
       {
         unique: true,
-        fields: ["block", "flate_number"], // enforce unique constraint at DB level
+        fields: ["block", "floor_number", "unit_number"],
       },
     ],
   }

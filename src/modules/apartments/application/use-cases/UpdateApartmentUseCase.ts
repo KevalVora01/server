@@ -15,21 +15,16 @@ export class UpdateApartmentUseCase {
       throw new ApartmentNotFoundError();
     }
 
-    // 2. Determine new block/floorNumber/unitNumber and regenerate flateNumber if any changed
-    const newBlock = dto.block ?? apartment.block;
-    const newFloorNumber = dto.floorNumber ?? apartment.floorNumber;
-
-    let newFlateNumber = apartment.flateNumber;
+    // 2. If block, floorNumber, or unitNumber changing — check uniqueness
     if (dto.block !== undefined || dto.floorNumber !== undefined || dto.unitNumber !== undefined) {
-      const newUnitNumber = dto.unitNumber ?? this.extractUnitNumber(apartment);
-      newFlateNumber = `${newBlock}-${newFloorNumber}${newUnitNumber.padStart(2, "0")}`;
-    }
+      const newBlock = dto.block ?? apartment.block;
+      const newFloorNumber = dto.floorNumber ?? apartment.floorNumber;
+      const newUnitNumber = dto.unitNumber ?? apartment.unitNumber;
 
-    // 3. If block or flateNumber changing check uniqueness
-    if (newBlock !== apartment.block || newFlateNumber !== apartment.flateNumber) {
-      const existing = await this.apartmentRepository.findByBlockAndFlateNumber(
+      const existing = await this.apartmentRepository.findByBlockFloorAndUnit(
         newBlock,
-        newFlateNumber
+        newFloorNumber,
+        newUnitNumber
       );
 
       if (existing && existing.id !== id) {
@@ -37,23 +32,16 @@ export class UpdateApartmentUseCase {
       }
     }
 
-    // 4. Update apartment using domain method
+    // 3. Update apartment using domain method — flateNumber recomputes automatically
     apartment.updateDetails({
       block: dto.block,
       floorNumber: dto.floorNumber,
-      flateNumber: newFlateNumber,
+      unitNumber: dto.unitNumber,
       areaSqft: dto.areaSqft,
       type: dto.type,
     });
 
-    // 5. Save to DB
+    // 4. Save to DB
     return await this.apartmentRepository.update(apartment);
-  }
-
-  private extractUnitNumber(apartment: Apartment): string {
-    const prefix = `${apartment.block}-${apartment.floorNumber}`;
-    return apartment.flateNumber.startsWith(prefix)
-      ? apartment.flateNumber.slice(prefix.length)
-      : "";
   }
 }

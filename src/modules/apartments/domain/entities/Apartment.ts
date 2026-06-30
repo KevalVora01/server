@@ -10,7 +10,7 @@ export interface ApartmentProps {
   id?: number;
   block: string;
   floorNumber: number;
-  flateNumber: string;
+  unitNumber: string;
   areaSqft: number;
   type: ApartmentType;
   createdAt: Date;
@@ -25,15 +25,10 @@ export class Apartment {
   }
 
   public static create(
-    props: Omit<ApartmentProps, "id" | "flateNumber" | "createdAt" | "updatedAt"> & { unitNumber: string }
+    props: Omit<ApartmentProps, "id" | "createdAt" | "updatedAt">
   ): Apartment {
-    const flateNumber = `${props.block}-${props.floorNumber}${props.unitNumber.padStart(2, '0')}`;
     return new Apartment({
-      block: props.block,
-      floorNumber: props.floorNumber,
-      flateNumber,
-      areaSqft: props.areaSqft,
-      type: props.type,
+      ...props,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -51,8 +46,12 @@ export class Apartment {
     return this.props.floorNumber;
   }
 
+  get unitNumber(): string {
+    return this.props.unitNumber;
+  }
+
   get flateNumber(): string {
-    return this.props.flateNumber;
+    return `${this.props.block}-${this.props.floorNumber}${this.props.unitNumber.padStart(2, '0')}`;
   }
 
   get areaSqft(): number {
@@ -74,7 +73,7 @@ export class Apartment {
   updateDetails(props: Partial<Omit<ApartmentProps, "id" | "createdAt" | "updatedAt">>): void {
     if (props.block !== undefined) this.props.block = props.block;
     if (props.floorNumber !== undefined) this.props.floorNumber = props.floorNumber;
-    if (props.flateNumber !== undefined) this.props.flateNumber = props.flateNumber;
+    if (props.unitNumber !== undefined) this.props.unitNumber = props.unitNumber;
     if (props.areaSqft !== undefined) this.props.areaSqft = props.areaSqft;
     if (props.type !== undefined) this.props.type = props.type;
     this.props.updatedAt = new Date();
@@ -85,7 +84,8 @@ export class Apartment {
       id: this.props.id,
       block: this.props.block,
       floorNumber: this.props.floorNumber,
-      flateNumber: this.props.flateNumber,
+      unitNumber: this.props.unitNumber,
+      flateNumber: this.flateNumber, // computed every time, never stored
       areaSqft: this.props.areaSqft,
       type: this.props.type,
       createdAt: this.props.createdAt,
