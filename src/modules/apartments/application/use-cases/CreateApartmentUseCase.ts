@@ -20,7 +20,7 @@ export class CreateApartmentUseCase {
       throw new ApartmentAlreadyExistsError();
     }
 
-    // 2. Create apartment entity — flateNumber is computed automatically by the entity
+    // 2. Create apartment entity
     const apartmentInstance = Apartment.create({
       block: dto.block,
       floorNumber: dto.floorNumber,

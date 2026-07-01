@@ -50,10 +50,6 @@ export class Apartment {
     return this.props.unitNumber;
   }
 
-  get flateNumber(): string {
-    return `${this.props.block}-${this.props.floorNumber}${this.props.unitNumber.padStart(2, '0')}`;
-  }
-
   get areaSqft(): number {
     return this.props.areaSqft;
   }
@@ -73,7 +69,7 @@ export class Apartment {
   updateDetails(props: Partial<Omit<ApartmentProps, "id" | "createdAt" | "updatedAt">>): void {
     if (props.block !== undefined) this.props.block = props.block;
     if (props.floorNumber !== undefined) this.props.floorNumber = props.floorNumber;
-    if (props.unitNumber !== undefined) this.props.unitNumber = props.unitNumber;
+    if (props.unitNumber !== undefined) this.props.unitNumber = props.unitNumber.padStart(2, '0');
     if (props.areaSqft !== undefined) this.props.areaSqft = props.areaSqft;
     if (props.type !== undefined) this.props.type = props.type;
     this.props.updatedAt = new Date();
@@ -85,7 +81,6 @@ export class Apartment {
       block: this.props.block,
       floorNumber: this.props.floorNumber,
       unitNumber: this.props.unitNumber,
-      flateNumber: this.flateNumber, // computed every time, never stored
       areaSqft: this.props.areaSqft,
       type: this.props.type,
       createdAt: this.props.createdAt,

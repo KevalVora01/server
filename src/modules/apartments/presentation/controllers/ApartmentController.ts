@@ -83,6 +83,7 @@ export class ApartmentController {
             stats: {
               totalOccupied: stats.totalOccupied,
               totalVacant: stats.totalVacant,
+              totalCount: stats.totalOccupied + stats.totalVacant,
               occupancyRate: stats.totalOccupied + stats.totalVacant > 0
                 ? Math.round((stats.totalOccupied / (stats.totalOccupied + stats.totalVacant)) * 100)
                 : 0,

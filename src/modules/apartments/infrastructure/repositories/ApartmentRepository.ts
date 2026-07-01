@@ -23,7 +23,7 @@ export class ApartmentRepository implements IApartmentRepository {
     const created = await ApartmentModel.create({
       block: apartment.block,
       floorNumber: apartment.floorNumber,
-      unitNumber: apartment.unitNumber,
+      unitNumber: apartment.unitNumber.padStart(2, '0'),
       areaSqft: apartment.areaSqft,
       type: apartment.type,
     });
