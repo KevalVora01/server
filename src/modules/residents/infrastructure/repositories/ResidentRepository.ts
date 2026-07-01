@@ -157,13 +157,14 @@ export class ResidentRepository implements IResidentRepository {
   }
 
   async getStats(): Promise<ResidentStats> {
-    const [totalActive, totalOwners, totalTenants] = await Promise.all([
+    const [totalCount, totalActive, totalOwners, totalTenants] = await Promise.all([
+      ResidentModel.count(),
       ResidentModel.count({ where: { isActive: true } }),
       ResidentModel.count({ where: { isOwner: true, isActive: true } }),
       ResidentModel.count({ where: { isOwner: false, isActive: true } }),
     ]);
 
-    return { totalActive, totalOwners, totalTenants };
+    return { totalCount, totalActive, totalOwners, totalTenants };
   }
 }
 

@@ -59,7 +59,6 @@ export class ResidentController {
     }
   };
 
-
   listResidents = async (
     req: Request,
     res: Response,
@@ -88,6 +87,7 @@ export class ResidentController {
             ...list,
             items: list.items.map((r) => r.toResponseObject()),
             stats: {
+              totalCount: stats.totalCount,
               totalActive: stats.totalActive,
               totalOwners: stats.totalOwners,
               totalTenants: stats.totalTenants,

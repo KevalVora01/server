@@ -9,6 +9,7 @@ export interface ListResidentsFilters extends PaginatedRequest {
 }
 
 export interface ResidentStats {
+  totalCount: number;
   totalActive: number;
   totalOwners: number;
   totalTenants: number;
