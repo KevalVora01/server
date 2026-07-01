@@ -1,4 +1,3 @@
-
 import type { Request, Response, NextFunction } from "express";
 import { CreateApartmentUseCase } from "../../application/use-cases/CreateApartmentUseCase";
 import { GetApartmentUseCase } from "../../application/use-cases/GetApartmentUseCase";

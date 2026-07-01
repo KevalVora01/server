@@ -5,15 +5,14 @@ import { ApartmentType } from '../../domain/entities/Apartment';
 // ─── Schemas ──────────────────────────────────────────────────────
 
 const createApartmentSchema = Joi.object({
-  block: Joi.string().trim().uppercase().min(1).max(10).required().messages({
+  block: Joi.string().trim().uppercase().length(1).required().messages({
     'string.empty': 'Block is required',
-    'string.min': 'Block must be at least 1 character',
-    'string.max': 'Block must be at most 10 characters',
+    'string.length': 'Block must be exactly 1 character',
   }),
 
-  floorNumber: Joi.number().integer().min(0).max(100).required().messages({
+  floorNumber: Joi.number().integer().min(1).max(100).required().messages({
     'number.base': 'Floor number must be a number',
-    'number.min': 'Floor number must be at least 0',
+    'number.min': 'Floor number must be at least 1',
     'number.max': 'Floor number must be at most 100',
     'any.required': 'Floor number is required',
   }),
