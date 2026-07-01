@@ -40,14 +40,15 @@ export class ApartmentController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const apartment = await this.getApartmentUseCase.execute(
-        Number(req.params.id)
-      );
-
+      const apartment = await this.getApartmentUseCase.execute(Number(req.params.id));
       res.status(200).json(
         ApiResponse.success({
           message: "Apartment fetched successfully",
-          data: apartment.toResponseObject(),
+          data: {
+            ...apartment.toResponseObject(),
+            isOccupied: (apartment as any).isOccupied ?? false,
+            resident: (apartment as any).resident ?? null,
+          },
         })
       );
     } catch (error) {

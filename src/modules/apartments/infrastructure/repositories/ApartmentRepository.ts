@@ -3,6 +3,7 @@ import { Apartment } from "../../domain/entities/Apartment";
 import { PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
 import { ApartmentModel } from "../models/ApartmentModel";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
+import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 
 export class ApartmentRepository implements IApartmentRepository {
 
@@ -32,9 +33,31 @@ export class ApartmentRepository implements IApartmentRepository {
   }
 
   async findById(id: number): Promise<Apartment | null> {
-    const model = await ApartmentModel.findByPk(id);
+    const model = await ApartmentModel.findByPk(id, {
+      include: [
+        {
+          model: ResidentModel,
+          as: "residents",
+          where: { isActive: true },
+          required: false,
+          include: [
+            {
+              model: UserModel,
+              as: "user",
+              attributes: ["id", "name", "email", "phone"],
+            },
+          ],
+        },
+      ],
+    });
+
     if (!model) return null;
-    return this.toEntity(model);
+
+    const apartment = this.toEntity(model);
+    const activeResident = (model as any).residents?.[0] ?? null;
+    (apartment as any).resident = activeResident;
+    (apartment as any).isOccupied = activeResident !== null;
+    return apartment;
   }
 
   async findByBlockFloorAndUnit(block: string, floorNumber: number, unitNumber: string): Promise<Apartment | null> {
