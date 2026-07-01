@@ -80,13 +80,14 @@ export class ResidentRepository implements IResidentRepository {
     if (filters.apartmentId) where.apartmentId = filters.apartmentId;
     if (filters.isOwner !== undefined) where.isOwner = filters.isOwner;
 
-    const userWhere: Record<string, unknown> = {};
-    if (filters.search) {
-      (userWhere as any)[Op.or] = [
-        { name: { [Op.iLike]: `%${filters.search}%` } },
-        { email: { [Op.iLike]: `%${filters.search}%` } },
-      ];
-    }
+    const userWhere = filters.search
+      ? {
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${filters.search}%` } },
+          { email: { [Op.iLike]: `%${filters.search}%` } },
+        ],
+      }
+      : undefined;
 
     const offset = (filters.pageNumber - 1) * filters.pageSize;
 
@@ -97,12 +98,14 @@ export class ResidentRepository implements IResidentRepository {
           model: UserModel,
           as: "user",
           attributes: ["id", "name", "email", "phone"],
-          where: Object.keys(userWhere).length > 0 ? userWhere : undefined,
+          where: userWhere,
+          required: userWhere ? true : false,
         },
         {
           model: ApartmentModel,
           as: "apartment",
           attributes: ["id", "block", "floorNumber", "unitNumber", "type"],
+          required: true,
         },
       ],
       limit: filters.pageSize,
