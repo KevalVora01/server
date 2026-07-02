@@ -117,7 +117,7 @@ export class AuthController {
       const user = await this.getCurrentUserUseCase.execute(
         authReq.user.userId
       );
-
+      console.log('me response:', user);
       res.status(200).json(ApiResponse.success(user));
     } catch (error) {
       next(error);

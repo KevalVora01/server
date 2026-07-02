@@ -7,6 +7,7 @@ import "../../modules/auth/infrastructure/models/UserModel";
 import "../../modules/residents/infrastructure/models/ResidentModel";
 import "../../modules/auth/infrastructure/models/PasswordResetTokenModel";
 import "../../modules/apartments/infrastructure/models/ApartmentModel";
+import "../../modules/family-members/infrastructure/models/FamilyMemberModel";
 
 export const connectDB = async (): Promise<void> => {
   try {

@@ -51,7 +51,7 @@ ResidentModel.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: ApartmentModel,  // ← add this
+        model: ApartmentModel,
         key: "id",
       },
     },

@@ -6,4 +6,7 @@ export interface UserResponseDto {
   email: string;
   phone: string;
   role: UserRole;
+  isActive: boolean;
+  createdAt: Date;
+  residentId?: number | null;
 }

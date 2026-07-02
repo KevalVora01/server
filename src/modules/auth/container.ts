@@ -14,9 +14,11 @@ import { ResetPasswordUseCase } from "./application/use-cases/ResetPasswordUseCa
 import { AuthController } from "./presentation/controllers/authController";
 import { UpdateProfileUseCase } from "./application/use-cases/UpdateProfileUseCase";
 import { ChangePasswordUseCase } from "./application/use-cases/ChangePasswordUseCase";
+import { ResidentRepository } from "../residents/infrastructure/repositories/ResidentRepository";
 
 // 1. Core Infrastructure Adapters
 const userRepository = new UserRepository();
+const residentRepository = new ResidentRepository();
 const refreshTokenRepository = new RefreshTokenRepository();
 const passwordResetTokenRepository = new PasswordResetTokenRepository();
 const passwordHasher = new BcryptPasswordHasher();
@@ -28,7 +30,7 @@ const createUserUseCase = new CreateUserUseCase(userRepository, passwordHasher);
 const loginUseCase = new LoginUseCase(userRepository, refreshTokenRepository, passwordHasher, tokenService);
 const refreshTokenUseCase = new RefreshTokenUseCase(userRepository, refreshTokenRepository, tokenService);
 const logoutUseCase = new LogoutUseCase(refreshTokenRepository);
-const getCurrentUserUseCase = new GetCurrentUserUseCase(userRepository);
+const getCurrentUserUseCase = new GetCurrentUserUseCase(userRepository, residentRepository);
 const forgotPasswordUseCase = new ForgotPasswordUseCase(userRepository, passwordResetTokenRepository, emailService);
 const resetPasswordUseCase = new ResetPasswordUseCase(userRepository, passwordResetTokenRepository, passwordHasher);
 const updateProfileUseCase = new UpdateProfileUseCase(userRepository);
