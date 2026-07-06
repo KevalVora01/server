@@ -7,6 +7,7 @@ import { UserRole } from "../../src/modules/auth/domain/entities/User";
 import { ApartmentType } from "../../src/modules/apartments/domain/entities/Apartment";
 import { BcryptPasswordHasher } from "../../src/modules/auth/infrastructure/services/BcryptPasswordHasher";
 import { VehicleType, FuelType } from "../../src/modules/vehicles/domain/entities/Vehicle";
+import { FamilyMemberModel } from "../../src/modules/family-members/infrastructure/models/FamilyMemberModel";
 
 const apartments = [
   { block: "A", floorNumber: 1, unitNumber: "01", areaSqft: 850, type: ApartmentType.ONE_BHK },
@@ -30,6 +31,29 @@ const residents = [
   { name: "Sunita Mehta", email: "sunita@society.com", phone: "9876543215" },
   { name: "Vikram Desai", email: "vikram@society.com", phone: "9876543216" },
   { name: "Anjali Gupta", email: "anjali@society.com", phone: "9876543217" },
+];
+
+const familyMembers = [
+  { residentEmail: "rahul@society.com", name: "Pooja Sharma", relation: "Spouse", age: 30 },
+  { residentEmail: "rahul@society.com", name: "Aarav Sharma", relation: "Child", age: 5 },
+
+  { residentEmail: "priya@society.com", name: "Kunal Patel", relation: "Spouse", age: 33 },
+  { residentEmail: "priya@society.com", name: "Riya Patel", relation: "Child", age: 7 },
+
+  { residentEmail: "amit@society.com", name: "Suresh Joshi", relation: "Parent", age: 63 },
+  { residentEmail: "amit@society.com", name: "Meena Joshi", relation: "Parent", age: 59 },
+
+  { residentEmail: "neha@society.com", name: "Ankit Singh", relation: "Sibling", age: 29 },
+
+  { residentEmail: "ravi@society.com", name: "Sneha Kumar", relation: "Spouse", age: 31 },
+  { residentEmail: "ravi@society.com", name: "Vivaan Kumar", relation: "Child", age: 3 },
+
+  { residentEmail: "sunita@society.com", name: "Harish Mehta", relation: "Spouse", age: 38 },
+  { residentEmail: "sunita@society.com", name: "Rohan Mehta", relation: "Child", age: 10 },
+
+  { residentEmail: "vikram@society.com", name: "Kokila Desai", relation: "Parent", age: 61 },
+
+  { residentEmail: "anjali@society.com", name: "Nikhil Gupta", relation: "Sibling", age: 27 },
 ];
 
 const vehicles = [
@@ -164,6 +188,61 @@ const seedResidents = async (): Promise<void> => {
   }
 };
 
+const seedFamilyMembers = async (): Promise<void> => {
+  try {
+    const existing = await FamilyMemberModel.count();
+
+    if (existing > 0) {
+      console.log("[Database Seeder]: Family members already seeded. Skipping.");
+      return;
+    }
+
+    console.log("[Database Seeder]: Seeding family members...");
+
+    for (const member of familyMembers) {
+      const user = await UserModel.findOne({
+        where: { email: member.residentEmail },
+      });
+
+      if (!user) {
+        console.log(
+          `[Database Seeder]: User ${member.residentEmail} not found. Skipping ${member.name}.`
+        );
+        continue;
+      }
+
+      const resident = await ResidentModel.findOne({
+        where: { userId: user.id },
+      });
+
+      if (!resident) {
+        console.log(
+          `[Database Seeder]: Resident profile for ${member.residentEmail} not found.`
+        );
+        continue;
+      }
+
+      await FamilyMemberModel.create({
+        residentId: resident.id,
+        name: member.name,
+        relation: member.relation,
+        age: member.age,
+      });
+
+      console.log(
+        `[Database Seeder]: Created family member ${member.name} for ${member.residentEmail}`
+      );
+    }
+
+    console.log("[Database Seeder]: Family members seeded successfully!");
+  } catch (error) {
+    console.error(
+      "[Database Seeder] CRITICAL: Failed to seed family members:",
+      error
+    );
+  }
+};
+
 const seedVehicles = async (): Promise<void> => {
   try {
     const existingVehicles = await VehicleModel.count();
@@ -215,6 +294,7 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   await seedDefaultUsers();
   await seedApartments();
   await seedResidents();
+  await seedFamilyMembers();
   await seedVehicles();
 
   console.log("[Database Seeder]: Seeding sequence complete.");
