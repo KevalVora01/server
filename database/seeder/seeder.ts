@@ -8,6 +8,8 @@ import { ApartmentType } from "../../src/modules/apartments/domain/entities/Apar
 import { BcryptPasswordHasher } from "../../src/modules/auth/infrastructure/services/BcryptPasswordHasher";
 import { VehicleType, FuelType } from "../../src/modules/vehicles/domain/entities/Vehicle";
 import { FamilyMemberModel } from "../../src/modules/family-members/infrastructure/models/FamilyMemberModel";
+import { NoticeModel } from "../../src/modules/notices/infrastructure/models/NoticeModel";
+import { NoticeCategory } from "../../src/modules/notices/domain/entities/Notice";
 
 const apartments = [
   { block: "A", floorNumber: 1, unitNumber: "01", areaSqft: 850, type: ApartmentType.ONE_BHK },
@@ -287,6 +289,96 @@ const seedVehicles = async (): Promise<void> => {
   }
 };
 
+const notices = [
+  {
+    title: "Annual Maintenance Notice",
+    body: "The society's annual maintenance is scheduled for June 15th. All residents are requested to cooperate with the maintenance team. Water supply will be affected between 10 AM and 4 PM on that day.",
+    category: NoticeCategory.MAINTENANCE,
+    isPinned: true,
+  },
+  {
+    title: "Diwali Celebration - Save the Date",
+    body: "We are pleased to announce the Diwali celebration event on November 10th in the society clubhouse. There will be a lamp-lighting ceremony, cultural performances, and dinner. Please register your participation at the security desk by November 5th.",
+    category: NoticeCategory.EVENT,
+    isPinned: true,
+  },
+  {
+    title: "Emergency Generator Test",
+    body: "The emergency generator will be tested on the first Saturday of every month between 2 PM and 3 PM. During this time, there may be a brief power interruption lasting no more than 5 minutes. We apologize for any inconvenience.",
+    category: NoticeCategory.EMERGENCY,
+    isPinned: false,
+  },
+  {
+    title: "Waste Segregation Guidelines",
+    body: "As per the new municipal regulations, all residents are requested to segregate waste into wet, dry, and hazardous categories. Green bins are for wet waste, blue bins for dry waste. Please ensure compliance to avoid penalties to the society.",
+    category: NoticeCategory.GENERAL,
+    isPinned: false,
+  },
+  {
+    title: "Clubhouse Booking Policy Updated",
+    body: "The clubhouse booking policy has been updated. Residents can now book the clubhouse for a maximum of 4 hours per slot. A refundable security deposit of ₹5,000 is required at the time of booking. Please refer to the notice board for the full policy document.",
+    category: NoticeCategory.GENERAL,
+    isPinned: false,
+  },
+  {
+    title: "Rainwater Harvesting System Maintenance",
+    body: "The rainwater harvesting system will undergo annual maintenance from July 10th to July 12th. Please ensure that terrace access is clear and that no construction debris is present near the rainwater inlets.",
+    category: NoticeCategory.MAINTENANCE,
+    isPinned: false,
+  },
+  {
+    title: "Yoga & Wellness Camp",
+    body: "A free yoga and wellness camp will be organized in the society garden every Sunday morning from 6 AM to 7 AM starting next month. Certified yoga instructors will guide the sessions. All age groups are welcome. Please bring your own yoga mats.",
+    category: NoticeCategory.EVENT,
+    isPinned: false,
+  },
+  {
+    title: "Fire Safety Drill",
+    body: "A mandatory fire safety drill will be conducted on March 20th at 11 AM. All residents must participate. The drill will include evacuation procedures, fire extinguisher usage demonstration, and emergency assembly point briefing.",
+    category: NoticeCategory.EMERGENCY,
+    isPinned: true,
+  },
+];
+
+const seedNotices = async (): Promise<void> => {
+  try {
+    const existingNotices = await NoticeModel.count();
+    if (existingNotices > 0) {
+      console.log("[Database Seeder]: Notices already seeded. Skipping.");
+      return;
+    }
+
+    console.log("[Database Seeder]: Seeding notices...");
+
+    const adminUser = await UserModel.findOne({
+      where: { email: "admin@society.com" },
+    });
+
+    if (!adminUser) {
+      console.log("[Database Seeder]: Admin user not found. Skipping notice seeding.");
+      return;
+    }
+
+    for (const n of notices) {
+      await NoticeModel.create({
+        adminId: adminUser.id,
+        title: n.title,
+        body: n.body,
+        category: n.category,
+        isPinned: n.isPinned,
+        isActive: true,
+        publishedAt: new Date(),
+        updatedAt: new Date(),
+      });
+      console.log(`[Database Seeder]: Created notice — "${n.title}"`);
+    }
+
+    console.log("[Database Seeder]: Notices seeded successfully!");
+  } catch (error) {
+    console.error("[Database Seeder] CRITICAL: Failed to seed notices:", error);
+  }
+};
+
 export const runDatabaseSeeders = async (): Promise<void> => {
   console.log("-----------------------------------------");
   console.log("[Database Seeder]: Initializing data seeding sequence...");
@@ -296,6 +388,7 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   await seedResidents();
   await seedFamilyMembers();
   await seedVehicles();
+  await seedNotices();
 
   console.log("[Database Seeder]: Seeding sequence complete.");
   console.log("-----------------------------------------");
