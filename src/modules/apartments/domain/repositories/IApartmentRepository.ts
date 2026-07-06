@@ -5,6 +5,7 @@ export interface ListApartmentsFilters extends PaginatedRequest {
   block?: string;
   floorNumber?: number;
   type?: string;
+  isOccupied?: boolean;
 }
 
 export interface ApartmentWithOccupancy {

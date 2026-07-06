@@ -1,3 +1,4 @@
+import { Op, literal } from "sequelize";
 import { IApartmentRepository, ListApartmentsFilters, ApartmentWithOccupancy } from "../../domain/repositories/IApartmentRepository";
 import { Apartment } from "../../domain/entities/Apartment";
 import { PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
@@ -77,21 +78,33 @@ export class ApartmentRepository implements IApartmentRepository {
 
     const offset = (filters.pageNumber - 1) * filters.pageSize;
 
+    const residentInclude: any = {
+      model: ResidentModel,
+      as: "residents",
+      where: { isActive: true },
+      required: false,
+      attributes: ["id"],
+    };
+
+    if (filters.isOccupied !== undefined) {
+      if (filters.isOccupied) {
+        residentInclude.required = true;
+      } else {
+        where.id = {
+          [Op.notIn]: literal(
+            `(SELECT apartment_id FROM residents WHERE is_active = true AND apartment_id IS NOT NULL)`
+          ),
+        };
+      }
+    }
+
     const { count, rows } = await ApartmentModel.findAndCountAll({
       where,
-      include: [
-        {
-          model: ResidentModel,
-          as: "residents",
-          where: { isActive: true },
-          required: false, // LEFT JOIN
-          attributes: ["id"],
-        },
-      ],
+      include: [residentInclude],
       limit: filters.pageSize,
       offset,
       order: [["block", "ASC"], ["floor_number", "ASC"], ["unit_number", "ASC"]],
-      distinct: true, // needed for correct count with include
+      distinct: true,
     });
 
     return buildPaginatedResult(

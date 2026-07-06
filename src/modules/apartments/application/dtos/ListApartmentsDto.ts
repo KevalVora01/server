@@ -5,4 +5,5 @@ export interface ListApartmentsDto extends PaginatedRequest {
   floorNumber?: number;
   flateNumber?: string;
   type?: string;
+  isOccupied?: boolean;
 }

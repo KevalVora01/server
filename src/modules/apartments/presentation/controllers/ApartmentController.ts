@@ -69,6 +69,9 @@ export class ApartmentController {
           ? Number(req.query.floorNumber)
           : undefined,
         type: req.query.type as string | undefined,
+        isOccupied: req.query.isOccupied !== undefined
+          ? req.query.isOccupied === "true"
+          : undefined,
       });
 
       res.status(200).json(

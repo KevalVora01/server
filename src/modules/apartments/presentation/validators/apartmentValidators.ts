@@ -80,6 +80,9 @@ const listApartmentsSchema = Joi.object({
   block: Joi.string().trim().uppercase().optional(),
   floorNumber: Joi.number().integer().min(0).optional(),
   type: Joi.string().valid(...Object.values(ApartmentType)).optional(),
+  isOccupied: Joi.boolean().optional().messages({
+    'boolean.base': 'isOccupied must be a boolean',
+  }),
 });
 
 // ─── Exported validators ──────────────────────────────────────────

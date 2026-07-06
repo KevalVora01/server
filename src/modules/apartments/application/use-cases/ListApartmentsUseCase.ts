@@ -24,6 +24,7 @@ export class ListApartmentsUseCase {
       block: dto.block,
       floorNumber: dto.floorNumber,
       type: dto.type,
+      isOccupied: dto.isOccupied,
     };
 
     const [list, stats] = await Promise.all([
