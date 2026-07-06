@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
-
 dotenv.config();
 
+import { createServer } from "http";
 import app from "./app";
-
+import { initSocketServer } from "./shared/socket/SocketServer";
 import { env } from "./shared/config/env";
 import { connectDB, sequelize } from "./shared/config/db";
 
@@ -11,25 +11,19 @@ const startServer = async (): Promise<void> => {
   try {
     await connectDB();
 
-    const server = app.listen(env.PORT, () => {
-      console.log(`
-          🚀 Server running on port ${env.PORT}
-          🌍 Environment: ${process.env.NODE_ENV}
-        `);
-    }
-    );
+    const httpServer = createServer(app);  //  HTTP server banao
+    initSocketServer(httpServer);          // Socket.io attach karo
 
-    /*
-    |--------------------------------------------------------------------------
-    | Graceful Shutdown
-    |--------------------------------------------------------------------------
-    */
+    const server = httpServer.listen(env.PORT, () => {
+      console.log(`
+        🚀 Server running on port ${env.PORT}
+        🌍 Environment: ${process.env.NODE_ENV}
+        🔌 Socket.io initialized
+      `);
+    });
 
     const shutdown = async () => {
-      console.log(
-        "\n🛑 Shutting down server..."
-      );
-
+      console.log("\n🛑 Shutting down server...");
       server.close(async () => {
         try {
           await sequelize.close();

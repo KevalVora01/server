@@ -2,8 +2,6 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-import authRoutes from "./modules/auth/presentation/routes/authRoutes";
-
 import { errorHandler } from "./shared/middleware/errorHandler";
 import routes from "./routes";
 
