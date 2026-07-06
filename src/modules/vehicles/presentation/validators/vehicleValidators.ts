@@ -3,10 +3,19 @@ import { handleValidationError } from '../../../../shared/utils/validateRequest'
 import { VehicleType, FuelType } from '../../domain/entities/Vehicle';
 
 const createVehicleSchema = Joi.object({
-  plateNumber: Joi.string().trim().min(1).max(20).required().messages({
-    'string.empty': 'Plate number is required',
-    'string.max': 'Plate number must be at most 20 characters',
-  }),
+  plateNumber: Joi.string()
+    .custom((value, helpers) => {
+      const normalized = value.toUpperCase().replace(/[\s-]/g, '');
+      return normalized;
+    })
+    .pattern(/^[A-Z]{2}\d{1,2}[A-Z]{1,2}\d{1,4}$/, 'Indian plate format')
+    .max(15)
+    .required()
+    .messages({
+      'string.pattern.name': 'Plate number must be in Indian format (e.g., MH12AB1234)',
+      'string.empty': 'Plate number is required',
+      'string.max': 'Plate number must be at most 15 characters',
+    }),
 
   type: Joi.string().valid(...Object.values(VehicleType)).required().messages({
     'any.only': `Type must be one of: ${Object.values(VehicleType).join(', ')}`,
@@ -35,9 +44,18 @@ const createVehicleSchema = Joi.object({
 });
 
 const updateVehicleSchema = Joi.object({
-  plateNumber: Joi.string().trim().min(1).max(20).optional().messages({
-    'string.max': 'Plate number must be at most 20 characters',
-  }),
+  plateNumber: Joi.string()
+    .custom((value, helpers) => {
+      const normalized = value.toUpperCase().replace(/[\s-]/g, '');
+      return normalized;
+    })
+    .pattern(/^[A-Z]{2}\d{1,2}[A-Z]{1,2}\d{1,4}$/, 'Indian plate format')
+    .max(15)
+    .optional()
+    .messages({
+      'string.pattern.name': 'Plate number must be in Indian format (e.g., MH12AB1234)',
+      'string.max': 'Plate number must be at most 15 characters',
+    }),
 
   type: Joi.string().valid(...Object.values(VehicleType)).optional().messages({
     'any.only': `Type must be one of: ${Object.values(VehicleType).join(', ')}`,

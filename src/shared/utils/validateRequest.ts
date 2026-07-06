@@ -5,7 +5,7 @@ export const handleValidationError = (
   schema: Joi.ObjectSchema,
   source: 'body' | 'query'
 ) => (req: Request, res: Response, next: NextFunction): void => {
-  const { error } = schema.validate(req[source], { abortEarly: false });
+  const { error, value } = schema.validate(req[source], { abortEarly: false });
   if (error) {
     res.status(400).json({
       success: false,
@@ -14,5 +14,6 @@ export const handleValidationError = (
     });
     return;
   }
+  req[source] = value;
   next();
 };
