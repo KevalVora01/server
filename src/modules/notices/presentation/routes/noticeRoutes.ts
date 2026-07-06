@@ -59,7 +59,7 @@ router.delete(
 );
 
 router.patch(
-  "/:id/pin",
+  "/:id/toggle-pin",
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN),
   noticeController.togglePin
