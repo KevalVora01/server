@@ -14,6 +14,6 @@ export const handleValidationError = (
     });
     return;
   }
-  req[source] = value;
+  if (source === 'body') req.body = value;
   next();
 };
