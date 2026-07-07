@@ -59,16 +59,16 @@ const familyMembers = [
 ];
 
 const vehicles = [
-  { residentEmail: "rahul@society.com", plateNumber: "GJ-01-AB-1234", type: VehicleType.CAR, brandName: "Honda", model: "City", color: "White", fuelType: FuelType.PETROL },
-  { residentEmail: "priya@society.com", plateNumber: "GJ-02-CD-5678", type: VehicleType.CAR, brandName: "Maruti", model: "Swift", color: "Red", fuelType: FuelType.PETROL },
-  { residentEmail: "amit@society.com", plateNumber: "GJ-03-EF-9012", type: VehicleType.BIKE, brandName: "Royal Enfield", model: "Classic 350", color: "Black", fuelType: FuelType.PETROL },
-  { residentEmail: "neha@society.com", plateNumber: "GJ-04-GH-3456", type: VehicleType.SCOOTER, brandName: "Honda", model: "Activa 6G", color: "Blue", fuelType: FuelType.PETROL },
-  { residentEmail: "ravi@society.com", plateNumber: "GJ-05-IJ-7890", type: VehicleType.CAR, brandName: "Hyundai", model: "Creta", color: "Silver", fuelType: FuelType.DIESEL },
-  { residentEmail: "sunita@society.com", plateNumber: "GJ-06-KL-1234", type: VehicleType.SCOOTER, brandName: "TVS", model: "Jupiter", color: "Green", fuelType: FuelType.PETROL },
-  { residentEmail: "vikram@society.com", plateNumber: "GJ-07-MN-5678", type: VehicleType.CAR, brandName: "Toyota", model: "Fortuner", color: "White", fuelType: FuelType.DIESEL },
-  { residentEmail: "anjali@society.com", plateNumber: "GJ-08-OP-9012", type: VehicleType.BIKE, brandName: "Bajaj", model: "Pulsar NS200", color: "Orange", fuelType: FuelType.PETROL },
-  { residentEmail: "rahul@society.com", plateNumber: "GJ-09-QR-3456", type: VehicleType.BIKE, brandName: "KTM", model: "Duke 390", color: "Black", fuelType: FuelType.PETROL },
-  { residentEmail: "priya@society.com", plateNumber: "GJ-10-ST-7890", type: VehicleType.CAR, brandName: "Tata", model: "Nexon EV", color: "Teal", fuelType: FuelType.ELECTRIC },
+  { residentEmail: "rahul@society.com", plateNumber: "GJ01AB1234", type: VehicleType.CAR, brandName: "Honda", model: "City", color: "White", fuelType: FuelType.PETROL },
+  { residentEmail: "priya@society.com", plateNumber: "GJ02CD5678", type: VehicleType.CAR, brandName: "Maruti", model: "Swift", color: "Red", fuelType: FuelType.PETROL },
+  { residentEmail: "amit@society.com", plateNumber: "GJ03EF9012", type: VehicleType.BIKE, brandName: "Royal Enfield", model: "Classic 350", color: "Black", fuelType: FuelType.PETROL },
+  { residentEmail: "neha@society.com", plateNumber: "GJ04GH3456", type: VehicleType.SCOOTER, brandName: "Honda", model: "Activa 6G", color: "Blue", fuelType: FuelType.PETROL },
+  { residentEmail: "ravi@society.com", plateNumber: "GJ05IJ7890", type: VehicleType.CAR, brandName: "Hyundai", model: "Creta", color: "Silver", fuelType: FuelType.DIESEL },
+  { residentEmail: "sunita@society.com", plateNumber: "GJ06KL1234", type: VehicleType.SCOOTER, brandName: "TVS", model: "Jupiter", color: "Green", fuelType: FuelType.PETROL },
+  { residentEmail: "vikram@society.com", plateNumber: "GJ07MN5678", type: VehicleType.CAR, brandName: "Toyota", model: "Fortuner", color: "White", fuelType: FuelType.DIESEL },
+  { residentEmail: "anjali@society.com", plateNumber: "GJ08OP9012", type: VehicleType.BIKE, brandName: "Bajaj", model: "Pulsar NS200", color: "Orange", fuelType: FuelType.PETROL },
+  { residentEmail: "rahul@society.com", plateNumber: "GJ09QR3456", type: VehicleType.BIKE, brandName: "KTM", model: "Duke 390", color: "Black", fuelType: FuelType.PETROL },
+  { residentEmail: "priya@society.com", plateNumber: "GJ10ST7890", type: VehicleType.CAR, brandName: "Tata", model: "Nexon EV", color: "Teal", fuelType: FuelType.ELECTRIC },
 ];
 
 const seedDefaultUsers = async (): Promise<void> => {

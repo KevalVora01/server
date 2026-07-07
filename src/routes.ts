@@ -13,7 +13,7 @@ router.use('/auth', authRoutes);
 
 router.use('/residents', residentRoutes);
 
-router.use("/apartments", apartmentRoutes);
+router.use('/apartments', apartmentRoutes);
 
 router.use('/residents/:residentId/family-members', familyMemberRoutes);
 
