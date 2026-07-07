@@ -5,6 +5,7 @@ import apartmentRoutes from './modules/apartments/presentation/routes/apartmentR
 import familyMemberRoutes from './modules/family-members/presentation/routes/familyMemberRoutes';
 import vehicleRoutes from './modules/vehicles/presentation/routes/vehicleRoutes';
 import noticeRoutes from './modules/notices/presentation/routes/noticeRoutes';
+import complaintRoutes from './modules/complaints/presentation/routes/complaintRoutes';
 
 const router = Router();
 
@@ -20,8 +21,10 @@ router.use('/residents/:residentId/family-members', familyMemberRoutes);
 router.use('/residents/:residentId/vehicles', vehicleRoutes);
 
 router.use('/notices', noticeRoutes);
+
+router.use('/complaints', complaintRoutes);
+
 // ─── Add more modules here as you build them ──────────────────────
-// router.use('/complaints', complaintRoutes);
 // router.use('/invoices',   invoiceRoutes);
 // router.use('/events',     eventRoutes);
 // router.use('/visitors',   visitorRoutes);

@@ -10,6 +10,9 @@ import { VehicleType, FuelType } from "../../src/modules/vehicles/domain/entitie
 import { FamilyMemberModel } from "../../src/modules/family-members/infrastructure/models/FamilyMemberModel";
 import { NoticeModel } from "../../src/modules/notices/infrastructure/models/NoticeModel";
 import { NoticeCategory } from "../../src/modules/notices/domain/entities/Notice";
+import { ComplaintModel } from "../../src/modules/complaints/infrastructure/models/ComplaintModel";
+import { ComplaintCommentModel } from "../../src/modules/complaints/infrastructure/models/ComplaintCommentModel";
+import { ComplaintPriority, ComplaintStatus } from "../../src/modules/complaints/domain/entities/Complaint";
 
 const apartments = [
   { block: "A", floorNumber: 1, unitNumber: "01", areaSqft: 850, type: ApartmentType.ONE_BHK },
@@ -379,6 +382,200 @@ const seedNotices = async (): Promise<void> => {
   }
 };
 
+const complaints = [
+  {
+    residentEmail: "rahul@society.com",
+    title: "Water leakage from bathroom ceiling",
+    description: "There is a persistent water leak from the bathroom ceiling since last 3 days. The upstairs neighbor's plumbing may be damaged. The drip has worsened and tiles are starting to stain.",
+    priority: ComplaintPriority.HIGH,
+    status: ComplaintStatus.IN_PROGRESS,
+    daysAgo: 7,
+    resolvedDaysAgo: null,
+  },
+  {
+    residentEmail: "priya@society.com",
+    title: "Broken street light near Block B entrance",
+    description: "The street light near the Block B main entrance has been broken for over a week. It gets very dark at night and is a safety concern for residents walking their dogs or returning late.",
+    priority: ComplaintPriority.LOW,
+    status: ComplaintStatus.OPEN,
+    daysAgo: 5,
+    resolvedDaysAgo: null,
+  },
+  {
+    residentEmail: "amit@society.com",
+    title: "Noise complaint — late night parties in Block A",
+    description: "Residents on the 3rd floor of Block A have been hosting loud parties until 2 AM regularly. This is disturbing the peace, especially for elderly residents and young children. Request strict action.",
+    priority: ComplaintPriority.MEDIUM,
+    status: ComplaintStatus.OPEN,
+    daysAgo: 3,
+    resolvedDaysAgo: null,
+  },
+  {
+    residentEmail: "neha@society.com",
+    title: "Improper garbage disposal in common area",
+    description: "Some residents are leaving garbage bags near the Block C staircase instead of the designated disposal area. This is attracting stray animals and creating unhygienic conditions.",
+    priority: ComplaintPriority.LOW,
+    status: ComplaintStatus.RESOLVED,
+    daysAgo: 20,
+    resolvedDaysAgo: 16,
+  },
+  {
+    residentEmail: "ravi@society.com",
+    title: "Lift not working properly — gets stuck between floors",
+    description: "The passenger lift in Block A has been malfunctioning for the past 2 days. It jerks suddenly and got stuck between the 1st and 2nd floor yesterday with my family inside. Needs urgent servicing.",
+    priority: ComplaintPriority.HIGH,
+    status: ComplaintStatus.IN_PROGRESS,
+    daysAgo: 4,
+    resolvedDaysAgo: null,
+  },
+  {
+    residentEmail: "sunita@society.com",
+    title: "Security gate remote not functioning",
+    description: "The remote for the main security gate has stopped working. The battery was replaced but it still does not respond. Request a replacement or repair at the earliest.",
+    priority: ComplaintPriority.MEDIUM,
+    status: ComplaintStatus.RESOLVED,
+    daysAgo: 14,
+    resolvedDaysAgo: 11,
+  },
+  {
+    residentEmail: "vikram@society.com",
+    title: "Parking space occupied by unauthorized vehicle",
+    description: "A white Honda City with plate number GJ05IJ7890 has been parked in my allotted parking space (A-201) for the last 3 days. The vehicle does not belong to any resident in Block A.",
+    priority: ComplaintPriority.MEDIUM,
+    status: ComplaintStatus.OPEN,
+    daysAgo: 2,
+    resolvedDaysAgo: null,
+  },
+  {
+    residentEmail: "anjali@society.com",
+    title: "Pest control required in Block C basement",
+    description: "There is a severe cockroach and rodent infestation in the Block C basement area near the storage units. Regular pest control has not been conducted this month. Please schedule fumigation urgently.",
+    priority: ComplaintPriority.LOW,
+    status: ComplaintStatus.OPEN,
+    daysAgo: 1,
+    resolvedDaysAgo: null,
+  },
+];
+
+const seedComplaints = async (): Promise<void> => {
+  try {
+    const existing = await ComplaintModel.count();
+    if (existing > 0) {
+      console.log("[Database Seeder]: Complaints already seeded. Skipping.");
+      return;
+    }
+
+    console.log("[Database Seeder]: Seeding complaints...");
+
+    for (const c of complaints) {
+      const user = await UserModel.findOne({ where: { email: c.residentEmail } });
+      if (!user) {
+        console.log(`[Database Seeder]: User ${c.residentEmail} not found. Skipping complaint.`);
+        continue;
+      }
+
+      const resident = await ResidentModel.findOne({ where: { userId: user.id } });
+      if (!resident) {
+        console.log(`[Database Seeder]: Resident profile for ${c.residentEmail} not found. Skipping complaint.`);
+        continue;
+      }
+
+      const createdAt = new Date();
+      createdAt.setDate(createdAt.getDate() - c.daysAgo);
+
+      const resolvedAt = c.resolvedDaysAgo !== null
+        ? (() => { const d = new Date(); d.setDate(d.getDate() - c.resolvedDaysAgo); return d; })()
+        : undefined;
+
+      await ComplaintModel.create({
+        residentId: resident.id,
+        title: c.title,
+        description: c.description,
+        priority: c.priority,
+        status: c.status,
+        createdAt,
+        updatedAt: createdAt,
+        ...(resolvedAt !== undefined && { resolvedAt }),
+      });
+      console.log(`[Database Seeder]: Created complaint — "${c.title}" (${c.residentEmail})`);
+    }
+
+    console.log("[Database Seeder]: Complaints seeded successfully!");
+  } catch (error) {
+    console.error("[Database Seeder] CRITICAL: Failed to seed complaints:", error);
+  }
+};
+
+const seedComplaintComments = async (): Promise<void> => {
+  try {
+    const existing = await ComplaintCommentModel.count();
+    if (existing > 0) {
+      console.log("[Database Seeder]: Complaint comments already seeded. Skipping.");
+      return;
+    }
+
+    console.log("[Database Seeder]: Seeding complaint comments...");
+
+    const admin = await UserModel.findOne({ where: { email: "admin@society.com" } });
+    if (!admin) {
+      console.log("[Database Seeder]: Admin user not found. Skipping complaint comments.");
+      return;
+    }
+
+    const allComplaints = await ComplaintModel.findAll({ order: [["id", "ASC"]] });
+
+    const commentsByComplaint: { complaintIndex: number; userId: "admin" | "resident"; content: string; daysAgo: number }[][] = [
+      // Complaint 1: Water leakage (In Progress) — admin responded, resident replied
+      [
+        { complaintIndex: 0, userId: "admin", content: "We have registered your complaint. A plumber will be sent to inspect the issue tomorrow morning between 9 AM and 11 AM. Please ensure someone is home.", daysAgo: 5 },
+        { complaintIndex: 0, userId: "resident", content: "Thank you. The plumber visited and identified a leak from the upstairs bathroom pipe. He has fixed it temporarily but said permanent repair is needed. Please follow up.", daysAgo: 3 },
+        { complaintIndex: 0, userId: "admin", content: "Noted. We have escalated this to the maintenance team. The permanent repair will be completed within 2 working days. Apologies for the inconvenience.", daysAgo: 2 },
+      ],
+      // Complaint 3: Noise complaint (Open) — admin warning issued
+      [
+        { complaintIndex: 2, userId: "admin", content: "We have spoken to the residents on the 3rd floor and issued a formal warning. Security has been instructed to monitor the situation. Please report if it continues.", daysAgo: 1 },
+      ],
+      // Complaint 5: Lift issue (In Progress) — admin update, resident follow-up
+      [
+        { complaintIndex: 4, userId: "admin", content: "The lift servicing company has been contacted. A technician will arrive by tomorrow evening to inspect and repair the issue. We have temporarily shut down the lift for safety.", daysAgo: 3 },
+        { complaintIndex: 4, userId: "resident", content: "The technician came but the issue persists. The lift is still jerking when moving between floors. Please send someone again urgently as elderly residents are struggling with stairs.", daysAgo: 1 },
+      ],
+    ];
+
+    for (const commentGroup of commentsByComplaint) {
+      const complaint = allComplaints[commentGroup[0].complaintIndex];
+      if (!complaint) continue;
+
+      const residentUser = await UserModel.findOne({
+        where: { email: complaints[commentGroup[0].complaintIndex].residentEmail },
+      });
+
+      if (!residentUser) continue;
+
+      for (const comment of commentGroup) {
+        const userId = comment.userId === "admin" ? admin.id : residentUser.id;
+
+        const createdAt = new Date();
+        createdAt.setDate(createdAt.getDate() - comment.daysAgo);
+
+        await ComplaintCommentModel.create({
+          complaintId: complaint.id,
+          userId,
+          content: comment.content,
+          createdAt,
+        });
+
+        const by = comment.userId === "admin" ? "Admin" : "Resident";
+        console.log(`[Database Seeder]: Created comment on complaint #${complaint.id} (by ${by})`);
+      }
+    }
+
+    console.log("[Database Seeder]: Complaint comments seeded successfully!");
+  } catch (error) {
+    console.error("[Database Seeder] CRITICAL: Failed to seed complaint comments:", error);
+  }
+};
+
 export const runDatabaseSeeders = async (): Promise<void> => {
   console.log("-----------------------------------------");
   console.log("[Database Seeder]: Initializing data seeding sequence...");
@@ -389,6 +586,8 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   await seedFamilyMembers();
   await seedVehicles();
   await seedNotices();
+  await seedComplaints();
+  await seedComplaintComments();
 
   console.log("[Database Seeder]: Seeding sequence complete.");
   console.log("-----------------------------------------");

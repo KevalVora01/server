@@ -8,6 +8,10 @@ import "../../modules/auth/infrastructure/models/PasswordResetTokenModel";
 import "../../modules/apartments/infrastructure/models/ApartmentModel";
 import "../../modules/family-members/infrastructure/models/FamilyMemberModel";
 import "../../modules/vehicles/infrastructure/models/VehicleModel";
+import "../../modules/notices/infrastructure/models/NoticeModel";
+import "../../modules/complaints/infrastructure/models/ComplaintModel";
+import "../../modules/complaints/infrastructure/models/ComplaintCommentModel";
+import "../../modules/complaints/infrastructure/models/ComplaintImageModel";
 
 import { runDatabaseSeeders } from '../../../database/seeder/seeder';
 

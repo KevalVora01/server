@@ -13,7 +13,7 @@ export interface NoticeProps {
   category: NoticeCategory;
   isPinned: boolean;
   isActive: boolean;
-  publishedAt?: Date;
+  publishedAt: Date;
   updatedAt?: Date;
 }
 
@@ -64,7 +64,7 @@ export class Notice {
     return this.props.isActive;
   }
 
-  get publishedAt(): Date | undefined {
+  get publishedAt(): Date {
     return this.props.publishedAt;
   }
 
