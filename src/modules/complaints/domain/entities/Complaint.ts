@@ -120,6 +120,7 @@ export class Complaint {
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
       resolvedAt: this.props.resolvedAt,
+      resident: (this as any).resident ?? null,
     };
   }
 }

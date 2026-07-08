@@ -53,6 +53,7 @@ export class ComplaintComment {
       userId: this.props.userId,
       content: this.props.content,
       createdAt: this.props.createdAt,
+      user: (this as any).user ?? null,
     };
   }
 }

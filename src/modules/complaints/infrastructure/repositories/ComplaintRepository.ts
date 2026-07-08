@@ -6,6 +6,7 @@ import { ComplaintModel } from "../models/ComplaintModel";
 import { ComplaintImageModel } from "../models/ComplaintImageModel";
 import { PaginatedResult, PaginatedRequest, buildPaginatedResult } from "../../../../shared/types/Pagination";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
+import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 
 export class ComplaintRepository implements IComplaintRepository {
 
@@ -64,6 +65,13 @@ export class ComplaintRepository implements IComplaintRepository {
           model: ResidentModel,
           as: "resident",
           attributes: ["id", "userId", "apartmentId"],
+          include: [
+            {
+              model: UserModel,
+              as: "user",
+              attributes: ["id", "name"],
+            },
+          ],
         },
       ],
     });
