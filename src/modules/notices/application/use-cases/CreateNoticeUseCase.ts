@@ -1,11 +1,12 @@
 import { INoticeRepository } from "../../domain/repositories/INoticeRepository";
 import { CreateNoticeDto } from "../dtos/CreateNoticeDto";
 import { Notice } from "../../domain/entities/Notice";
-import { emitNewNotice } from "../../../../shared/socket/NoticeGateway";
+import { INoticeNotifier } from "../../domain/services/notice-notifier.interface";
 
 export class CreateNoticeUseCase {
   constructor(
     private readonly noticeRepository: INoticeRepository,
+    private readonly notifier: INoticeNotifier
   ) { }
 
   async execute(dto: CreateNoticeDto): Promise<Notice> {
@@ -18,7 +19,7 @@ export class CreateNoticeUseCase {
 
     const saved = await this.noticeRepository.create(notice);
 
-    emitNewNotice(saved);
+    this.notifier.notifyNewNotice(saved);
 
     return saved;
   }

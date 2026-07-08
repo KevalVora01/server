@@ -3,16 +3,16 @@ dotenv.config();
 
 import { createServer } from "http";
 import app from "./app";
-import { initSocketServer } from "./shared/socket/SocketServer";
 import { env } from "./shared/config/env";
 import { connectDB, sequelize } from "./shared/config/db";
+import { initSocket } from "./shared/socket/socket.server";
 
 const startServer = async (): Promise<void> => {
   try {
     await connectDB();
 
-    const httpServer = createServer(app);  //  HTTP server banao
-    initSocketServer(httpServer);          // Socket.io attach karo
+    const httpServer = createServer(app);
+    initSocket(httpServer);
 
     const server = httpServer.listen(env.PORT, () => {
       console.log(`

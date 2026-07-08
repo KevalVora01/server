@@ -16,7 +16,7 @@ export class NoticeController {
     private readonly updateNoticeUseCase: UpdateNoticeUseCase,
     private readonly deleteNoticeUseCase: DeleteNoticeUseCase,
     private readonly togglePinNoticeUseCase: TogglePinNoticeUseCase,
-  ) {}
+  ) { }
 
   createNotice = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
