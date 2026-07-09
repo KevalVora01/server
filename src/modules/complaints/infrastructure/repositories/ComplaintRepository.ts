@@ -7,6 +7,7 @@ import { ComplaintImageModel } from "../models/ComplaintImageModel";
 import { PaginatedResult, PaginatedRequest, buildPaginatedResult } from "../../../../shared/types/Pagination";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
+import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 
 export class ComplaintRepository implements IComplaintRepository {
 
@@ -67,6 +68,11 @@ export class ComplaintRepository implements IComplaintRepository {
           attributes: ["id", "userId", "apartmentId"],
           include: [
             {
+              model: ApartmentModel,
+              as: "apartment",
+              attributes: ["block", "floorNumber", "unitNumber"],
+            },
+            {
               model: UserModel,
               as: "user",
               attributes: ["id", "name"],
@@ -108,6 +114,13 @@ export class ComplaintRepository implements IComplaintRepository {
           model: ResidentModel,
           as: "resident",
           attributes: ["id", "userId", "apartmentId"],
+          include: [
+            {
+              model: ApartmentModel,
+              as: "apartment",
+              attributes: ["block", "floorNumber", "unitNumber"],
+            },
+          ],
         },
       ],
       limit: filters.pageSize,
