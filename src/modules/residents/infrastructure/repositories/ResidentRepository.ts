@@ -126,6 +126,25 @@ export class ResidentRepository implements IResidentRepository {
     );
   }
 
+  async findAllActive(): Promise<Resident[]> {
+    const rows = await ResidentModel.findAll({
+      where: { isActive: true },
+      include: [
+        {
+          model: UserModel,
+          as: "user",
+          attributes: ["id", "name", "email", "phone"],
+        },
+      ],
+    });
+
+    return rows.map((row) => {
+      const resident = this.toEntity(row);
+      (resident as any).user = (row as any).user ?? null;
+      return resident;
+    });
+  }
+
   async update(resident: Resident): Promise<Resident> {
     await ResidentModel.update(
       {

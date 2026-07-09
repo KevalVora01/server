@@ -1,0 +1,47 @@
+import { Router } from "express";
+import { notificationController } from "../../container";
+import { createJwtMiddleware } from "../../../../shared/middleware/jwtMiddleware";
+import { JwtTokenService } from "../../../auth/infrastructure/services/JwtTokenService";
+import { rbacMiddleware } from "../../../../shared/middleware/rbacMiddleware";
+import { UserRole } from "../../../auth/domain/entities/User";
+import { validateMarkAsRead } from "../validators/notificationValidators";
+
+const router = Router();
+const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
+
+/*
+|--------------------------------------------------------------------------
+| All authenticated roles — everyone has their own notifications
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+  "/unread-count",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT, UserRole.SECURITY),
+  notificationController.getUnreadCount
+);
+
+router.patch(
+  "/read-all",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT, UserRole.SECURITY),
+  notificationController.markAllAsRead
+);
+
+router.patch(
+  "/read",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT, UserRole.SECURITY),
+  validateMarkAsRead,
+  notificationController.markAsRead
+);
+
+router.get(
+  "/",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT, UserRole.SECURITY),
+  notificationController.getNotifications
+);
+
+export default router;

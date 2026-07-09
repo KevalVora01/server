@@ -1,9 +1,13 @@
 import { Complaint } from "../../domain/entities/Complaint";
 import { IComplaintRepository } from "../../domain/repositories/IComplaintRepository";
+import { IComplaintNotifier } from "../../domain/services/complaint-notifier.interface";
 import { CreateComplaintDto } from "../dtos/CreateComplaintDto";
 
 export class CreateComplaintUseCase {
-  constructor(private readonly complaintRepository: IComplaintRepository) { }
+  constructor(
+    private readonly complaintRepository: IComplaintRepository,
+    private readonly notifier: IComplaintNotifier
+  ) { }
 
   async execute(dto: CreateComplaintDto): Promise<Complaint> {
     const complaint = Complaint.create({
@@ -13,6 +17,10 @@ export class CreateComplaintUseCase {
       priority: dto.priority,
     });
 
-    return this.complaintRepository.create(complaint, dto.imageUrls);
+    const saved = await this.complaintRepository.create(complaint, dto.imageUrls);
+
+    this.notifier.notifyCreated(saved);
+
+    return saved;
   }
 }

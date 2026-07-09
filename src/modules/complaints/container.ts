@@ -10,19 +10,22 @@ import { ComplaintCommentRepository } from "../complaints/infrastructure/reposit
 import { ComplaintRepository } from "../complaints/infrastructure/repositories/ComplaintRepository";
 import { ComplaintController } from "../complaints/presentation/controllers/ComplaintController";
 import { ResidentRepository } from "../residents/infrastructure/repositories/ResidentRepository";
-
+import { SocketComplaintNotifier } from "./infrastructure/services/complaint-notifier.service";
 
 // Repositories
 const complaintRepository = new ComplaintRepository();
 const complaintCommentRepository = new ComplaintCommentRepository();
 const residentRepository = new ResidentRepository();
 
+// Services
+const complaintNotifier = new SocketComplaintNotifier();
+
 // Use Cases
-const createComplaintUseCase = new CreateComplaintUseCase(complaintRepository);
+const createComplaintUseCase = new CreateComplaintUseCase(complaintRepository, complaintNotifier);
 const getComplaintUseCase = new GetComplaintUseCase(complaintRepository);
 const listComplaintsUseCase = new ListComplaintsUseCase(complaintRepository);
 const listMyComplaintsUseCase = new ListMyComplaintsUseCase(complaintRepository);
-const updateComplaintStatusUseCase = new UpdateComplaintStatusUseCase(complaintRepository);
+const updateComplaintStatusUseCase = new UpdateComplaintStatusUseCase(complaintRepository, complaintNotifier);
 const addCommentUseCase = new AddCommentUseCase(complaintRepository, complaintCommentRepository);
 const listCommentsUseCase = new ListCommentsUseCase(complaintRepository, complaintCommentRepository);
 const cloudinaryService = new CloudinaryService();

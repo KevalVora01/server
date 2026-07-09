@@ -12,6 +12,7 @@ import "../../modules/notices/infrastructure/models/NoticeModel";
 import "../../modules/complaints/infrastructure/models/ComplaintModel";
 import "../../modules/complaints/infrastructure/models/ComplaintCommentModel";
 import "../../modules/complaints/infrastructure/models/ComplaintImageModel";
+import "../../modules/notifications/infrastructure/models/NotificationModel";
 
 import { runDatabaseSeeders } from '../../../database/seeder/seeder';
 

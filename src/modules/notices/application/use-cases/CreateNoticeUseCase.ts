@@ -19,7 +19,7 @@ export class CreateNoticeUseCase {
 
     const saved = await this.noticeRepository.create(notice);
 
-    this.notifier.notifyNewNotice(saved);
+    await this.notifier.notifyNewNotice(saved);
 
     return saved;
   }
