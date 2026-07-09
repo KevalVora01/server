@@ -44,4 +44,18 @@ router.get(
   notificationController.getNotifications
 );
 
+router.delete(
+  "/:id",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT, UserRole.SECURITY),
+  notificationController.deleteNotification
+);
+
+router.delete(
+  "/",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT, UserRole.SECURITY),
+  notificationController.deleteAllNotifications
+);
+
 export default router;

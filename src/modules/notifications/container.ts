@@ -5,6 +5,8 @@ import { GetNotificationsUseCase } from "./application/use-cases/GetNotification
 import { GetUnreadCountUseCase } from "./application/use-cases/GetUnreadCountUseCase";
 import { MarkAsReadUseCase } from "./application/use-cases/MarkAsReadUseCase";
 import { MarkAllAsReadUseCase } from "./application/use-cases/MarkAllAsReadUseCase";
+import { DeleteNotificationUseCase } from "./application/use-cases/DeleteNotificationUseCase";
+import { DeleteAllNotificationsUseCase } from "./application/use-cases/DeleteAllNotificationsUseCase";
 
 import { NotificationController } from "./presentation/controllers/NotificationController";
 
@@ -19,6 +21,8 @@ const getNotificationsUseCase = new GetNotificationsUseCase(notificationReposito
 const getUnreadCountUseCase = new GetUnreadCountUseCase(notificationRepository);
 const markAsReadUseCase = new MarkAsReadUseCase(notificationRepository);
 const markAllAsReadUseCase = new MarkAllAsReadUseCase(notificationRepository);
+const deleteNotificationUseCase = new DeleteNotificationUseCase(notificationRepository);
+const deleteAllNotificationsUseCase = new DeleteAllNotificationsUseCase(notificationRepository);
 
 // Controller
 export const notificationController = new NotificationController(
@@ -26,4 +30,6 @@ export const notificationController = new NotificationController(
   getUnreadCountUseCase,
   markAsReadUseCase,
   markAllAsReadUseCase,
+  deleteNotificationUseCase,
+  deleteAllNotificationsUseCase,
 );

@@ -68,4 +68,12 @@ export class NotificationRepository implements INotificationRepository {
       { where: { userId, isRead: false } }
     );
   }
+
+  async delete(id: number, userId: number): Promise<void> {
+    await NotificationModel.destroy({ where: { id, userId } });
+  }
+
+  async deleteAll(userId: number): Promise<void> {
+    await NotificationModel.destroy({ where: { userId } });
+  }
 }

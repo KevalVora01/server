@@ -7,4 +7,6 @@ export interface INotificationRepository {
   getUnreadCount(userId: number): Promise<number>;
   markAsRead(ids: number[], userId: number): Promise<void>;
   markAllAsRead(userId: number): Promise<void>;
+  delete(id: number, userId: number): Promise<void>;
+  deleteAll(userId: number): Promise<void>;
 }
