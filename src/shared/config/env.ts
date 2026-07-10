@@ -58,10 +58,22 @@ export const env = {
 
   CLOUDINARY_CLOUD_NAME:
     process.env.CLOUDINARY_CLOUD_NAME,
-  
+
   CLOUDINARY_API_KEY:
     process.env.CLOUDINARY_API_KEY,
-  
+
   CLOUDINARY_API_SECRET:
     process.env.CLOUDINARY_API_SECRET,
+
+  STRIPE_SECRET_KEY:
+    process.env.STRIPE_SECRET_KEY,
+
+  STRIPE_WEBHOOK_SECRET:
+    process.env.STRIPE_WEBHOOK_SECRET,
+
+  SOCIETY_NAME:
+    process.env.SOCIETY_NAME || "My Society",
+  
+  SOCIETY_ADDRESS:
+    process.env.SOCIETY_ADDRESS || "123 Main St, City, Country",
 };

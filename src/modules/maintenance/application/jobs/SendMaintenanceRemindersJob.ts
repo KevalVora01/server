@@ -1,0 +1,99 @@
+import { IInvoiceRepository } from "../../domain/repositories/IInvoiceRepository";
+import { IMaintenanceNotifier } from "../../domain/services/IMaintenanceNotifier";
+import {
+  calculateFirstOverduePenalty,
+  calculateAdditionalMonthlyPenalty,
+  recalculateTotal,
+} from "../../domain/services/PenaltyCalculator";
+
+export class SendMaintenanceRemindersJob {
+  constructor(
+    private readonly invoiceRepository: IInvoiceRepository,
+    private readonly maintenanceNotifier: IMaintenanceNotifier,
+  ) { }
+
+  async execute(): Promise<void> {
+    const today = new Date();
+
+    await this.sendDueSoonReminders(today);
+    await this.sendDueTodayReminders(today);
+    await this.processNewlyOverdue(today);
+    await this.processOngoingOverdue(today);
+  }
+
+  private async sendDueSoonReminders(today: Date): Promise<void> {
+    const threeDaysFromNow = this.addDays(today, 3);
+    const invoices = await this.invoiceRepository.findAllPendingWithDueDate(threeDaysFromNow);
+
+    for (const invoice of invoices) {
+      await this.maintenanceNotifier.notifyDueSoon(invoice);
+    }
+  }
+
+  private async sendDueTodayReminders(today: Date): Promise<void> {
+    const invoices = await this.invoiceRepository.findAllPendingWithDueDate(today);
+
+    for (const invoice of invoices) {
+      await this.maintenanceNotifier.notifyDueToday(invoice);
+    }
+  }
+
+  /**
+   * Invoices whose due date has just passed and are still Pending.
+   * Applies the first 5% penalty and flips status to Overdue.
+   */
+  private async processNewlyOverdue(today: Date): Promise<void> {
+    const invoices = await this.invoiceRepository.findAllNewlyOverdue(today);
+
+    for (const invoice of invoices) {
+      const penalty = calculateFirstOverduePenalty(invoice.baseAmount);
+      const updatedCharges = [...invoice.extraCharges, penalty];
+
+      invoice.setExtraCharges(updatedCharges);
+      invoice.setTotalAmount(recalculateTotal(invoice.baseAmount, updatedCharges));
+      invoice.markOverdue();
+
+      await this.invoiceRepository.update(invoice);
+      await this.maintenanceNotifier.notifyOverdue(invoice);
+    }
+  }
+
+  /**
+   * Invoices already Overdue — applies additional monthly penalties as time passes,
+   * and sends a repeat reminder every 7 days since becoming overdue.
+   */
+  private async processOngoingOverdue(today: Date): Promise<void> {
+    const invoices = await this.invoiceRepository.findAllOverdueUnpaid();
+
+    for (const invoice of invoices) {
+      const daysSinceOverdue = this.daysBetween(invoice.dueDate, today);
+      const monthsSinceOverdue = Math.floor(daysSinceOverdue / 30);
+      const penaltyCount = invoice.extraCharges.filter((c) => c.label.startsWith("Late fee")).length;
+
+      if (monthsSinceOverdue + 1 > penaltyCount) {
+        const penalty = calculateAdditionalMonthlyPenalty(invoice.baseAmount, penaltyCount);
+        const updatedCharges = [...invoice.extraCharges, penalty];
+
+        invoice.setExtraCharges(updatedCharges);
+        invoice.setTotalAmount(recalculateTotal(invoice.baseAmount, updatedCharges));
+
+        await this.invoiceRepository.update(invoice);
+      }
+
+      if (daysSinceOverdue > 0 && daysSinceOverdue % 7 === 0) {
+        await this.maintenanceNotifier.notifyOverdueReminder(invoice);
+      }
+    }
+  }
+
+  private daysBetween(from: Date, to: Date): number {
+    const msPerDay = 1000 * 60 * 60 * 24;
+    return Math.round((to.getTime() - from.getTime()) / msPerDay);
+  }
+
+  private addDays(date: Date, days: number): Date {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+}

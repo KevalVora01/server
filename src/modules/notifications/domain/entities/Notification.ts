@@ -1,7 +1,12 @@
 export type NotificationType =
   | "complaint_created"
   | "complaint_status_changed"
-  | "notice_created";
+  | "notice_created"
+  | "maintenance_due_soon"
+  | "maintenance_due_today"
+  | "maintenance_overdue"
+  | "maintenance_overdue_reminder"
+  | "maintenance_payment_succeeded";
 
 export interface NotificationDataMap {
   complaint_created: { complaintId: number };

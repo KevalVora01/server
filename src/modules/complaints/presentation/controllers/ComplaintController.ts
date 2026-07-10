@@ -9,7 +9,7 @@ import { ListCommentsUseCase } from "../../application/use-cases/ListCommentsUse
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
 import { UserRole } from "../../../auth/domain/entities/User";
-import { RequestingUser } from "../../application/dtos/RequestingUser";
+import { RequestingUser } from "../../../../shared/types/RequestingUser";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { CloudinaryService } from "../../../../shared/services/CloudinaryService";
 

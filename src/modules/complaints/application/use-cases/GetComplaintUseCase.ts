@@ -5,7 +5,7 @@ import {
   ComplaintNotFoundError,
   UnauthorizedComplaintAccessError,
 } from "../../domain/errors/ComplaintErrors";
-import { RequestingUser } from "../dtos/RequestingUser";
+import { RequestingUser } from "../../../../shared/types/RequestingUser";
 import { UserRole } from "../../../auth/domain/entities/User";
 
 export interface ComplaintWithImages {

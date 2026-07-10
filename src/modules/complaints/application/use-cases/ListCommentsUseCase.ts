@@ -1,7 +1,7 @@
 import { ComplaintComment } from "../../domain/entities/ComplaintComment";
 import { IComplaintCommentRepository } from "../../domain/repositories/IComplaintCommentRepository";
 import { IComplaintRepository } from "../../domain/repositories/IComplaintRepository";
-import { RequestingUser } from "../dtos/RequestingUser";
+import { RequestingUser } from "../../../../shared/types/RequestingUser";
 import { UserRole } from "../../../auth/domain/entities/User";
 import {
   ComplaintNotFoundError,
