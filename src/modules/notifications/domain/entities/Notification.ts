@@ -1,6 +1,7 @@
 export type NotificationType =
   | "complaint_created"
   | "complaint_status_changed"
+  | "complaint_comment_added"
   | "notice_created"
   | "maintenance_due_soon"
   | "maintenance_due_today"
@@ -11,6 +12,7 @@ export type NotificationType =
 export interface NotificationDataMap {
   complaint_created: { complaintId: number };
   complaint_status_changed: { complaintId: number; status: string };
+  complaint_comment_added: { complaintId: number };
   notice_created: { noticeId: number };
 }
 

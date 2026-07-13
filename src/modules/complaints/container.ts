@@ -6,6 +6,7 @@ import { ListCommentsUseCase } from "../complaints/application/use-cases/ListCom
 import { ListComplaintsUseCase } from "../complaints/application/use-cases/ListComplaintsUseCase";
 import { ListMyComplaintsUseCase } from "../complaints/application/use-cases/ListMyComplaintsUseCase";
 import { UpdateComplaintStatusUseCase } from "../complaints/application/use-cases/UpdateComplaintStatusUseCase";
+import { DeleteComplaintUseCase } from "../complaints/application/use-cases/DeleteComplaintUseCase";
 import { ComplaintCommentRepository } from "../complaints/infrastructure/repositories/ComplaintCommentRepository";
 import { ComplaintRepository } from "../complaints/infrastructure/repositories/ComplaintRepository";
 import { ComplaintController } from "../complaints/presentation/controllers/ComplaintController";
@@ -26,11 +27,10 @@ const getComplaintUseCase = new GetComplaintUseCase(complaintRepository);
 const listComplaintsUseCase = new ListComplaintsUseCase(complaintRepository);
 const listMyComplaintsUseCase = new ListMyComplaintsUseCase(complaintRepository);
 const updateComplaintStatusUseCase = new UpdateComplaintStatusUseCase(complaintRepository, complaintNotifier);
-const addCommentUseCase = new AddCommentUseCase(complaintRepository, complaintCommentRepository);
+const addCommentUseCase = new AddCommentUseCase(complaintRepository, complaintCommentRepository, complaintNotifier);
 const listCommentsUseCase = new ListCommentsUseCase(complaintRepository, complaintCommentRepository);
+const deleteComplaintUseCase = new DeleteComplaintUseCase(complaintRepository);
 const cloudinaryService = new CloudinaryService();
-
-
 
 // Controller
 export const complaintController = new ComplaintController(
@@ -43,5 +43,6 @@ export const complaintController = new ComplaintController(
   listCommentsUseCase,
   residentRepository,
   cloudinaryService,
+  deleteComplaintUseCase,
 );
 

@@ -66,7 +66,7 @@ router.get(
   "/:id",
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
-  complaintController.getComplaint
+  complaintController.getComplaint  
 );
 
 router.post(
@@ -82,6 +82,13 @@ router.get(
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
   complaintController.listComments
+);
+
+router.delete(
+  "/:id",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
+  complaintController.deleteComplaint
 );
 
 export default router;

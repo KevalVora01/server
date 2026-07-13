@@ -25,3 +25,10 @@ export class UnauthorizedComplaintAccessError extends Error {
     this.name = "UnauthorizedComplaintAccessError";
   }
 }
+
+export class ComplaintCannotBeDeletedError extends Error {
+  constructor(status: string) {
+    super(`Only open complaints can be deleted. Current status: '${status}'`);
+    this.name = "ComplaintCannotBeDeletedError";
+  }
+}

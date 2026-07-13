@@ -6,6 +6,7 @@ import { ListMyComplaintsUseCase } from "../../application/use-cases/ListMyCompl
 import { UpdateComplaintStatusUseCase } from "../../application/use-cases/UpdateComplaintStatusUseCase";
 import { AddCommentUseCase } from "../../application/use-cases/AddCommentUseCase";
 import { ListCommentsUseCase } from "../../application/use-cases/ListCommentsUseCase";
+import { DeleteComplaintUseCase } from "../../application/use-cases/DeleteComplaintUseCase";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
 import { UserRole } from "../../../auth/domain/entities/User";
@@ -24,6 +25,7 @@ export class ComplaintController {
     private readonly listCommentsUseCase: ListCommentsUseCase,
     private readonly residentRepository: IResidentRepository,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly deleteComplaintUseCase: DeleteComplaintUseCase,
   ) { }
 
   private async buildRequestingUser(authReq: AuthenticatedRequest): Promise<RequestingUser> {
@@ -212,6 +214,26 @@ export class ComplaintController {
         ApiResponse.success({
           message: "Comments fetched successfully",
           data: comments.map((c) => c.toResponseObject()),
+        })
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteComplaint = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const requestingUser = await this.buildRequestingUser(authReq);
+
+      await this.deleteComplaintUseCase.execute(
+        Number(req.params.id),
+        requestingUser
+      );
+
+      res.status(200).json(
+        ApiResponse.success({
+          message: "Complaint deleted successfully",
         })
       );
     } catch (error) {

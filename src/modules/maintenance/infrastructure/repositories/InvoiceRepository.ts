@@ -5,6 +5,7 @@ import { InvoiceModel } from "../models/InvoiceModel";
 import { AdminDashboardMetrics, ResidentDashboardMetrics } from "../../application/use-cases/GetDashboardMetricsUseCase";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
 import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
+import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 import { buildPaginatedResult, PaginatedRequest, PaginatedResult } from "../../../../shared/types/Pagination";
 
 export class InvoiceRepository implements IInvoiceRepository {
@@ -35,6 +36,7 @@ export class InvoiceRepository implements IInvoiceRepository {
         id: model.resident.id,
         userId: model.resident.userId,
         apartmentId: model.resident.apartmentId,
+        name: (model.resident as any).user?.name ?? "",
       } : null,
     });
   }
@@ -59,7 +61,12 @@ export class InvoiceRepository implements IInvoiceRepository {
     const model = await InvoiceModel.findOne({
       where: { id },
       include: [
-        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+        {
+          model: ResidentModel,
+          as: "resident",
+          attributes: ["id", "userId", "apartmentId"],
+          include: [{ model: UserModel, as: "user", attributes: ["name"] }],
+        },
         { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
       ],
     });
@@ -82,7 +89,12 @@ export class InvoiceRepository implements IInvoiceRepository {
     const { count, rows } = await InvoiceModel.findAndCountAll({
       where,
       include: [
-        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+        {
+          model: ResidentModel,
+          as: "resident",
+          attributes: ["id", "userId", "apartmentId"],
+          include: [{ model: UserModel, as: "user", attributes: ["name"] }],
+        },
         { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
       ],
       limit: filters.pageSize,

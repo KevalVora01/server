@@ -34,6 +34,7 @@ export interface InvoiceProps {
     id: number;
     userId: number;
     apartmentId: number;
+    name?: string;
   } | null;
 }
 

@@ -4,6 +4,7 @@ import { IComplaintCommentRepository } from "../../domain/repositories/IComplain
 import { CreateCommentDto } from "../dtos/CreateCommentDto";
 import { RequestingUser } from "../../../../shared/types/RequestingUser";
 import { UserRole } from "../../../auth/domain/entities/User";
+import { IComplaintNotifier } from "../../domain/services/complaint-notifier.interface";
 import {
   ComplaintNotFoundError,
   ComplaintAlreadyResolvedError,
@@ -13,7 +14,8 @@ import {
 export class AddCommentUseCase {
   constructor(
     private readonly complaintRepository: IComplaintRepository,
-    private readonly commentRepository: IComplaintCommentRepository
+    private readonly commentRepository: IComplaintCommentRepository,
+    private readonly complaintNotifier: IComplaintNotifier
   ) { }
 
   async execute(dto: CreateCommentDto, requestingUser: RequestingUser): Promise<ComplaintComment> {
@@ -40,6 +42,14 @@ export class AddCommentUseCase {
       content: dto.content,
     });
 
-    return this.commentRepository.create(comment);
+    const createdComment = await this.commentRepository.create(comment);
+
+    try {
+      await this.complaintNotifier.notifyCommentAdded(complaint, comment.content, requestingUser.userId);
+    } catch (error) {
+      console.error("Failed to notify comment added:", error);
+    }
+
+    return createdComment;
   }
 }

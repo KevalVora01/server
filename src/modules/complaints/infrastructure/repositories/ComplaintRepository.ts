@@ -166,4 +166,8 @@ export class ComplaintRepository implements IComplaintRepository {
     const updated = await ComplaintModel.findByPk(complaint.id);
     return this.toEntity(updated!);
   }
+
+  async delete(id: number): Promise<void> {
+    await ComplaintModel.destroy({ where: { id } });
+  }
 }

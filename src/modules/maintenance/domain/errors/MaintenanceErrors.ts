@@ -32,3 +32,10 @@ export class InvalidPaymentAmountError extends Error {
     this.name = "InvalidPaymentAmountError";
   }
 }
+
+export class InvalidChequeNumberError extends Error {
+  constructor() {
+    super("Cheque number must be exactly 6 digits");
+    this.name = "InvalidChequeNumberError";
+  }
+}

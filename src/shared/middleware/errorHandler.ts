@@ -27,5 +27,41 @@ export const errorHandler = (
     return;
   }
 
+  // Handle any domain error that defines a custom statusCode property
+  if (typeof (error as any).statusCode === "number") {
+    res.status((error as any).statusCode).json(ApiResponse.error(error.message));
+    return;
+  }
+
+  // Domain errors mapped by class name to prevent circular imports
+  if (
+    error.name === "ComplaintNotFoundError" ||
+    error.name === "InvoiceNotFoundError" ||
+    error.name === "MaintenanceSettingNotFoundError"
+  ) {
+    res.status(404).json(ApiResponse.error(error.message));
+    return;
+  }
+
+  if (
+    error.name === "UnauthorizedComplaintAccessError" ||
+    error.name === "UnauthorizedInvoiceAccessError"
+  ) {
+    res.status(403).json(ApiResponse.error(error.message));
+    return;
+  }
+
+  if (
+    error.name === "ComplaintAlreadyResolvedError" ||
+    error.name === "InvalidStatusTransitionError" ||
+    error.name === "ComplaintCannotBeDeletedError" ||
+    error.name === "InvoiceAlreadyPaidError" ||
+    error.name === "InvalidPaymentAmountError" ||
+    error.name === "InvalidChequeNumberError"
+  ) {
+    res.status(400).json(ApiResponse.error(error.message));
+    return;
+  }
+
   res.status(500).json(ApiResponse.error("Internal Server Error"));
 };

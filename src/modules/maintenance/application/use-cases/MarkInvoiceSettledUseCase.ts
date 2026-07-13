@@ -1,6 +1,6 @@
 import { Invoice } from "../../domain/entities/Invoice";
 import { IInvoiceRepository } from "../../domain/repositories/IInvoiceRepository";
-import { InvoiceNotFoundError, InvoiceAlreadyPaidError } from "../../domain/errors/MaintenanceErrors";
+import { InvoiceNotFoundError, InvoiceAlreadyPaidError, InvalidChequeNumberError } from "../../domain/errors/MaintenanceErrors";
 import { GenerateInvoicePdfUseCase } from "./GenerateInvoicePdfUseCase";
 import { IMaintenanceNotifier } from "../../domain/services/IMaintenanceNotifier";
 
@@ -20,6 +20,13 @@ export class MarkInvoiceSettledUseCase {
 
     if (invoice.isPaid()) {
       throw new InvoiceAlreadyPaidError();
+    }
+
+    if (paymentRef && paymentRef.startsWith("Cheque - ")) {
+      const chequePart = paymentRef.replace("Cheque - #", "").replace("Cheque - ", "").trim();
+      if (!/^\d{6}$/.test(chequePart)) {
+        throw new InvalidChequeNumberError();
+      }
     }
 
     invoice.markPaid(paymentRef || "MANUAL_OFFLINE", new Date());
