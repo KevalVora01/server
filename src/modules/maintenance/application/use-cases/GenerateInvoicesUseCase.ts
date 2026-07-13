@@ -21,16 +21,24 @@ export class GenerateInvoicesUseCase {
 
     const residents = await this.residentRepository.findAllActive();
 
-    const invoices = residents.map((resident) =>
-      Invoice.create({
+    const invoices = residents.map((resident) => {
+      const invoice = Invoice.create({
         apartmentId: resident.apartmentId,
         residentId: resident.id!,
         month: dto.month,
         year: dto.year,
         baseAmount: setting.amount,
         dueDate: dto.dueDate,
-      })
-    );
+      });
+
+      if (dto.extraCharges && dto.extraCharges.length > 0) {
+        invoice.setExtraCharges(dto.extraCharges);
+        const extraTotal = dto.extraCharges.reduce((sum, c) => sum + Number(c.amount), 0);
+        invoice.setTotalAmount(setting.amount + extraTotal);
+      }
+
+      return invoice;
+    });
 
     const created = await Promise.all(invoices.map((invoice) => this.invoiceRepository.create(invoice)));
 

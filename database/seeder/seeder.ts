@@ -13,6 +13,9 @@ import { NoticeCategory } from "../../src/modules/notices/domain/entities/Notice
 import { ComplaintModel } from "../../src/modules/complaints/infrastructure/models/ComplaintModel";
 import { ComplaintCommentModel } from "../../src/modules/complaints/infrastructure/models/ComplaintCommentModel";
 import { ComplaintPriority, ComplaintStatus } from "../../src/modules/complaints/domain/entities/Complaint";
+import { MaintenanceSettingModel } from "../../src/modules/maintenance/infrastructure/models/MaintenanceSettingModel";
+import { InvoiceModel } from "../../src/modules/maintenance/infrastructure/models/InvoiceModel";
+import { InvoiceStatus } from "../../src/modules/maintenance/domain/entities/Invoice";
 
 const apartments = [
   { block: "A", floorNumber: 1, unitNumber: "01", areaSqft: 850, type: ApartmentType.ONE_BHK },
@@ -576,6 +579,113 @@ const seedComplaintComments = async (): Promise<void> => {
   }
 };
 
+const seedMaintenanceSetting = async (): Promise<void> => {
+  try {
+    const existing = await MaintenanceSettingModel.count();
+    if (existing > 0) {
+      console.log("[Database Seeder]: Maintenance setting already exists. Skipping.");
+      return;
+    }
+
+    await MaintenanceSettingModel.create({ amount: 1500 });
+    console.log("[Database Seeder]: Created maintenance setting — ₹1,500");
+  } catch (error) {
+    console.error("[Database Seeder] CRITICAL: Failed to seed maintenance setting:", error);
+  }
+};
+
+const seedInvoices = async (): Promise<void> => {
+  try {
+    const existing = await InvoiceModel.count();
+    if (existing > 0) {
+      console.log("[Database Seeder]: Invoices already seeded. Skipping.");
+      return;
+    }
+
+    console.log("[Database Seeder]: Seeding invoices...");
+
+    const residents = await ResidentModel.findAll({
+      include: [{ model: ApartmentModel, as: "apartment" }],
+    });
+
+    if (residents.length === 0) {
+      console.log("[Database Seeder]: No residents found. Skipping invoice seeding.");
+      return;
+    }
+
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    for (let i = 0; i < residents.length; i++) {
+      const resident = residents[i];
+      const apartment = (resident as any).apartment;
+
+      // June 2026 invoice — some paid, some overdue
+      const juneStatus =
+        i < 3 ? InvoiceStatus.PAID
+        : i < 5 ? InvoiceStatus.OVERDUE
+        : InvoiceStatus.PENDING;
+
+      const juneExtraCharges = i === 0
+        ? [{ label: "Parking Maintenance", amount: 200 }]
+        : i === 2
+          ? [{ label: "Common Area Electricity", amount: 350 }]
+          : [];
+
+      const juneTotal = 1500 + juneExtraCharges.reduce((s, c) => s + c.amount, 0);
+
+      const junePaidAt = juneStatus === InvoiceStatus.PAID ? new Date(2026, 5, 15) : null;
+      const junePaymentRef = juneStatus === InvoiceStatus.PAID ? `pi_test_june_${resident.id}` : null;
+
+      await InvoiceModel.create({
+        apartmentId: apartment?.id ?? resident.apartmentId,
+        residentId: resident.id,
+        month: 6,
+        year: 2026,
+        baseAmount: 1500,
+        extraCharges: juneExtraCharges,
+        totalAmount: juneTotal,
+        status: juneStatus,
+        dueDate: new Date(2026, 5, 15),
+        paidAt: junePaidAt,
+        paymentRef: junePaymentRef,
+        pdfUrl: null,
+        createdAt: new Date(2026, 5, 1),
+      });
+
+      // July 2026 invoice — all pending
+      const julyExtraCharges = i === 4
+        ? [{ label: "Water Charges", amount: 500 }]
+        : i === 6
+          ? [{ label: "Clubhouse Maintenance", amount: 300 }]
+          : [];
+
+      const julyTotal = 1500 + julyExtraCharges.reduce((s, c) => s + c.amount, 0);
+
+      await InvoiceModel.create({
+        apartmentId: apartment?.id ?? resident.apartmentId,
+        residentId: resident.id,
+        month: 7,
+        year: 2026,
+        baseAmount: 1500,
+        extraCharges: julyExtraCharges,
+        totalAmount: julyTotal,
+        status: InvoiceStatus.PENDING,
+        dueDate: new Date(2026, 6, 15),
+        paidAt: null,
+        paymentRef: null,
+        pdfUrl: null,
+        createdAt: new Date(2026, 6, 1),
+      });
+    }
+
+    console.log(`[Database Seeder]: ${residents.length * 2} invoices created (June + July 2026).`);
+  } catch (error) {
+    console.error("[Database Seeder] CRITICAL: Failed to seed invoices:", error);
+  }
+};
+
 export const runDatabaseSeeders = async (): Promise<void> => {
   console.log("-----------------------------------------");
   console.log("[Database Seeder]: Initializing data seeding sequence...");
@@ -588,6 +698,8 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   await seedNotices();
   await seedComplaints();
   await seedComplaintComments();
+  await seedMaintenanceSetting();
+  await seedInvoices();
 
   console.log("[Database Seeder]: Seeding sequence complete.");
   console.log("-----------------------------------------");

@@ -44,12 +44,16 @@ const generateInvoicesUseCase = new GenerateInvoicesUseCase(
 const listInvoicesUseCase = new ListInvoicesUseCase(invoiceRepository);
 const listMyInvoicesUseCase = new ListMyInvoicesUseCase(invoiceRepository);
 const getInvoiceUseCase = new GetInvoiceUseCase(invoiceRepository);
-const markInvoiceSettledUseCase = new MarkInvoiceSettledUseCase(invoiceRepository);
 const createPaymentIntentUseCase = new CreatePaymentIntentUseCase(invoiceRepository, stripeService);
 const generateInvoicePdfUseCase = new GenerateInvoicePdfUseCase(
   invoiceRepository,
   invoicePdfService,
   residentRepository,
+);
+const markInvoiceSettledUseCase = new MarkInvoiceSettledUseCase(
+  invoiceRepository,
+  generateInvoicePdfUseCase,
+  maintenanceNotifier,
 );
 const handleStripePaymentSucceededUseCase = new HandleStripePaymentSucceededUseCase(
   invoiceRepository,

@@ -24,6 +24,17 @@ export interface InvoiceProps {
   paymentRef?: string | null;
   pdfUrl?: string | null;
   createdAt?: Date;
+  apartment?: {
+    id: number;
+    block: string;
+    floorNumber: number;
+    unitNumber: string;
+  } | null;
+  resident?: {
+    id: number;
+    userId: number;
+    apartmentId: number;
+  } | null;
 }
 
 export class Invoice {
@@ -151,6 +162,8 @@ export class Invoice {
       paymentRef: this.props.paymentRef,
       pdfUrl: this.props.pdfUrl,
       createdAt: this.props.createdAt,
+      apartment: this.props.apartment,
+      resident: this.props.resident,
     };
   }
 }

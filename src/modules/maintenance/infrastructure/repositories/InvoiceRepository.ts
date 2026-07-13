@@ -4,6 +4,7 @@ import { Invoice, InvoiceStatus, ExtraCharge } from "../../domain/entities/Invoi
 import { InvoiceModel } from "../models/InvoiceModel";
 import { AdminDashboardMetrics, ResidentDashboardMetrics } from "../../application/use-cases/GetDashboardMetricsUseCase";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
+import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 import { buildPaginatedResult, PaginatedRequest, PaginatedResult } from "../../../../shared/types/Pagination";
 
 export class InvoiceRepository implements IInvoiceRepository {
@@ -19,11 +20,22 @@ export class InvoiceRepository implements IInvoiceRepository {
       extraCharges: model.extraCharges as ExtraCharge[],
       totalAmount: Number(model.totalAmount),
       status: model.status as InvoiceStatus,
-      dueDate: model.dueDate,
+      dueDate: new Date(model.dueDate),
       paidAt: model.paidAt,
       paymentRef: model.paymentRef,
       pdfUrl: model.pdfUrl,
       createdAt: model.createdAt,
+      apartment: model.apartment ? {
+        id: model.apartment.id,
+        block: model.apartment.block,
+        floorNumber: model.apartment.floorNumber,
+        unitNumber: model.apartment.unitNumber,
+      } : null,
+      resident: model.resident ? {
+        id: model.resident.id,
+        userId: model.resident.userId,
+        apartmentId: model.resident.apartmentId,
+      } : null,
     });
   }
 
@@ -46,7 +58,10 @@ export class InvoiceRepository implements IInvoiceRepository {
   async findById(id: number): Promise<Invoice | null> {
     const model = await InvoiceModel.findOne({
       where: { id },
-      include: [{ model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] }],
+      include: [
+        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
+      ],
     });
 
     if (!model) return null;
@@ -66,7 +81,10 @@ export class InvoiceRepository implements IInvoiceRepository {
 
     const { count, rows } = await InvoiceModel.findAndCountAll({
       where,
-      include: [{ model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] }],
+      include: [
+        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
+      ],
       limit: filters.pageSize,
       offset,
       order: [["createdAt", "DESC"]],

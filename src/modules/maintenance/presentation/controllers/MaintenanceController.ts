@@ -77,6 +77,7 @@ export class MaintenanceController {
         month: req.body.month,
         year: req.body.year,
         dueDate: new Date(req.body.dueDate),
+        extraCharges: req.body.extraCharges,
       });
 
       res.status(201).json(
@@ -154,7 +155,10 @@ export class MaintenanceController {
 
   markInvoiceSettled = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const invoice = await this.markInvoiceSettledUseCase.execute(Number(req.params.id));
+      const invoice = await this.markInvoiceSettledUseCase.execute(
+        Number(req.params.id),
+        req.body.paymentRef
+      );
 
       res.status(200).json(
         ApiResponse.success(invoice.toResponseObject(), "Invoice marked as settled")

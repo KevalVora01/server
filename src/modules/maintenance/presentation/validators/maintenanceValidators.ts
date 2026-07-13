@@ -13,6 +13,12 @@ const generateInvoicesSchema = Joi.object({
   dueDate: Joi.date().required().messages({
     'any.required': 'Due date is required',
   }),
+  extraCharges: Joi.array().items(
+    Joi.object({
+      label: Joi.string().required().messages({ 'any.required': 'Charge description is required' }),
+      amount: Joi.number().positive().required().messages({ 'any.required': 'Charge amount must be positive' }),
+    })
+  ).optional(),
 });
 
 const updateMaintenanceAmountSchema = Joi.object({

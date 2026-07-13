@@ -66,6 +66,10 @@ export class Apartment {
     return this.props.updatedAt;
   }
 
+  get displayName(): string {
+    return `${this.block}-${this.floorNumber}${this.unitNumber}`;
+  }
+
   updateDetails(props: Partial<Omit<ApartmentProps, "id" | "createdAt" | "updatedAt">>): void {
     if (props.block !== undefined) this.props.block = props.block;
     if (props.floorNumber !== undefined) this.props.floorNumber = props.floorNumber;
@@ -81,6 +85,7 @@ export class Apartment {
       block: this.props.block,
       floorNumber: this.props.floorNumber,
       unitNumber: this.props.unitNumber,
+      displayName: this.displayName,
       areaSqft: this.props.areaSqft,
       type: this.props.type,
       createdAt: this.props.createdAt,

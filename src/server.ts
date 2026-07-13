@@ -6,10 +6,14 @@ import app from "./app";
 import { env } from "./shared/config/env";
 import { connectDB, sequelize } from "./shared/config/db";
 import { initSocket } from "./shared/socket/socket.server";
+import { initScheduledJobs } from "./shared/jobs/scheduler";
 
 const startServer = async (): Promise<void> => {
   try {
     await connectDB();
+    
+    initScheduledJobs();
+    console.log("⏰ Daily cron jobs initialized");
 
     const httpServer = createServer(app);
     initSocket(httpServer);

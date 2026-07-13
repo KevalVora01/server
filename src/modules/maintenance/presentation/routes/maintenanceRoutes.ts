@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { maintenanceController } from "../../container";
+import { maintenanceController, sendMaintenanceRemindersJob } from "../../container";
 import { createJwtMiddleware } from "../../../../shared/middleware/jwtMiddleware";
 import { JwtTokenService } from "../../../auth/infrastructure/services/JwtTokenService";
 import { rbacMiddleware } from "../../../../shared/middleware/rbacMiddleware";
@@ -61,6 +61,23 @@ router.post(
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN),
   maintenanceController.regenerateReceipt
+);
+
+router.post(
+  "/invoices/apply-penalties",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  async (req, res, next) => {
+    try {
+      await sendMaintenanceRemindersJob.execute();
+      res.status(200).json({
+        success: true,
+        message: "Overdue penalties and reminders processed successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 );
 
 /*

@@ -1,11 +1,17 @@
 import { Invoice } from "../../domain/entities/Invoice";
 import { IInvoiceRepository } from "../../domain/repositories/IInvoiceRepository";
 import { InvoiceNotFoundError, InvoiceAlreadyPaidError } from "../../domain/errors/MaintenanceErrors";
+import { GenerateInvoicePdfUseCase } from "./GenerateInvoicePdfUseCase";
+import { IMaintenanceNotifier } from "../../domain/services/IMaintenanceNotifier";
 
 export class MarkInvoiceSettledUseCase {
-  constructor(private readonly invoiceRepository: IInvoiceRepository) {}
+  constructor(
+    private readonly invoiceRepository: IInvoiceRepository,
+    private readonly generateInvoicePdfUseCase: GenerateInvoicePdfUseCase,
+    private readonly maintenanceNotifier: IMaintenanceNotifier,
+  ) {}
 
-  async execute(invoiceId: number): Promise<Invoice> {
+  async execute(invoiceId: number, paymentRef?: string): Promise<Invoice> {
     const invoice = await this.invoiceRepository.findById(invoiceId);
 
     if (!invoice) {
@@ -16,8 +22,25 @@ export class MarkInvoiceSettledUseCase {
       throw new InvoiceAlreadyPaidError();
     }
 
-    invoice.markPaid("MANUAL_OFFLINE", new Date());
+    invoice.markPaid(paymentRef || "MANUAL_OFFLINE", new Date());
 
-    return this.invoiceRepository.update(invoice);
+    const updatedInvoice = await this.invoiceRepository.update(invoice);
+
+    try {
+      await this.generateInvoicePdfUseCase.execute(invoice.id!);
+    } catch (error) {
+      console.error("Failed to generate invoice PDF during manual settlement:", error);
+    }
+
+    const finalInvoice = await this.invoiceRepository.findById(invoice.id!);
+    const resolvedInvoice = finalInvoice || updatedInvoice;
+
+    try {
+      await this.maintenanceNotifier.notifyPaymentSucceeded(resolvedInvoice);
+    } catch (error) {
+      console.error("Failed to send payment notification:", error);
+    }
+
+    return resolvedInvoice;
   }
 }

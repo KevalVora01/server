@@ -41,6 +41,9 @@ export class InvoiceModel
   declare paymentRef: string | null;
   declare pdfUrl: string | null;
   declare createdAt: Date;
+
+  declare resident?: ResidentModel;
+  declare apartment?: ApartmentModel;
 }
 
 InvoiceModel.init(
