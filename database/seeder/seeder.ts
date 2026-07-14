@@ -13,6 +13,7 @@ import { NoticeCategory } from "../../src/modules/notices/domain/entities/Notice
 import { ComplaintModel } from "../../src/modules/complaints/infrastructure/models/ComplaintModel";
 import { ComplaintCommentModel } from "../../src/modules/complaints/infrastructure/models/ComplaintCommentModel";
 import { ComplaintPriority, ComplaintStatus } from "../../src/modules/complaints/domain/entities/Complaint";
+import { ComplaintImageModel } from "../../src/modules/complaints/infrastructure/models/ComplaintImageModel";
 import { MaintenanceSettingModel } from "../../src/modules/maintenance/infrastructure/models/MaintenanceSettingModel";
 import { InvoiceModel } from "../../src/modules/maintenance/infrastructure/models/InvoiceModel";
 import { InvoiceStatus } from "../../src/modules/maintenance/domain/entities/Invoice";
@@ -394,6 +395,11 @@ const complaints = [
     status: ComplaintStatus.IN_PROGRESS,
     daysAgo: 7,
     resolvedDaysAgo: null,
+    imageUrls: [
+      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&q=80",
+      "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80"
+    ]
   },
   {
     residentEmail: "priya@society.com",
@@ -403,6 +409,9 @@ const complaints = [
     status: ComplaintStatus.OPEN,
     daysAgo: 5,
     resolvedDaysAgo: null,
+    imageUrls: [
+      "https://images.unsplash.com/photo-1509024644558-2f56ce76c490?auto=format&fit=crop&w=600&q=80"
+    ]
   },
   {
     residentEmail: "amit@society.com",
@@ -412,6 +421,7 @@ const complaints = [
     status: ComplaintStatus.OPEN,
     daysAgo: 3,
     resolvedDaysAgo: null,
+    imageUrls: []
   },
   {
     residentEmail: "neha@society.com",
@@ -421,6 +431,9 @@ const complaints = [
     status: ComplaintStatus.RESOLVED,
     daysAgo: 20,
     resolvedDaysAgo: 16,
+    imageUrls: [
+      "https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=600&q=80"
+    ]
   },
   {
     residentEmail: "ravi@society.com",
@@ -430,6 +443,9 @@ const complaints = [
     status: ComplaintStatus.IN_PROGRESS,
     daysAgo: 4,
     resolvedDaysAgo: null,
+    imageUrls: [
+      "https://images.unsplash.com/photo-1549479634-11f422998637?auto=format&fit=crop&w=600&q=80"
+    ]
   },
   {
     residentEmail: "sunita@society.com",
@@ -439,6 +455,7 @@ const complaints = [
     status: ComplaintStatus.RESOLVED,
     daysAgo: 14,
     resolvedDaysAgo: 11,
+    imageUrls: []
   },
   {
     residentEmail: "vikram@society.com",
@@ -448,6 +465,9 @@ const complaints = [
     status: ComplaintStatus.OPEN,
     daysAgo: 2,
     resolvedDaysAgo: null,
+    imageUrls: [
+      "https://images.unsplash.com/photo-1506521788723-8681500d4ba4?auto=format&fit=crop&w=600&q=80"
+    ]
   },
   {
     residentEmail: "anjali@society.com",
@@ -457,7 +477,8 @@ const complaints = [
     status: ComplaintStatus.OPEN,
     daysAgo: 1,
     resolvedDaysAgo: null,
-  },
+    imageUrls: []
+  }
 ];
 
 const seedComplaints = async (): Promise<void> => {
@@ -490,7 +511,7 @@ const seedComplaints = async (): Promise<void> => {
         ? (() => { const d = new Date(); d.setDate(d.getDate() - c.resolvedDaysAgo); return d; })()
         : undefined;
 
-      await ComplaintModel.create({
+      const created = await ComplaintModel.create({
         residentId: resident.id,
         title: c.title,
         description: c.description,
@@ -500,6 +521,17 @@ const seedComplaints = async (): Promise<void> => {
         updatedAt: createdAt,
         ...(resolvedAt !== undefined && { resolvedAt }),
       });
+
+      if (c.imageUrls && c.imageUrls.length > 0) {
+        for (const url of c.imageUrls) {
+          await ComplaintImageModel.create({
+            complaintId: created.id,
+            imageUrl: url,
+            createdAt,
+          });
+        }
+      }
+
       console.log(`[Database Seeder]: Created complaint — "${c.title}" (${c.residentEmail})`);
     }
 
@@ -576,6 +608,92 @@ const seedComplaintComments = async (): Promise<void> => {
     console.log("[Database Seeder]: Complaint comments seeded successfully!");
   } catch (error) {
     console.error("[Database Seeder] CRITICAL: Failed to seed complaint comments:", error);
+  }
+};
+
+const complaintImageSets = [
+  // Complaint 1: Water leakage
+  [
+    "https://placehold.co/600x400/E8F5E9/2E7D32?text=Ceiling+Leak+1",
+    "https://placehold.co/600x400/FFF3E0/E65100?text=Water+Stain",
+    "https://placehold.co/600x400/FCE4EC/C62828?text=Drip+Area",
+    "https://placehold.co/600x400/E3F2FD/1565C0?text=Tile+Damage",
+  ],
+  // Complaint 2: Broken street light
+  [
+    "https://placehold.co/600x400/FFF8E1/F57F17?text=Broken+Light",
+    "https://placehold.co/600x400/E8F5E9/2E7D32?text=Dark+Entrance",
+  ],
+  // Complaint 3: Noise complaint (no images — just text complaint)
+  [
+    "https://placehold.co/600x400/F3E5F5/6A1B9A?text=Noise+Source",
+  ],
+  // Complaint 4: Improper garbage disposal
+  [
+    "https://placehold.co/600x400/EFEBE9/4E342E?text=Garbage+Area+1",
+    "https://placehold.co/600x400/FBEDC8/795548?text=Garbage+Area+2",
+    "https://placehold.co/600x400/E8EAF6/283593?text=Staircase+View",
+  ],
+  // Complaint 5: Lift not working
+  [
+    "https://placehold.co/600x400/FFEBEE/B71C1C?text=Lift+Panel",
+    "https://placehold.co/600x400/F5F5F5/212121?text=Stuck+Floor",
+    "https://placehold.co/600x400/E1F5FE/0277BD?text=Lift+Display",
+    "https://placehold.co/600x400/FCE4EC/C62828?text=Warning+Sign",
+    "https://placehold.co/600x400/F9FBE7/827717?text=Service+Tag",
+  ],
+  // Complaint 6: Security gate remote
+  [
+    "https://placehold.co/600x400/E0F2F1/00695C?text=Gate+Remote",
+    "https://placehold.co/600x400/FFF8E1/F57F17?text=Gate+Panel",
+  ],
+  // Complaint 7: Parking space occupied
+  [
+    "https://placehold.co/600x400/E8EAF6/283593?text=Parking+Spot",
+    "https://placehold.co/600x400/F5F5F5/212121?text=Unauthorized+Car",
+    "https://placehold.co/600x400/FFEBEE/B71C1C?text=Plate+Number",
+  ],
+  // Complaint 8: Pest control
+  [
+    "https://placehold.co/600x400/EFEBE9/3E2723?text=Basement+Area+1",
+    "https://placehold.co/600x400/ECEFF1/37474F?text=Pest+Infestation",
+    "https://placehold.co/600x400/FCE4EC/C62828?text=Storage+Unit",
+  ],
+];
+
+const seedComplaintImages = async (): Promise<void> => {
+  try {
+    const existing = await ComplaintImageModel.count();
+    if (existing > 0) {
+      console.log("[Database Seeder]: Complaint images already seeded. Skipping.");
+      return;
+    }
+
+    console.log("[Database Seeder]: Seeding complaint images...");
+
+    const allComplaints = await ComplaintModel.findAll({ order: [["id", "ASC"]] });
+
+    for (let i = 0; i < allComplaints.length; i++) {
+      const complaint = allComplaints[i];
+      const images = complaintImageSets[i] ?? [];
+
+      for (let j = 0; j < images.length; j++) {
+        const createdAt = new Date(complaint.createdAt);
+        createdAt.setHours(createdAt.getHours() + j);
+
+        await ComplaintImageModel.create({
+          complaintId: complaint.id,
+          imageUrl: images[j],
+          createdAt,
+        });
+      }
+
+      console.log(`[Database Seeder]: Added ${images.length} image(s) to complaint #${complaint.id}`);
+    }
+
+    console.log("[Database Seeder]: Complaint images seeded successfully!");
+  } catch (error) {
+    console.error("[Database Seeder] CRITICAL: Failed to seed complaint images:", error);
   }
 };
 
@@ -698,6 +816,7 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   await seedNotices();
   await seedComplaints();
   await seedComplaintComments();
+  await seedComplaintImages();
   await seedMaintenanceSetting();
   await seedInvoices();
 
