@@ -1,11 +1,11 @@
-import { IComplaintNotifier } from "../../domain/services/complaint-notifier.interface";
+import { IComplaintNotifier } from "../../domain/services/IComplaintNotifier";
 import { Complaint } from "../../domain/entities/Complaint";
 import { notificationService } from "../../../notifications/container";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
 import { UserRole } from "../../../auth/domain/entities/User";
 
-export class SocketComplaintNotifier implements IComplaintNotifier {
+export class ComplaintNotifier implements IComplaintNotifier {
   async notifyStatusChanged(complaint: Complaint, oldStatus: string): Promise<void> {
     try {
       const resident = (complaint as any).resident;

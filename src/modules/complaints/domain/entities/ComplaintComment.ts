@@ -1,3 +1,5 @@
+import { DomainValidationError } from "../errors/ComplaintErrors";
+
 export interface ComplaintCommentProps {
   id?: number;
   complaintId: number;
@@ -17,7 +19,7 @@ export class ComplaintComment {
     props: Omit<ComplaintCommentProps, "id" | "createdAt">
   ): ComplaintComment {
     if (!props.content || props.content.trim().length === 0) {
-      throw new Error("Comment content cannot be empty");
+      throw new DomainValidationError("Comment content cannot be empty");
     }
 
     return new ComplaintComment({

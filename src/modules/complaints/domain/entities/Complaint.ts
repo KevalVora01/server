@@ -1,3 +1,5 @@
+import { InvalidStatusTransitionError } from "../errors/ComplaintErrors";
+
 export enum ComplaintPriority {
   LOW = "Low",
   MEDIUM = "Medium",
@@ -98,7 +100,7 @@ export class Complaint {
 
   updateStatus(newStatus: ComplaintStatus): void {
     if (!this.canTransitionTo(newStatus)) {
-      throw new Error(`Cannot transition from ${this.props.status} to ${newStatus}`);
+      throw new InvalidStatusTransitionError(this.props.status, newStatus);
     }
 
     this.props.status = newStatus;

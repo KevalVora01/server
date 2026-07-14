@@ -11,7 +11,7 @@ import { ComplaintCommentRepository } from "../complaints/infrastructure/reposit
 import { ComplaintRepository } from "../complaints/infrastructure/repositories/ComplaintRepository";
 import { ComplaintController } from "../complaints/presentation/controllers/ComplaintController";
 import { ResidentRepository } from "../residents/infrastructure/repositories/ResidentRepository";
-import { SocketComplaintNotifier } from "./infrastructure/services/complaint-notifier.service";
+import { ComplaintNotifier } from "./infrastructure/services/ComplaintNotifier";
 
 // Repositories
 const complaintRepository = new ComplaintRepository();
@@ -19,7 +19,7 @@ const complaintCommentRepository = new ComplaintCommentRepository();
 const residentRepository = new ResidentRepository();
 
 // Services
-const complaintNotifier = new SocketComplaintNotifier();
+const complaintNotifier = new ComplaintNotifier();
 
 // Use Cases
 const createComplaintUseCase = new CreateComplaintUseCase(complaintRepository, complaintNotifier);

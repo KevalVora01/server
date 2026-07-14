@@ -1,6 +1,6 @@
 import { Complaint } from "../../domain/entities/Complaint";
 import { IComplaintRepository } from "../../domain/repositories/IComplaintRepository";
-import { IComplaintNotifier } from "../../domain/services/complaint-notifier.interface";
+import { IComplaintNotifier } from "../../domain/services/IComplaintNotifier";
 import { UpdateComplaintStatusDto } from "../dtos/UpdateComplaintStatusDto";
 import {
   ComplaintNotFoundError,
@@ -37,7 +37,7 @@ export class UpdateComplaintStatusUseCase {
       (updated as any).resident = resident;
     }
 
-    this.notifier.notifyStatusChanged(updated, oldStatus);
+    await this.notifier.notifyStatusChanged(updated, oldStatus);
 
     return updated;
   }

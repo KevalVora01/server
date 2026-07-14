@@ -157,6 +157,26 @@ export class ComplaintController {
     }
   };
 
+  deleteComplaint = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const requestingUser = await this.buildRequestingUser(authReq);
+
+      await this.deleteComplaintUseCase.execute(
+        Number(req.params.id),
+        requestingUser
+      );
+
+      res.status(200).json(
+        ApiResponse.success({
+          message: "Complaint deleted successfully",
+        })
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
   updateStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const complaint = await this.updateComplaintStatusUseCase.execute({
@@ -221,23 +241,5 @@ export class ComplaintController {
     }
   };
 
-  deleteComplaint = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const authReq = req as AuthenticatedRequest;
-      const requestingUser = await this.buildRequestingUser(authReq);
 
-      await this.deleteComplaintUseCase.execute(
-        Number(req.params.id),
-        requestingUser
-      );
-
-      res.status(200).json(
-        ApiResponse.success({
-          message: "Complaint deleted successfully",
-        })
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
 }

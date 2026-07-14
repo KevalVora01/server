@@ -1,6 +1,6 @@
 import { Complaint } from "../../domain/entities/Complaint";
 import { IComplaintRepository } from "../../domain/repositories/IComplaintRepository";
-import { IComplaintNotifier } from "../../domain/services/complaint-notifier.interface";
+import { IComplaintNotifier } from "../../domain/services/IComplaintNotifier";
 import { CreateComplaintDto } from "../dtos/CreateComplaintDto";
 
 export class CreateComplaintUseCase {
@@ -19,7 +19,7 @@ export class CreateComplaintUseCase {
 
     const saved = await this.complaintRepository.create(complaint, dto.imageUrls);
 
-    this.notifier.notifyCreated(saved);
+    await this.notifier.notifyCreated(saved);
 
     return saved;
   }

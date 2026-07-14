@@ -10,9 +10,10 @@ const createComplaintSchema = Joi.object({
     'string.max': 'Title must be at most 150 characters',
   }),
 
-  description: Joi.string().trim().min(10).required().messages({
+  description: Joi.string().trim().min(10).max(1000).required().messages({
     'string.empty': 'Description is required',
     'string.min': 'Description must be at least 10 characters',
+    'string.max': 'Description must be at most 1000 characters',
   }),
 
   priority: Joi.string().valid(...Object.values(ComplaintPriority)).required().messages({

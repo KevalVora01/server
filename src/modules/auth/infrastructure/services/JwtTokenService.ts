@@ -10,9 +10,7 @@ import {
 
 import { env } from "../../../../shared/config/env";
 
-export class JwtTokenService
-  implements ITokenService
-{
+export class JwtTokenService implements ITokenService {
   generateAccessToken(
     payload: TokenPayload
   ): string {

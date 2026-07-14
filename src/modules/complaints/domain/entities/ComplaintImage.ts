@@ -1,3 +1,5 @@
+import { DomainValidationError } from "../errors/ComplaintErrors";
+
 export interface ComplaintImageProps {
   id?: number;
   complaintId: number;
@@ -16,7 +18,7 @@ export class ComplaintImage {
     props: Omit<ComplaintImageProps, "id" | "createdAt">
   ): ComplaintImage {
     if (!props.imageUrl) {
-      throw new Error("Image URL is required");
+      throw new DomainValidationError("Image URL is required");
     }
 
     return new ComplaintImage({
