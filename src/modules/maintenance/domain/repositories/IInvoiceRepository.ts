@@ -7,6 +7,7 @@ export interface ListInvoicesFilters extends PaginatedRequest {
   month?: number;
   year?: number;
   residentId?: number;
+  search?: string;
 }
 
 export interface IInvoiceRepository {

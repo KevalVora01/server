@@ -1,4 +1,5 @@
 import { Op } from "sequelize";
+import { sequelize } from "../../../../shared/config/sequelize";
 import { IInvoiceRepository, ListInvoicesFilters } from "../../domain/repositories/IInvoiceRepository";
 import { Invoice, InvoiceStatus, ExtraCharge } from "../../domain/entities/Invoice";
 import { InvoiceModel } from "../models/InvoiceModel";
@@ -83,6 +84,17 @@ export class InvoiceRepository implements IInvoiceRepository {
     if (filters.month) where.month = filters.month;
     if (filters.year) where.year = filters.year;
     if (filters.residentId) where.residentId = filters.residentId;
+    if (filters.search) {
+      const searchVal = filters.search.trim();
+      const escapedSearch = sequelize.escape(`%${searchVal}%`);
+      where[Op.or as any] = [
+        { "$resident.user.name$": { [Op.iLike]: `%${searchVal}%` } },
+        { "$apartment.block$": { [Op.iLike]: `%${searchVal}%` } },
+        { "$apartment.unit_number$": { [Op.iLike]: `%${searchVal}%` } },
+        sequelize.literal(`"apartment"."block" || '-' || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
+      ];
+    }
 
     const offset = (filters.pageNumber - 1) * filters.pageSize;
 
@@ -99,6 +111,7 @@ export class InvoiceRepository implements IInvoiceRepository {
       ],
       limit: filters.pageSize,
       offset,
+      subQuery: false,
       order: [["createdAt", "DESC"]],
     });
 

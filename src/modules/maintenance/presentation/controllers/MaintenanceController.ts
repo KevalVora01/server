@@ -99,6 +99,7 @@ export class MaintenanceController {
         status: req.query.status as any,
         month: req.query.month ? Number(req.query.month) : undefined,
         year: req.query.year ? Number(req.query.year) : undefined,
+        search: req.query.search as string | undefined,
       });
 
       res.status(200).json(
