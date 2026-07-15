@@ -24,11 +24,44 @@ const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
 |--------------------------------------------------------------------------
 */
 
-router.post("/", jwtMiddleware, rbacMiddleware(UserRole.ADMIN), validateCreateResident, residentController.createResident);
-router.get("/", jwtMiddleware, rbacMiddleware(UserRole.ADMIN), validateListResidents, residentController.listResidents);
-router.get("/:id", jwtMiddleware, rbacMiddleware(UserRole.ADMIN), residentController.getResident);
-router.put("/:id", jwtMiddleware, rbacMiddleware(UserRole.ADMIN), validateUpdateResident, residentController.updateResident);
-router.delete("/:id", jwtMiddleware, rbacMiddleware(UserRole.ADMIN), residentController.deactivateResident);
+router.post(
+  "/",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  validateCreateResident,
+  residentController.createResident
+);
+
+router.get(
+  "/",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  validateListResidents,
+  residentController.listResidents
+);
+
+router.get(
+  "/:id",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  residentController.getResident
+);
+
+router.put(
+  "/:id",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  validateUpdateResident,
+  residentController.updateResident
+);
+
+router.delete(
+  "/:id",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  residentController.deactivateResident
+);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +69,9 @@ router.delete("/:id", jwtMiddleware, rbacMiddleware(UserRole.ADMIN), residentCon
 |--------------------------------------------------------------------------
 */
 
-router.use("/:residentId/family-members", familyMemberRoutes);
+router.use(
+  "/:residentId/family-members", 
+  familyMemberRoutes
+);
 
 export default router;
