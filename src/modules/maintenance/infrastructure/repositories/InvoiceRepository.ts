@@ -141,6 +141,32 @@ export class InvoiceRepository implements IInvoiceRepository {
     );
   }
 
+  async findByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Invoice>> {
+    const offset = (pagination.pageNumber - 1) * pagination.pageSize;
+
+    const { count, rows } = await InvoiceModel.findAndCountAll({
+      where: { apartmentId },
+      include: [
+        {
+          model: ResidentModel,
+          as: "resident",
+          attributes: ["id", "userId", "apartmentId"],
+          include: [{ model: UserModel, as: "user", attributes: ["name"] }],
+        },
+      ],
+      limit: pagination.pageSize,
+      offset,
+      order: [["createdAt", "DESC"]],
+    });
+
+    return buildPaginatedResult(
+      rows.map((row) => this.toEntity(row)),
+      count,
+      pagination.pageNumber,
+      pagination.pageSize
+    );
+  }
+
   async findAllPendingWithDueDate(dueDate: Date): Promise<Invoice[]> {
     const models = await InvoiceModel.findAll({
       where: {

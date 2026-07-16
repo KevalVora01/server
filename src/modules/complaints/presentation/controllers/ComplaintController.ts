@@ -3,6 +3,7 @@ import { CreateComplaintUseCase } from "../../application/use-cases/CreateCompla
 import { GetComplaintUseCase } from "../../application/use-cases/GetComplaintUseCase";
 import { ListComplaintsUseCase } from "../../application/use-cases/ListComplaintsUseCase";
 import { ListMyComplaintsUseCase } from "../../application/use-cases/ListMyComplaintsUseCase";
+import { ListApartmentComplaintsUseCase } from "../../application/use-cases/ListApartmentComplaintsUseCase";
 import { UpdateComplaintStatusUseCase } from "../../application/use-cases/UpdateComplaintStatusUseCase";
 import { AddCommentUseCase } from "../../application/use-cases/AddCommentUseCase";
 import { ListCommentsUseCase } from "../../application/use-cases/ListCommentsUseCase";
@@ -20,6 +21,7 @@ export class ComplaintController {
     private readonly getComplaintUseCase: GetComplaintUseCase,
     private readonly listComplaintsUseCase: ListComplaintsUseCase,
     private readonly listMyComplaintsUseCase: ListMyComplaintsUseCase,
+    private readonly listApartmentComplaintsUseCase: ListApartmentComplaintsUseCase,
     private readonly updateComplaintStatusUseCase: UpdateComplaintStatusUseCase,
     private readonly addCommentUseCase: AddCommentUseCase,
     private readonly listCommentsUseCase: ListCommentsUseCase,
@@ -68,10 +70,7 @@ export class ComplaintController {
       });
 
       res.status(201).json(
-        ApiResponse.success({
-          message: "Complaint created successfully",
-          data: complaint.toResponseObject(),
-        })
+        ApiResponse.success(complaint.toResponseObject(), "Complaint created successfully")
       );
     } catch (error) {
       next(error);
@@ -89,13 +88,13 @@ export class ComplaintController {
       );
 
       res.status(200).json(
-        ApiResponse.success({
-          message: "Complaint fetched successfully",
-          data: {
+        ApiResponse.success(
+          {
             ...complaint.toResponseObject(),
             images: images.map((img) => img.toResponseObject()),
           },
-        })
+          "Complaint fetched successfully"
+        )
       );
     } catch (error) {
       next(error);
@@ -113,13 +112,10 @@ export class ComplaintController {
       });
 
       res.status(200).json(
-        ApiResponse.success({
-          message: "Complaints fetched successfully",
-          data: {
-            ...result,
-            items: result.items.map((c) => c.toResponseObject()),
-          },
-        })
+        ApiResponse.success(
+          { ...result, items: result.items.map((c) => c.toResponseObject()) },
+          "Complaints fetched successfully"
+        )
       );
     } catch (error) {
       next(error);
@@ -144,13 +140,38 @@ export class ComplaintController {
       });
 
       res.status(200).json(
-        ApiResponse.success({
-          message: "Your complaints fetched successfully",
-          data: {
-            ...result,
-            items: result.items.map((c) => c.toResponseObject()),
-          },
-        })
+        ApiResponse.success(
+          { ...result, items: result.items.map((c) => c.toResponseObject()) },
+          "Your complaints fetched successfully"
+        )
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listApartmentComplaints = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const resident = await this.residentRepository.findByUserId(authReq.user.userId);
+
+      if (!resident) {
+        res.status(404).json(
+          ApiResponse.error("Resident profile not found for this user")
+        );
+        return;
+      }
+
+      const result = await this.listApartmentComplaintsUseCase.execute(resident.apartmentId, {
+        pageNumber: Number(req.query.pageNumber) || 1,
+        pageSize: Number(req.query.pageSize) || 10,
+      });
+
+      res.status(200).json(
+        ApiResponse.success(
+          { ...result, items: result.items.map((c) => c.toResponseObject()) },
+          "Apartment complaints fetched successfully"
+        )
       );
     } catch (error) {
       next(error);
@@ -168,9 +189,7 @@ export class ComplaintController {
       );
 
       res.status(200).json(
-        ApiResponse.success({
-          message: "Complaint deleted successfully",
-        })
+        ApiResponse.success(null, "Complaint deleted successfully")
       );
     } catch (error) {
       next(error);
@@ -185,10 +204,7 @@ export class ComplaintController {
       });
 
       res.status(200).json(
-        ApiResponse.success({
-          message: "Complaint status updated successfully",
-          data: complaint.toResponseObject(),
-        })
+        ApiResponse.success(complaint.toResponseObject(), "Complaint status updated successfully")
       );
     } catch (error) {
       next(error);
@@ -210,10 +226,7 @@ export class ComplaintController {
       );
 
       res.status(201).json(
-        ApiResponse.success({
-          message: "Comment added successfully",
-          data: comment.toResponseObject(),
-        })
+        ApiResponse.success(comment.toResponseObject(), "Comment added successfully")
       );
     } catch (error) {
       next(error);
@@ -231,15 +244,11 @@ export class ComplaintController {
       );
 
       res.status(200).json(
-        ApiResponse.success({
-          message: "Comments fetched successfully",
-          data: comments.map((c) => c.toResponseObject()),
-        })
+        ApiResponse.success(comments.map((c) => c.toResponseObject()), "Comments fetched successfully")
       );
     } catch (error) {
       next(error);
     }
   };
-
 
 }

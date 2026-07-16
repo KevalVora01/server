@@ -1,6 +1,7 @@
 import { IFamilyMemberRepository } from "../../domain/repositories/IFamilyMemberRepository";
 import { FamilyMember, FamilyRelation } from "../../domain/entities/FamilyMember";
 import { FamilyMemberModel } from "../models/FamilyMemberModel";
+import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
 
 export class FamilyMemberRepository implements IFamilyMemberRepository {
 
@@ -36,6 +37,23 @@ export class FamilyMemberRepository implements IFamilyMemberRepository {
   async findByResidentId(residentId: number): Promise<FamilyMember[]> {
     const models = await FamilyMemberModel.findAll({
       where: { residentId },
+      order: [["createdAt", "ASC"]],
+    });
+
+    return models.map((model) => this.toEntity(model));
+  }
+
+  async findByApartmentId(apartmentId: number): Promise<FamilyMember[]> {
+    const models = await FamilyMemberModel.findAll({
+      include: [
+        {
+          model: ResidentModel,
+          as: "resident",
+          attributes: [],
+          where: { apartmentId },
+          required: true,
+        },
+      ],
       order: [["createdAt", "ASC"]],
     });
 

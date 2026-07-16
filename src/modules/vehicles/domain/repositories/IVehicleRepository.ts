@@ -5,6 +5,7 @@ export interface IVehicleRepository {
   findById(id: number): Promise<Vehicle | null>;
   findByPlateNumber(plateNumber: string): Promise<Vehicle | null>;
   findByResidentId(residentId: number): Promise<Vehicle[]>;
+  findByApartmentId(apartmentId: number): Promise<Vehicle[]>;
   update(vehicle: Vehicle): Promise<Vehicle>;
   delete(id: number): Promise<void>;
 }

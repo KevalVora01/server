@@ -15,6 +15,7 @@ export interface IComplaintRepository {
   findImagesByComplaintId(complaintId: number): Promise<ComplaintImage[]>;
   findAll(filters: ListComplaintsFilters): Promise<PaginatedResult<Complaint>>;
   findByResidentId(residentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Complaint>>;
+  findByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Complaint>>
   update(complaint: Complaint): Promise<Complaint>;
   delete(id: number): Promise<void>;
 }

@@ -15,6 +15,7 @@ export interface IInvoiceRepository {
   findById(id: number): Promise<Invoice | null>;
   findAll(filters: ListInvoicesFilters): Promise<PaginatedResult<Invoice>>;
   findByResidentId(residentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Invoice>>;
+  findByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Invoice>>;
   findAllPendingWithDueDate(dueDate: Date): Promise<Invoice[]>;
   findAllNewlyOverdue(today: Date): Promise<Invoice[]>;
   findAllOverdueUnpaid(): Promise<Invoice[]>;

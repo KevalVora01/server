@@ -8,6 +8,8 @@ import noticeRoutes from './modules/notices/presentation/routes/noticeRoutes';
 import complaintRoutes from './modules/complaints/presentation/routes/complaintRoutes';
 import notificationRoutes from './modules/notifications/presentation/routes/notificationRoutes';
 import maintenanceRoutes from './modules/maintenance/presentation/routes/maintenanceRoutes';
+import apartmentFamilyMembersRoutes from './modules/family-members/presentation/routes/apartmentFamilyMembersRoutes';
+import apartmentVehiclesRoutes from './modules/vehicles/presentation/routes/apartmentVehiclesRoutes';
 
 const router = Router();
 
@@ -20,7 +22,11 @@ router.use('/apartments', apartmentRoutes);
 
 router.use('/residents/:residentId/family-members', familyMemberRoutes);
 
+router.use("/family-members", apartmentFamilyMembersRoutes);
+
 router.use('/residents/:residentId/vehicles', vehicleRoutes);
+
+router.use("/vehicles", apartmentVehiclesRoutes);
 
 router.use('/notices', noticeRoutes);
 

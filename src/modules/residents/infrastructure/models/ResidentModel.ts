@@ -8,6 +8,8 @@ interface ResidentAttributes {
   userId: number;
   apartmentId: number;
   isOwner: boolean;
+  isCommitteeMember: boolean;
+  isOccupant: boolean;
   moveInDate: Date;
   moveOutDate: Date | null;
   isActive: boolean;
@@ -16,7 +18,7 @@ interface ResidentAttributes {
 }
 
 interface ResidentCreationAttributes
-  extends Optional<ResidentAttributes, "id" | "moveOutDate" | "isActive" | "createdAt" | "updatedAt"> { }
+  extends Optional<ResidentAttributes, "id" | "isCommitteeMember" | "isOccupant" | "moveOutDate" | "isActive" | "createdAt" | "updatedAt"> { }
 
 export class ResidentModel
   extends Model<ResidentAttributes, ResidentCreationAttributes>
@@ -25,6 +27,8 @@ export class ResidentModel
   declare userId: number;
   declare apartmentId: number;
   declare isOwner: boolean;
+  declare isCommitteeMember: boolean;
+  declare isOccupant: boolean;
   declare moveInDate: Date;
   declare moveOutDate: Date | null;
   declare isActive: boolean;
@@ -59,6 +63,16 @@ ResidentModel.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
+    },
+    isCommitteeMember: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    isOccupant: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
     },
     moveInDate: {
       type: DataTypes.DATE,

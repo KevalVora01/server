@@ -39,3 +39,10 @@ export class InvalidChequeNumberError extends Error {
     this.name = "InvalidChequeNumberError";
   }
 }
+
+export class ResidentNotOccupantError extends Error {
+  constructor() {
+    super("Only the current occupant of the apartment can pay this invoice");
+    this.name = "ResidentNotOccupantError";
+  }
+}

@@ -12,7 +12,7 @@ export class CreateResidentUseCase {
     private readonly residentRepository: IResidentRepository,
     private readonly userRepository: IUserRepository,
     private readonly passwordHasher: IPasswordHasher
-  ) {}
+  ) { }
 
   async execute(dto: CreateResidentDto): Promise<Resident> {
     // 1. Check user with this email doesn't already exist
@@ -40,11 +40,12 @@ export class CreateResidentUseCase {
     });
     const savedUser = await this.userRepository.create(userInstance);
 
-    // 4. Create the resident row — moveInDate auto-set to today
+    // 4. Create the resident row — Admin-created residents are always the Owner by default.
+    //    Tenants are only ever created via the Tenant Request approval workflow, never here.
     const residentInstance = Resident.create({
       userId: savedUser.id!,
       apartmentId: dto.apartmentId,
-      isOwner: dto.isOwner,
+      isOwner: true,
       moveInDate: new Date(),
     });
     const savedResident = await this.residentRepository.create(residentInstance);

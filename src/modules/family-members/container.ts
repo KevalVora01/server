@@ -4,6 +4,7 @@ import { CreateFamilyMemberUseCase } from "./application/use-cases/CreateFamilyM
 import { GetFamilyMembersUseCase } from "./application/use-cases/GetFamilyMembersUseCase";
 import { UpdateFamilyMemberUseCase } from "./application/use-cases/UpdateFamilyMemberUseCase";
 import { DeleteFamilyMemberUseCase } from "./application/use-cases/DeleteFamilyMemberUseCase";
+import { ListApartmentFamilyMembersUseCase } from "./application/use-cases/ListApartmentFamilyMembersUseCase";
 import { FamilyMemberController } from "./presentation/controllers/FamilyMemberController";
 
 // Repositories
@@ -15,6 +16,7 @@ const createFamilyMemberUseCase = new CreateFamilyMemberUseCase(familyMemberRepo
 const getFamilyMembersUseCase = new GetFamilyMembersUseCase(familyMemberRepository, residentRepository);
 const updateFamilyMemberUseCase = new UpdateFamilyMemberUseCase(familyMemberRepository);
 const deleteFamilyMemberUseCase = new DeleteFamilyMemberUseCase(familyMemberRepository);
+const listApartmentFamilyMembersUseCase = new ListApartmentFamilyMembersUseCase(familyMemberRepository, residentRepository);
 
 // Controller
 export const familyMemberController = new FamilyMemberController(
@@ -22,4 +24,6 @@ export const familyMemberController = new FamilyMemberController(
   getFamilyMembersUseCase,
   updateFamilyMemberUseCase,
   deleteFamilyMemberUseCase,
+  listApartmentFamilyMembersUseCase,
+  residentRepository,
 );

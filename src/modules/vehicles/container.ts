@@ -4,6 +4,7 @@ import { CreateVehicleUseCase } from "./application/use-cases/CreateVehicleUseCa
 import { GetVehiclesUseCase } from "./application/use-cases/GetVehiclesUseCase";
 import { UpdateVehicleUseCase } from "./application/use-cases/UpdateVehicleUseCase";
 import { DeleteVehicleUseCase } from "./application/use-cases/DeleteVehicleUseCase";
+import { ListApartmentVehiclesUseCase } from "./application/use-cases/ListApartmentVehiclesUseCase";
 import { VehicleController } from "./presentation/controllers/VehicleController";
 
 // Repositories
@@ -15,6 +16,7 @@ const createVehicleUseCase = new CreateVehicleUseCase(vehicleRepository, residen
 const getVehiclesUseCase = new GetVehiclesUseCase(vehicleRepository, residentRepository);
 const updateVehicleUseCase = new UpdateVehicleUseCase(vehicleRepository);
 const deleteVehicleUseCase = new DeleteVehicleUseCase(vehicleRepository);
+const listApartmentVehiclesUseCase = new ListApartmentVehiclesUseCase(vehicleRepository, residentRepository);
 
 // Controller
 export const vehicleController = new VehicleController(
@@ -22,4 +24,6 @@ export const vehicleController = new VehicleController(
   getVehiclesUseCase,
   updateVehicleUseCase,
   deleteVehicleUseCase,
+  listApartmentVehiclesUseCase,
+  residentRepository,
 );

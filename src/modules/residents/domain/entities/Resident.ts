@@ -3,6 +3,8 @@ export interface ResidentProps {
   userId: number;
   apartmentId: number;
   isOwner: boolean;
+  isCommitteeMember: boolean;
+  isOccupant: boolean;
   moveInDate: Date;
   moveOutDate?: Date | null;
   isActive: boolean;
@@ -18,10 +20,12 @@ export class Resident {
   }
 
   public static create(
-    props: Omit<ResidentProps, "id" | "isActive" | "createdAt" | "updatedAt">
+    props: Omit<ResidentProps, "id" | "isCommitteeMember" | "isOccupant" | "isActive" | "createdAt" | "updatedAt">
   ): Resident {
     return new Resident({
       ...props,
+      isCommitteeMember: false,
+      isOccupant: true,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -42,6 +46,14 @@ export class Resident {
 
   get isOwner(): boolean {
     return this.props.isOwner;
+  }
+
+  get isCommitteeMember(): boolean {
+    return this.props.isCommitteeMember;
+  }
+
+  get isOccupant(): boolean {
+    return this.props.isOccupant;
   }
 
   get moveInDate(): Date {
@@ -80,9 +92,24 @@ export class Resident {
   }
 
   updateMoveOutDate(moveOutDate: Date | string): void {
-  this.props.moveOutDate = new Date(moveOutDate);
-  this.props.updatedAt = new Date();
-}
+    this.props.moveOutDate = new Date(moveOutDate);
+    this.props.updatedAt = new Date();
+  }
+
+  setCommitteeMember(isCommitteeMember: boolean): void {
+    this.props.isCommitteeMember = isCommitteeMember;
+    this.props.updatedAt = new Date();
+  }
+
+  markAsOccupant(): void {
+    this.props.isOccupant = true;
+    this.props.updatedAt = new Date();
+  }
+
+  markAsNonOccupant(): void {
+    this.props.isOccupant = false;
+    this.props.updatedAt = new Date();
+  }
 
   toResponseObject() {
     return {
@@ -90,6 +117,8 @@ export class Resident {
       userId: this.props.userId,
       apartmentId: this.props.apartmentId,
       isOwner: this.props.isOwner,
+      isCommitteeMember: this.props.isCommitteeMember,
+      isOccupant: this.props.isOccupant,
       moveInDate: this.props.moveInDate,
       moveOutDate: this.props.moveOutDate,
       isActive: this.props.isActive,

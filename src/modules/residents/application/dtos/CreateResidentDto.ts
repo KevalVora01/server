@@ -4,5 +4,4 @@ export interface CreateResidentDto {
   phone: string;
   password: string;
   apartmentId: number;
-  isOwner: boolean;
 }

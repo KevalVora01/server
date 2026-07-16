@@ -41,3 +41,10 @@ export class DomainValidationError extends AppError {
     this.name = "DomainValidationError";
   }
 }
+
+export class ResidentNotOccupantError extends Error {
+  constructor() {
+    super("Only the current occupant of the apartment can raise a complaint");
+    this.name = "ResidentNotOccupantError";
+  }
+}

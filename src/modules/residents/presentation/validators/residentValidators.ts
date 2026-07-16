@@ -35,11 +35,6 @@ const createResidentSchema = Joi.object({
   apartmentId: Joi.number().integer().optional().messages({
     'number.base': 'Apartment ID must be a number',
   }),
-
-  isOwner: Joi.boolean().required().messages({
-    'boolean.base': 'isOwner must be a boolean',
-    'any.required': 'isOwner is required',
-  }),
 });
 
 const updateResidentSchema = Joi.object({

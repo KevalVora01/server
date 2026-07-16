@@ -5,6 +5,7 @@ import { GetComplaintUseCase } from "../complaints/application/use-cases/GetComp
 import { ListCommentsUseCase } from "../complaints/application/use-cases/ListCommentsUseCase";
 import { ListComplaintsUseCase } from "../complaints/application/use-cases/ListComplaintsUseCase";
 import { ListMyComplaintsUseCase } from "../complaints/application/use-cases/ListMyComplaintsUseCase";
+import { ListApartmentComplaintsUseCase } from "../complaints/application/use-cases/ListApartmentComplaintsUseCase";
 import { UpdateComplaintStatusUseCase } from "../complaints/application/use-cases/UpdateComplaintStatusUseCase";
 import { DeleteComplaintUseCase } from "../complaints/application/use-cases/DeleteComplaintUseCase";
 import { ComplaintCommentRepository } from "../complaints/infrastructure/repositories/ComplaintCommentRepository";
@@ -22,10 +23,11 @@ const residentRepository = new ResidentRepository();
 const complaintNotifier = new ComplaintNotifier();
 
 // Use Cases
-const createComplaintUseCase = new CreateComplaintUseCase(complaintRepository, complaintNotifier);
-const getComplaintUseCase = new GetComplaintUseCase(complaintRepository);
+const createComplaintUseCase = new CreateComplaintUseCase(complaintRepository, complaintNotifier, residentRepository);
+const getComplaintUseCase = new GetComplaintUseCase(complaintRepository, residentRepository);
 const listComplaintsUseCase = new ListComplaintsUseCase(complaintRepository);
 const listMyComplaintsUseCase = new ListMyComplaintsUseCase(complaintRepository);
+const listApartmentComplaintsUseCase = new ListApartmentComplaintsUseCase(complaintRepository);
 const updateComplaintStatusUseCase = new UpdateComplaintStatusUseCase(complaintRepository, complaintNotifier);
 const addCommentUseCase = new AddCommentUseCase(complaintRepository, complaintCommentRepository, complaintNotifier);
 const listCommentsUseCase = new ListCommentsUseCase(complaintRepository, complaintCommentRepository);
@@ -38,6 +40,7 @@ export const complaintController = new ComplaintController(
   getComplaintUseCase,
   listComplaintsUseCase,
   listMyComplaintsUseCase,
+  listApartmentComplaintsUseCase,
   updateComplaintStatusUseCase,
   addCommentUseCase,
   listCommentsUseCase,

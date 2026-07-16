@@ -154,6 +154,40 @@ export class ComplaintRepository implements IComplaintRepository {
     );
   }
 
+  async findByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Complaint>> {
+    const offset = (pagination.pageNumber - 1) * pagination.pageSize;
+
+    const { count, rows } = await ComplaintModel.findAndCountAll({
+      include: [
+        {
+          model: ResidentModel,
+          as: "resident",
+          attributes: ["id", "userId", "apartmentId"],
+          where: { apartmentId },
+          required: true,
+          include: [
+            {
+              model: UserModel,
+              as: "user",
+              attributes: ["id", "name"],
+            },
+          ],
+        },
+      ],
+      limit: pagination.pageSize,
+      offset,
+      order: [["createdAt", "DESC"]],
+      distinct: true, // required when using include + limit, otherwise count() double-counts joined rows
+    });
+
+    return buildPaginatedResult(
+      rows.map((row) => this.toEntity(row)),
+      count,
+      pagination.pageNumber,
+      pagination.pageSize
+    );
+  }
+
   async update(complaint: Complaint): Promise<Complaint> {
     await ComplaintModel.update(
       {

@@ -21,6 +21,8 @@ export interface IResidentRepository {
   findById(id: number): Promise<Resident | null>;
   findByUserId(userId: number): Promise<Resident | null>;
   findActiveByApartmentId(apartmentId: number): Promise<Resident | null>;
+  findOccupantByApartmentId(apartmentId: number): Promise<Resident | null>;
+  findCommitteeMembers(): Promise<Resident[]>;
   findAll(filters: ListResidentsFilters): Promise<PaginatedResult<Resident>>;
   findAllActive(): Promise<Resident[]>;
   update(resident: Resident): Promise<Resident>;

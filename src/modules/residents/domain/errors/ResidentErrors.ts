@@ -24,3 +24,17 @@ export class ApartmentAlreadyOccupiedError extends Error {
     this.name = "ApartmentAlreadyOccupiedError";
   }
 }
+
+export class UnauthorizedFamilyMemberAccessError extends Error {
+  constructor() {
+    super("Only the apartment owner can view this apartment's family members");
+    this.name = "UnauthorizedFamilyMemberAccessError";
+  }
+}
+
+export class UnauthorizedVehicleAccessError extends Error {
+  constructor() {
+    super("Only the apartment owner can view this apartment's vehicles");
+    this.name = "UnauthorizedVehicleAccessError";
+  }
+}

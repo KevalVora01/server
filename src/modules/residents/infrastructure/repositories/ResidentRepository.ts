@@ -14,6 +14,8 @@ export class ResidentRepository implements IResidentRepository {
       userId: model.userId,
       apartmentId: model.apartmentId,
       isOwner: model.isOwner,
+      isCommitteeMember: model.isCommitteeMember,
+      isOccupant: model.isOccupant,
       moveInDate: model.moveInDate,
       moveOutDate: model.moveOutDate,
       isActive: model.isActive,
@@ -27,6 +29,8 @@ export class ResidentRepository implements IResidentRepository {
       userId: resident.userId,
       apartmentId: resident.apartmentId,
       isOwner: resident.isOwner,
+      isCommitteeMember: resident.isCommitteeMember,
+      isOccupant: resident.isOccupant,
       moveInDate: resident.moveInDate,
       moveOutDate: resident.moveOutDate,
       isActive: resident.isActive,
@@ -150,6 +154,8 @@ export class ResidentRepository implements IResidentRepository {
       {
         apartmentId: resident.apartmentId,
         isOwner: resident.isOwner,
+        isCommitteeMember: resident.isCommitteeMember,
+        isOccupant: resident.isOccupant,
         moveOutDate: resident.moveOutDate,
         isActive: resident.isActive,
         updatedAt: resident.updatedAt,
@@ -175,6 +181,33 @@ export class ResidentRepository implements IResidentRepository {
     return this.toEntity(model);
   }
 
+  async findOccupantByApartmentId(apartmentId: number): Promise<Resident | null> {
+    const model = await ResidentModel.findOne({
+      where: { apartmentId, isOccupant: true, isActive: true },
+    });
+    if (!model) return null;
+    return this.toEntity(model);
+  }
+
+  async findCommitteeMembers(): Promise<Resident[]> {
+    const rows = await ResidentModel.findAll({
+      where: { isCommitteeMember: true, isActive: true },
+      include: [
+        {
+          model: UserModel,
+          as: "user",
+          attributes: ["id", "name", "email"],
+        },
+      ],
+    });
+
+    return rows.map((row) => {
+      const resident = this.toEntity(row);
+      (resident as any).user = (row as any).user ?? null;
+      return resident;
+    });
+  }
+
   async getStats(): Promise<ResidentStats> {
     const [totalCount, totalActive, totalOwners, totalTenants] = await Promise.all([
       ResidentModel.count(),
@@ -186,4 +219,3 @@ export class ResidentRepository implements IResidentRepository {
     return { totalCount, totalActive, totalOwners, totalTenants };
   }
 }
-
