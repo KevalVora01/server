@@ -46,11 +46,6 @@ const loginSchema = Joi.object({
   password: Joi.string().required().messages({
     'string.empty': 'Password is required',
   }),
-
-  role: Joi.string().valid('admin', 'resident', 'security').required().messages({
-    'string.empty': 'Role is required',
-    'any.only': 'Invalid role — must be admin, resident or security',
-  }),
 });
 
 const forgotPasswordSchema = Joi.object({

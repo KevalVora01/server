@@ -46,12 +46,10 @@ export class LoginUseCase {
       throw new InvalidCredentialsError();
     }
 
-    // 4. Role-Based Access Control: Verify the user is logging in with the correct role
-    if (user.role !== dto.role) throw new InvalidCredentialsError();
-
-    // 5. Token Provisioning: Package user details into structural payload signatures
+    // 4. Token Provisioning: Package user details into structural payload signatures
+    //    Role comes exclusively from the database record — never from client input
     const payload: TokenPayload = {
-      userId: user.id!, // Explicit non-null assertion confirms the DB primary key exists
+      userId: user.id!,
       email: user.email,
       role: user.role,
     };
@@ -59,19 +57,19 @@ export class LoginUseCase {
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshTokenString = this.tokenService.generateRefreshToken(payload);
 
-    const refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 Days Lifespan
+    const refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    // 6. Entity Instantiation: Wrap raw parameters into a true Domain Entity instance
+    // 5. Entity Instantiation
     const refreshTokenInstance = RefreshToken.create({
       userId: user.id!,
       token: refreshTokenString,
       expiresAt: refreshTokenExpiresAt,
     });
 
-    // 7. Persistence: Pass the completed Entity class instance down to your repository
+    // 6. Persistence
     await this.refreshTokenRepository.create(refreshTokenInstance);
 
-    // 8. Transformation: Map output layers cleanly using domain methods
+    // 7. Transformation
     return {
       refreshToken: refreshTokenString,
       authResponse: {
