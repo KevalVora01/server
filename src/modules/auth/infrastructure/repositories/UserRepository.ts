@@ -26,6 +26,18 @@ export class UserRepository implements IUserRepository {
     return this.toEntity(userModel);
   }
 
+  async findByPhone(phone: string): Promise<User | null> {
+    const userModel = await UserModel.findOne({
+      where: { phone },
+    });
+
+    if (!userModel) {
+      return null;
+    }
+
+    return this.toEntity(userModel);
+  }
+
   async create(user: User): Promise<User> {
     const createdModel = await UserModel.create({
       name: user.name,

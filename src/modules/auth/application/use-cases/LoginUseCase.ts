@@ -5,10 +5,13 @@ import { IRefreshTokenRepository } from "../../domain/repositories/IRefreshToken
 import { IPasswordHasher } from "../../domain/services/IPasswordHasher";
 import { ITokenService, TokenPayload } from "../../domain/services/ITokenService";
 import { RefreshToken } from "../../domain/entities/RefreshToken";
+import { UserRole } from "../../domain/entities/User";
 import {
   InvalidCredentialsError,
   InactiveUserError,
 } from "../../domain/errors/AuthErrors";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export class LoginUseCase {
   constructor(
@@ -24,19 +27,28 @@ export class LoginUseCase {
     authResponse: AuthResponseDto;
     refreshToken: string;
   }> {
-    // 1. Core Lookup: Look up the user profile by email address
-    const user = await this.userRepository.findByEmail(dto.email);
+    const isEmail = EMAIL_PATTERN.test(dto.identifier);
+
+    // 1. Core Lookup: resolve by email or phone depending on the identifier's shape
+    const user = isEmail
+      ? await this.userRepository.findByEmail(dto.identifier)
+      : await this.userRepository.findByPhone(dto.identifier);
 
     if (!user) {
       throw new InvalidCredentialsError();
     }
 
-    // 2. Domain Validation: Ensure the target user account isn't locked out or deleted
+    // 2. Phone login is Resident-only
+    if (!isEmail && user.role !== UserRole.RESIDENT) {
+      throw new InvalidCredentialsError();
+    }
+
+    // 3. Domain Validation
     if (!user.isActive) {
       throw new InactiveUserError();
     }
 
-    // 3. Cryptography: Compare plain text inputs with stored Argon2/Bcrypt hash
+    // 4. Cryptography
     const passwordMatches = await this.passwordHasher.compare(
       dto.password,
       user.passwordHash
@@ -46,8 +58,7 @@ export class LoginUseCase {
       throw new InvalidCredentialsError();
     }
 
-    // 4. Token Provisioning: Package user details into structural payload signatures
-    //    Role comes exclusively from the database record — never from client input
+    // 5. Token Provisioning — role comes exclusively from the database record
     const payload: TokenPayload = {
       userId: user.id!,
       email: user.email,
@@ -59,17 +70,14 @@ export class LoginUseCase {
 
     const refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    // 5. Entity Instantiation
     const refreshTokenInstance = RefreshToken.create({
       userId: user.id!,
       token: refreshTokenString,
       expiresAt: refreshTokenExpiresAt,
     });
 
-    // 6. Persistence
     await this.refreshTokenRepository.create(refreshTokenInstance);
 
-    // 7. Transformation
     return {
       refreshToken: refreshTokenString,
       authResponse: {
