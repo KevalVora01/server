@@ -10,6 +10,7 @@ import notificationRoutes from './modules/notifications/presentation/routes/noti
 import maintenanceRoutes from './modules/maintenance/presentation/routes/maintenanceRoutes';
 import apartmentFamilyMembersRoutes from './modules/family-members/presentation/routes/apartmentFamilyMembersRoutes';
 import apartmentVehiclesRoutes from './modules/vehicles/presentation/routes/apartmentVehiclesRoutes';
+import tenantRequestRoutes from './modules/tenant-requests/presentation/routes/tenantRequestRoutes';
 
 const router = Router();
 
@@ -35,6 +36,8 @@ router.use('/complaints', complaintRoutes);
 router.use("/maintenance", maintenanceRoutes);
 
 router.use("/notifications", notificationRoutes);
+
+router.use("/tenant-requests", tenantRequestRoutes);
 
 // ─── Add more modules here as you build them ──────────────────────
 // router.use('/invoices',   invoiceRoutes);

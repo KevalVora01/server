@@ -10,6 +10,7 @@ export class UserModel extends Model<InferAttributes<UserModel>, InferCreationAt
   declare phone: string;
   declare role: UserRole;
   declare isActive: CreationOptional<boolean>;
+  declare mustResetPassword: CreationOptional<boolean>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -51,6 +52,12 @@ UserModel.init(
       allowNull: false,
       defaultValue: true,
       field: 'is_active',
+    },
+    mustResetPassword: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'must_reset_password',
     },
     createdAt: {
       type: DataTypes.DATE,

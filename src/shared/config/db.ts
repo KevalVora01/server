@@ -26,6 +26,14 @@ export const connectDB = async (): Promise<void> => {
     await sequelize.sync({ alter: true }); 
     console.log('🔄 All database tables synchronized successfully.');
 
+    // Remove the obsolete unique index that blocked an admin from recording
+    // votes on behalf of multiple committee members (and from casting their
+    // own direct vote after doing so). Uniqueness is now enforced per
+    // committee member (uniq_vote_per_member_per_request) and per
+    // admin-direct vote at the application level.
+    await sequelize.query('DROP INDEX IF EXISTS "uniq_vote_per_admin_per_request";');
+    console.log('🗑️  Dropped obsolete uniq_vote_per_admin_per_request index (if present).');
+
     await runDatabaseSeeders();
 
   } catch (error) {

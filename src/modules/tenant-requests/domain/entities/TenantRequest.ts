@@ -108,6 +108,7 @@ export class TenantRequest {
       createdAt: this.props.createdAt,
       decidedAt: this.props.decidedAt,
       owner: (this as any).owner ?? null,
+      apartment: (this as any).apartment ?? null,
     };
   }
 }

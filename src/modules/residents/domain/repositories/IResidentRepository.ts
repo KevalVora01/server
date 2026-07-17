@@ -22,10 +22,14 @@ export interface IResidentRepository {
   findByUserId(userId: number): Promise<Resident | null>;
   findActiveByApartmentId(apartmentId: number): Promise<Resident | null>;
   findOccupantByApartmentId(apartmentId: number): Promise<Resident | null>;
+  findActiveTenantByApartmentId(apartmentId: number): Promise<Resident | null>;
+  findTenantsByApartmentId(apartmentId: number): Promise<Resident[]>;
   findCommitteeMembers(): Promise<Resident[]>;
   findAll(filters: ListResidentsFilters): Promise<PaginatedResult<Resident>>;
   findAllActive(): Promise<Resident[]>;
+  findActiveOccupantsByApartmentId(apartmentId: number): Promise<Resident[]>;
   update(resident: Resident): Promise<Resident>;
   deactivate(id: number): Promise<void>;
   getStats(): Promise<ResidentStats>;
+  promoteDueOccupants(): Promise<number>;
 }

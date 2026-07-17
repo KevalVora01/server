@@ -1,5 +1,5 @@
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
-import { User } from "../../domain/entities/User";
+import { User, UserRole } from "../../domain/entities/User";
 import { UserModel } from "../models/UserModel";
 
 export class UserRepository implements IUserRepository {
@@ -38,6 +38,11 @@ export class UserRepository implements IUserRepository {
     return this.toEntity(userModel);
   }
 
+  async findAllByRole(role: UserRole): Promise<User[]> {
+    const models = await UserModel.findAll({ where: { role } });
+    return models.map((m) => this.toEntity(m));
+  }
+
   async create(user: User): Promise<User> {
     const createdModel = await UserModel.create({
       name: user.name,
@@ -46,6 +51,7 @@ export class UserRepository implements IUserRepository {
       phone: user.phone,
       role: user.role,
       isActive: user.isActive,
+      mustResetPassword: user.mustResetPassword,
     });
 
     return this.toEntity(createdModel);
@@ -63,6 +69,7 @@ export class UserRepository implements IUserRepository {
         phone: user.phone,
         role: user.role,
         isActive: user.isActive,
+        mustResetPassword: user.mustResetPassword,
         passwordHash: user.passwordHash,
       },
       {
@@ -94,6 +101,7 @@ export class UserRepository implements IUserRepository {
       phone: model.phone,
       role: model.role,
       isActive: model.isActive,
+      mustResetPassword: model.mustResetPassword,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     });

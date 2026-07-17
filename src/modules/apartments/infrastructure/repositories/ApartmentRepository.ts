@@ -56,8 +56,11 @@ export class ApartmentRepository implements IApartmentRepository {
 
     const apartment = this.toEntity(model);
     const activeResident = (model as any).residents?.[0] ?? null;
+    const now = new Date();
+    const isOccupied =
+      activeResident !== null && new Date(activeResident.moveInDate) <= now;
     (apartment as any).resident = activeResident;
-    (apartment as any).isOccupied = activeResident !== null;
+    (apartment as any).isOccupied = isOccupied;
     return apartment;
   }
 
@@ -78,21 +81,23 @@ export class ApartmentRepository implements IApartmentRepository {
 
     const offset = (filters.pageNumber - 1) * filters.pageSize;
 
+    const now = new Date();
     const residentInclude: any = {
       model: ResidentModel,
       as: "residents",
       where: { isActive: true },
       required: false,
-      attributes: ["id"],
+      attributes: ["id", "moveInDate"],
     };
 
     if (filters.isOccupied !== undefined) {
       if (filters.isOccupied) {
         residentInclude.required = true;
+        residentInclude.where.moveInDate = { [Op.lte]: now };
       } else {
         where.id = {
           [Op.notIn]: literal(
-            `(SELECT apartment_id FROM residents WHERE is_active = true AND apartment_id IS NOT NULL)`
+            `(SELECT apartment_id FROM residents WHERE is_active = true AND move_in_date <= NOW() AND apartment_id IS NOT NULL)`
           ),
         };
       }
@@ -108,10 +113,15 @@ export class ApartmentRepository implements IApartmentRepository {
     });
 
     return buildPaginatedResult(
-      rows.map((row) => ({
-        apartment: this.toEntity(row),
-        isOccupied: ((row as any).residents?.length ?? 0) > 0,
-      })),
+      rows.map((row) => {
+        const activeResident = (row as any).residents?.[0] ?? null;
+        const isOccupied =
+          activeResident !== null && new Date(activeResident.moveInDate) <= now;
+        return {
+          apartment: this.toEntity(row),
+          isOccupied,
+        };
+      }),
       count,
       filters.pageNumber,
       filters.pageSize
@@ -143,7 +153,7 @@ export class ApartmentRepository implements IApartmentRepository {
       include: [{
         model: ResidentModel,
         as: "residents",
-        where: { isActive: true },
+        where: { isActive: true, moveInDate: { [Op.lte]: new Date() } },
         required: true,
       }],
     });

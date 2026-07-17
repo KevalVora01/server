@@ -63,6 +63,7 @@ export class RefreshTokenUseCase {
       userId: user.id!, //  Explicit non-null assertion resolves the compilation type check
       email: user.email,
       role: user.role,
+      mustResetPassword: user.mustResetPassword,
     };
 
     const newAccessToken = this.tokenService.generateAccessToken(newPayload);

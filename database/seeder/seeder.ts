@@ -32,9 +32,9 @@ const apartments = [
 ];
 
 const residents = [
-  { name: "Rahul Sharma", email: "rahul@society.com", phone: "9876543210" },
-  { name: "Priya Patel", email: "priya@society.com", phone: "9876543211" },
-  { name: "Amit Joshi", email: "amit@society.com", phone: "9876543212" },
+  { name: "Rahul Sharma", email: "rahul@society.com", phone: "9876543210", isCommitteeMember: true },
+  { name: "Priya Patel", email: "priya@society.com", phone: "9876543211", isCommitteeMember: true },
+  { name: "Amit Joshi", email: "amit@society.com", phone: "9876543212", isCommitteeMember: true },
   { name: "Neha Singh", email: "neha@society.com", phone: "9876543213" },
   { name: "Ravi Kumar", email: "ravi@society.com", phone: "9876543214" },
   { name: "Sunita Mehta", email: "sunita@society.com", phone: "9876543215" },
@@ -182,7 +182,8 @@ const seedResidents = async (): Promise<void> => {
       await ResidentModel.create({
         userId: user.id,
         apartmentId: apartment.id,
-        isOwner: i % 2 === 0,
+        isOwner: true,
+        isCommitteeMember: r.isCommitteeMember ?? false,
         moveInDate: new Date(`2024-${month}-01`),
         isActive: true,
       });
@@ -194,6 +195,44 @@ const seedResidents = async (): Promise<void> => {
 
   } catch (error) {
     console.error("[Database Seeder] CRITICAL: Failed to seed residents:", error);
+  }
+};
+
+const seedCommitteeMembers = async (): Promise<void> => {
+  try {
+    const committeeEmails = residents
+      .filter((r) => r.isCommitteeMember)
+      .map((r) => r.email);
+
+    if (committeeEmails.length === 0) {
+      console.log("[Database Seeder]: No committee members defined. Skipping.");
+      return;
+    }
+
+    console.log("[Database Seeder]: Marking committee members...");
+
+    for (const email of committeeEmails) {
+      const user = await UserModel.findOne({ where: { email } });
+      if (!user) {
+        console.log(`[Database Seeder]: User ${email} not found. Skipping committee flag.`);
+        continue;
+      }
+
+      const resident = await ResidentModel.findOne({ where: { userId: user.id } });
+      if (!resident) {
+        console.log(`[Database Seeder]: Resident profile for ${email} not found.`);
+        continue;
+      }
+
+      if (!resident.isCommitteeMember) {
+        await resident.update({ isCommitteeMember: true });
+        console.log(`[Database Seeder]: Marked ${email} as committee member.`);
+      }
+    }
+
+    console.log("[Database Seeder]: Committee members updated.");
+  } catch (error) {
+    console.error("[Database Seeder] CRITICAL: Failed to seed committee members:", error);
   }
 };
 
@@ -722,12 +761,10 @@ const seedInvoices = async (): Promise<void> => {
 
     console.log("[Database Seeder]: Seeding invoices...");
 
-    const residents = await ResidentModel.findAll({
-      include: [{ model: ApartmentModel, as: "apartment" }],
-    });
+    const apartments = await ApartmentModel.findAll();
 
-    if (residents.length === 0) {
-      console.log("[Database Seeder]: No residents found. Skipping invoice seeding.");
+    if (apartments.length === 0) {
+      console.log("[Database Seeder]: No apartments found. Skipping invoice seeding.");
       return;
     }
 
@@ -735,11 +772,10 @@ const seedInvoices = async (): Promise<void> => {
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
 
-    for (let i = 0; i < residents.length; i++) {
-      const resident = residents[i];
-      const apartment = (resident as any).apartment;
+    // June 2026
+    for (let i = 0; i < apartments.length; i++) {
+      const apartment = apartments[i];
 
-      // June 2026 invoice — some paid, some overdue
       const juneStatus =
         i < 3 ? InvoiceStatus.PAID
         : i < 5 ? InvoiceStatus.OVERDUE
@@ -752,13 +788,12 @@ const seedInvoices = async (): Promise<void> => {
           : [];
 
       const juneTotal = 1500 + juneExtraCharges.reduce((s, c) => s + c.amount, 0);
-
       const junePaidAt = juneStatus === InvoiceStatus.PAID ? new Date(2026, 5, 15) : null;
-      const junePaymentRef = juneStatus === InvoiceStatus.PAID ? `pi_test_june_${resident.id}` : null;
+      const junePaymentRef = juneStatus === InvoiceStatus.PAID ? `pi_test_june_${apartment.id}` : null;
 
       await InvoiceModel.create({
-        apartmentId: apartment?.id ?? resident.apartmentId,
-        residentId: resident.id,
+        apartmentId: apartment.id,
+        residentId: null,
         month: 6,
         year: 2026,
         baseAmount: 1500,
@@ -782,8 +817,8 @@ const seedInvoices = async (): Promise<void> => {
       const julyTotal = 1500 + julyExtraCharges.reduce((s, c) => s + c.amount, 0);
 
       await InvoiceModel.create({
-        apartmentId: apartment?.id ?? resident.apartmentId,
-        residentId: resident.id,
+        apartmentId: apartment.id,
+        residentId: null,
         month: 7,
         year: 2026,
         baseAmount: 1500,
@@ -798,7 +833,7 @@ const seedInvoices = async (): Promise<void> => {
       });
     }
 
-    console.log(`[Database Seeder]: ${residents.length * 2} invoices created (June + July 2026).`);
+    console.log(`[Database Seeder]: ${apartments.length * 2} invoices created (June + July 2026).`);
   } catch (error) {
     console.error("[Database Seeder] CRITICAL: Failed to seed invoices:", error);
   }
@@ -811,6 +846,7 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   await seedDefaultUsers();
   await seedApartments();
   await seedResidents();
+  await seedCommitteeMembers();
   await seedFamilyMembers();
   await seedVehicles();
   await seedNotices();

@@ -167,6 +167,41 @@ export class InvoiceRepository implements IInvoiceRepository {
     );
   }
 
+  async findByApartmentForOccupant(residentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Invoice>> {
+    const offset = (pagination.pageNumber - 1) * pagination.pageSize;
+
+    // Find apartments where this resident is the current occupant
+    const residentApartmentSubquery = `
+      SELECT DISTINCT "apartment_id" FROM "residents" 
+      WHERE "id" = ${residentId} AND "is_active" = true AND "is_occupant" = true
+    `;
+
+    const { count, rows } = await InvoiceModel.findAndCountAll({
+      where: {
+        apartmentId: { [Op.in]: sequelize.literal(`(${residentApartmentSubquery})`) },
+      },
+      include: [
+        {
+          model: ResidentModel,
+          as: "resident",
+          attributes: ["id", "userId", "apartmentId"],
+          include: [{ model: UserModel, as: "user", attributes: ["name"] }],
+        },
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
+      ],
+      limit: pagination.pageSize,
+      offset,
+      order: [["createdAt", "DESC"]],
+    });
+
+    return buildPaginatedResult(
+      rows.map((row) => this.toEntity(row)),
+      count,
+      pagination.pageNumber,
+      pagination.pageSize
+    );
+  }
+
   async findAllPendingWithDueDate(dueDate: Date): Promise<Invoice[]> {
     const models = await InvoiceModel.findAll({
       where: {

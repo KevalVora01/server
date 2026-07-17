@@ -6,6 +6,7 @@ import {
   InvoiceNotFoundError,
   InvoiceAlreadyPaidError,
   ResidentNotOccupantError,
+  UnauthorizedInvoiceAccessError,
 } from "../../domain/errors/MaintenanceErrors";
 
 export interface PaymentIntentResult {
@@ -31,9 +32,10 @@ export class CreatePaymentIntentUseCase {
       throw new InvoiceAlreadyPaidError();
     }
 
-    const resident = await this.residentRepository.findById(invoice.residentId);
+    // Find the current occupant of the apartment
+    const currentOccupant = await this.residentRepository.findOccupantByApartmentId(invoice.apartmentId);
 
-    if (!resident || !resident.isOccupant) {
+    if (!currentOccupant) {
       throw new ResidentNotOccupantError();
     }
 

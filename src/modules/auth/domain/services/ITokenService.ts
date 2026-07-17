@@ -4,6 +4,7 @@ export interface TokenPayload {
   userId: number;
   email: string;
   role: UserRole;
+  mustResetPassword: boolean;
 }
 
 export interface ITokenService {

@@ -41,6 +41,27 @@ router.get(
 );
 
 router.get(
+  "/my/tenants",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  residentController.listApartmentTenants
+);
+
+router.get(
+  "/me",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  residentController.getMyResident
+);
+
+router.post(
+  "/promote-occupants",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  residentController.promoteOccupants
+);
+
+router.get(
   "/:id",
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN),

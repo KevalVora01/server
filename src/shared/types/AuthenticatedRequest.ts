@@ -6,5 +6,6 @@ export interface AuthenticatedRequest extends Request {
     userId: number;
     email: string;
     role: UserRole;
+    mustResetPassword: boolean;
   };
 }

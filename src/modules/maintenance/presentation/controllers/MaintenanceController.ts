@@ -16,6 +16,7 @@ import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequ
 import { UserRole } from "../../../auth/domain/entities/User";
 import { RequestingUser } from "../../../../shared/types/RequestingUser";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
+import { ListApartmentInvoicesUseCase } from "../../application/use-cases/ListApartmentInvoicesUseCase";
 
 export class MaintenanceController {
   constructor(
@@ -24,6 +25,7 @@ export class MaintenanceController {
     private readonly generateInvoicesUseCase: GenerateInvoicesUseCase,
     private readonly listInvoicesUseCase: ListInvoicesUseCase,
     private readonly listMyInvoicesUseCase: ListMyInvoicesUseCase,
+    private readonly listApartmentInvoicesUseCase: ListApartmentInvoicesUseCase,
     private readonly getInvoiceUseCase: GetInvoiceUseCase,
     private readonly markInvoiceSettledUseCase: MarkInvoiceSettledUseCase,
     private readonly createPaymentIntentUseCase: CreatePaymentIntentUseCase,
@@ -132,6 +134,32 @@ export class MaintenanceController {
         ApiResponse.success(
           { ...result, items: result.items.map((inv) => inv.toResponseObject()) },
           "Your invoices fetched successfully"
+        )
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listApartmentInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const resident = await this.residentRepository.findByUserId(authReq.user.userId);
+
+      if (!resident) {
+        res.status(404).json(ApiResponse.error("Resident profile not found"));
+        return;
+      }
+
+      const result = await this.listApartmentInvoicesUseCase.execute(resident.id!, {
+        pageNumber: Number(req.query.pageNumber) || 1,
+        pageSize: Number(req.query.pageSize) || 10,
+      });
+
+      res.status(200).json(
+        ApiResponse.success(
+          { ...result, items: result.items.map((inv) => inv.toResponseObject()) },
+          "Apartment invoices fetched successfully"
         )
       );
     } catch (error) {

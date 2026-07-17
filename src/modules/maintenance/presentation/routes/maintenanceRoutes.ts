@@ -82,7 +82,7 @@ router.post(
 
 /*
 |--------------------------------------------------------------------------
-| Resident Only — own invoices, pay
+| Resident Only — own invoices, apartment-wide (Owner), pay
 |--------------------------------------------------------------------------
 */
 
@@ -91,6 +91,13 @@ router.get(
   jwtMiddleware,
   rbacMiddleware(UserRole.RESIDENT),
   maintenanceController.listMyInvoices
+);
+
+router.get(
+  "/invoices/apartment",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  maintenanceController.listApartmentInvoices
 );
 
 router.post(

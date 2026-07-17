@@ -1,4 +1,4 @@
-import { User } from "../entities/User";
+import { User, UserRole } from "../entities/User";
 
 export interface IUserRepository {
 
@@ -7,6 +7,8 @@ export interface IUserRepository {
   findByEmail(email: string): Promise<User | null>;
 
   findByPhone(phone: string): Promise<User | null>;
+
+  findAllByRole(role: UserRole): Promise<User[]>;
 
   create(user: User): Promise<User>;
 

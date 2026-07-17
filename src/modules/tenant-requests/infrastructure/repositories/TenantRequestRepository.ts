@@ -4,6 +4,7 @@ import { TenantRequestModel } from "../models/TenantRequestModel";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 import { PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
+import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 
 export class TenantRequestRepository implements ITenantRequestRepository {
 
@@ -22,6 +23,7 @@ export class TenantRequestRepository implements ITenantRequestRepository {
     });
 
     (request as any).owner = (model as any).owner ?? null;
+    (request as any).apartment = (model as any).apartment ?? null;
     return request;
   }
 
@@ -49,6 +51,11 @@ export class TenantRequestRepository implements ITenantRequestRepository {
           attributes: ["id", "userId", "apartmentId"],
           include: [{ model: UserModel, as: "user", attributes: ["id", "name", "email"] }],
         },
+        {
+          model: ApartmentModel,
+          as: "apartment",
+          attributes: ["id", "block", "floorNumber", "unitNumber"],
+        },
       ],
     });
 
@@ -73,6 +80,11 @@ export class TenantRequestRepository implements ITenantRequestRepository {
           attributes: ["id", "userId", "apartmentId"],
           include: [{ model: UserModel, as: "user", attributes: ["id", "name", "email"] }],
         },
+        {
+          model: ApartmentModel,
+          as: "apartment",
+          attributes: ["id", "block", "floorNumber", "unitNumber"],
+        },
       ],
       limit: filters.pageSize,
       offset,
@@ -90,6 +102,13 @@ export class TenantRequestRepository implements ITenantRequestRepository {
   async findPendingByApartmentId(apartmentId: number): Promise<TenantRequest | null> {
     const model = await TenantRequestModel.findOne({
       where: { apartmentId, status: TenantRequestStatus.PENDING },
+      include: [
+        {
+          model: ApartmentModel,
+          as: "apartment",
+          attributes: ["id", "block", "floorNumber", "unitNumber"],
+        },
+      ],
     });
 
     if (!model) return null;

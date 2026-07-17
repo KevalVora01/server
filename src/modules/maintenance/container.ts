@@ -1,6 +1,7 @@
 import { InvoiceRepository } from "./infrastructure/repositories/InvoiceRepository";
 import { MaintenanceSettingRepository } from "./infrastructure/repositories/MaintenanceSettingRepository";
 import { ResidentRepository } from "../residents/infrastructure/repositories/ResidentRepository";
+import { ApartmentRepository } from "../apartments/infrastructure/repositories/ApartmentRepository";
 
 import { StripeService } from "./infrastructure/services/StripeService";
 import { InvoicePdfService } from "./infrastructure/services/InvoicePdfService";
@@ -11,6 +12,7 @@ import { UpdateMaintenanceAmountUseCase } from "./application/use-cases/UpdateMa
 import { GenerateInvoicesUseCase } from "./application/use-cases/GenerateInvoicesUseCase";
 import { ListInvoicesUseCase } from "./application/use-cases/ListInvoicesUseCase";
 import { ListMyInvoicesUseCase } from "./application/use-cases/ListMyInvoicesUseCase";
+import { ListApartmentInvoicesUseCase } from "./application/use-cases/ListApartmentInvoicesUseCase";
 import { GetInvoiceUseCase } from "./application/use-cases/GetInvoiceUseCase";
 import { MarkInvoiceSettledUseCase } from "./application/use-cases/MarkInvoiceSettledUseCase";
 import { CreatePaymentIntentUseCase } from "./application/use-cases/CreatePaymentIntentUseCase";
@@ -27,6 +29,7 @@ import { WebhookController } from "./presentation/controllers/WebhookController"
 const invoiceRepository = new InvoiceRepository();
 const maintenanceSettingRepository = new MaintenanceSettingRepository();
 const residentRepository = new ResidentRepository();
+const apartmentRepository = new ApartmentRepository();
 
 // Services
 const stripeService = new StripeService();
@@ -39,10 +42,11 @@ const updateMaintenanceAmountUseCase = new UpdateMaintenanceAmountUseCase(mainte
 const generateInvoicesUseCase = new GenerateInvoicesUseCase(
   invoiceRepository,
   maintenanceSettingRepository,
-  residentRepository,
+  apartmentRepository,
 );
 const listInvoicesUseCase = new ListInvoicesUseCase(invoiceRepository);
-const listMyInvoicesUseCase = new ListMyInvoicesUseCase(invoiceRepository);
+const listMyInvoicesUseCase = new ListMyInvoicesUseCase(invoiceRepository, residentRepository);
+const listApartmentInvoicesUseCase = new ListApartmentInvoicesUseCase(invoiceRepository, residentRepository);
 const getInvoiceUseCase = new GetInvoiceUseCase(invoiceRepository, residentRepository);
 const createPaymentIntentUseCase = new CreatePaymentIntentUseCase(invoiceRepository, stripeService, residentRepository);
 const generateInvoicePdfUseCase = new GenerateInvoicePdfUseCase(
@@ -82,6 +86,7 @@ export const maintenanceController = new MaintenanceController(
   generateInvoicesUseCase,
   listInvoicesUseCase,
   listMyInvoicesUseCase,
+  listApartmentInvoicesUseCase,
   getInvoiceUseCase,
   markInvoiceSettledUseCase,
   createPaymentIntentUseCase,

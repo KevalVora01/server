@@ -156,6 +156,7 @@ export class ResidentRepository implements IResidentRepository {
         isOwner: resident.isOwner,
         isCommitteeMember: resident.isCommitteeMember,
         isOccupant: resident.isOccupant,
+        moveInDate: resident.moveInDate,
         moveOutDate: resident.moveOutDate,
         isActive: resident.isActive,
         updatedAt: resident.updatedAt,
@@ -189,6 +190,62 @@ export class ResidentRepository implements IResidentRepository {
     return this.toEntity(model);
   }
 
+  async findActiveTenantByApartmentId(apartmentId: number): Promise<Resident | null> {
+    const model = await ResidentModel.findOne({
+      where: { apartmentId, isActive: true, isOwner: false },
+      include: [
+        {
+          model: UserModel,
+          as: "user",
+          attributes: ["id", "name", "email", "phone"],
+        },
+      ],
+    });
+    if (!model) return null;
+    const resident = this.toEntity(model);
+    (resident as any).user = (model as any).user ?? null;
+    return resident;
+  }
+
+  async findTenantsByApartmentId(apartmentId: number): Promise<Resident[]> {
+    const rows = await ResidentModel.findAll({
+      where: { apartmentId, isOwner: false },
+      include: [
+        {
+          model: UserModel,
+          as: "user",
+          attributes: ["id", "name", "email", "phone"],
+        },
+      ],
+      order: [["moveInDate", "DESC"]],
+    });
+
+    return rows.map((row) => {
+      const resident = this.toEntity(row);
+      (resident as any).user = (row as any).user ?? null;
+      return resident;
+    });
+  }
+
+  async findActiveOccupantsByApartmentId(apartmentId: number): Promise<Resident[]> {
+    const rows = await ResidentModel.findAll({
+      where: { apartmentId, isActive: true, isOccupant: true },
+      include: [
+        {
+          model: UserModel,
+          as: "user",
+          attributes: ["id", "name", "email", "phone"],
+        },
+      ],
+    });
+
+    return rows.map((row) => {
+      const resident = this.toEntity(row);
+      (resident as any).user = (row as any).user ?? null;
+      return resident;
+    });
+  }
+
   async findCommitteeMembers(): Promise<Resident[]> {
     const rows = await ResidentModel.findAll({
       where: { isCommitteeMember: true, isActive: true },
@@ -217,5 +274,40 @@ export class ResidentRepository implements IResidentRepository {
     ]);
 
     return { totalCount, totalActive, totalOwners, totalTenants };
+  }
+
+  async promoteDueOccupants(): Promise<number> {
+    const now = new Date();
+    const due = await ResidentModel.findAll({
+      where: {
+        isActive: true,
+        moveOutDate: null,
+        isOccupant: false,
+        moveInDate: { [Op.lte]: now },
+      },
+      attributes: ["id", "apartmentId"],
+    });
+
+    for (const resident of due) {
+      await ResidentModel.update(
+        { isOccupant: true },
+        { where: { id: resident.id } }
+      );
+      // The tenant now occupies the unit, so the previous active occupant
+      // (typically the owner) yields occupancy.
+      await ResidentModel.update(
+        { isOccupant: false },
+        {
+          where: {
+            apartmentId: resident.apartmentId,
+            id: { [Op.ne]: resident.id },
+            isActive: true,
+            isOccupant: true,
+          },
+        }
+      );
+    }
+
+    return due.length;
   }
 }

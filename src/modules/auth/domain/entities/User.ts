@@ -12,6 +12,7 @@ export interface UserProps {
   phone: string;
   role: UserRole;
   isActive: boolean;
+  mustResetPassword: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,11 +25,12 @@ export class User {
   }
 
   public static create(
-    props: Omit<UserProps, 'id' | 'isActive' | 'createdAt' | 'updatedAt'>
+    props: Omit<UserProps, 'id' | 'isActive' | 'mustResetPassword' | 'createdAt' | 'updatedAt'>
   ): User {
     return new User({
       ...props,
       isActive: true,
+      mustResetPassword: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -62,6 +64,10 @@ export class User {
     return this.props.isActive;
   }
 
+  get mustResetPassword(): boolean {
+    return this.props.mustResetPassword;
+  }
+
   get createdAt(): Date {
     return this.props.createdAt;
   }
@@ -86,6 +92,21 @@ export class User {
     this.props.updatedAt = new Date();
   }
 
+  requirePasswordReset(): void {
+    this.props.mustResetPassword = true;
+    this.props.updatedAt = new Date();
+  }
+
+  clearPasswordReset(): void {
+    this.props.mustResetPassword = false;
+    this.props.updatedAt = new Date();
+  }
+
+  reactivate(): void {
+    this.props.isActive = true;
+    this.props.updatedAt = new Date();
+  }
+
   toResponseObject() {
     return {
       id: this.props.id,
@@ -94,6 +115,7 @@ export class User {
       phone: this.props.phone,
       role: this.props.role,
       isActive: this.props.isActive,
+      mustResetPassword: this.props.mustResetPassword,
       createdAt: this.props.createdAt,
     };
   }

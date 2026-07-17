@@ -7,7 +7,7 @@ export class MaintenanceNotifier implements IMaintenanceNotifier {
   constructor(private readonly residentRepository: IResidentRepository) {}
 
   async notifyDueSoon(invoice: Invoice): Promise<void> {
-    const userId = await this.resolveUserId(invoice.residentId);
+    const userId = await this.resolveUserId(invoice);
     if (!userId) return;
 
     await notificationService.notify(
@@ -20,7 +20,7 @@ export class MaintenanceNotifier implements IMaintenanceNotifier {
   }
 
   async notifyDueToday(invoice: Invoice): Promise<void> {
-    const userId = await this.resolveUserId(invoice.residentId);
+    const userId = await this.resolveUserId(invoice);
     if (!userId) return;
 
     await notificationService.notify(
@@ -33,7 +33,7 @@ export class MaintenanceNotifier implements IMaintenanceNotifier {
   }
 
   async notifyOverdue(invoice: Invoice): Promise<void> {
-    const userId = await this.resolveUserId(invoice.residentId);
+    const userId = await this.resolveUserId(invoice);
     if (!userId) return;
 
     await notificationService.notify(
@@ -46,7 +46,7 @@ export class MaintenanceNotifier implements IMaintenanceNotifier {
   }
 
   async notifyOverdueReminder(invoice: Invoice): Promise<void> {
-    const userId = await this.resolveUserId(invoice.residentId);
+    const userId = await this.resolveUserId(invoice);
     if (!userId) return;
 
     await notificationService.notify(
@@ -59,7 +59,7 @@ export class MaintenanceNotifier implements IMaintenanceNotifier {
   }
 
   async notifyPaymentSucceeded(invoice: Invoice): Promise<void> {
-    const userId = await this.resolveUserId(invoice.residentId);
+    const userId = await this.resolveUserId(invoice);
     if (!userId) return;
 
     await notificationService.notify(
@@ -71,9 +71,16 @@ export class MaintenanceNotifier implements IMaintenanceNotifier {
     );
   }
 
-  private async resolveUserId(residentId: number): Promise<number | null> {
-    const resident = await this.residentRepository.findById(residentId);
-    return resident?.userId ?? null;
+  private async resolveUserId(invoice: Invoice): Promise<number | null> {
+    // First try the residentId on the invoice
+    const residentId = invoice.residentId;
+    if (residentId) {
+      const resident = await this.residentRepository.findById(residentId);
+      if (resident) return resident.userId;
+    }
+    // Fallback: find current occupant of the apartment
+    const occupants = await this.residentRepository.findActiveOccupantsByApartmentId(invoice.apartmentId);
+    return occupants[0]?.userId ?? null;
   }
 
   private formatDate(date: Date): string {

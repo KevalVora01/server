@@ -58,6 +58,19 @@ router.patch(
 
 /*
 |--------------------------------------------------------------------------
+| Resident Only — apartment-wide complaints (Owner only, enforced in use-case)
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+  "/apartment",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  complaintController.listApartmentComplaints
+);
+
+/*
+|--------------------------------------------------------------------------
 | Admin + Resident — detail & comments (ownership enforced in use-case)
 |--------------------------------------------------------------------------
 */

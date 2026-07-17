@@ -6,9 +6,9 @@ export enum VoteChoice {
 export interface TenantRequestVoteProps {
   id?: number;
   tenantRequestId: number;
-  committeeMemberId: number;
+  committeeMemberId?: number;
   vote: VoteChoice;
-  recordedByAdminId: number;
+  recordedByAdminId?: number;
   createdAt?: Date;
 }
 
@@ -36,7 +36,7 @@ export class TenantRequestVote {
     return this.props.tenantRequestId;
   }
 
-  get committeeMemberId(): number {
+  get committeeMemberId(): number | undefined {
     return this.props.committeeMemberId;
   }
 
@@ -44,12 +44,24 @@ export class TenantRequestVote {
     return this.props.vote;
   }
 
-  get recordedByAdminId(): number {
+  get recordedByAdminId(): number | undefined {
     return this.props.recordedByAdminId;
   }
 
   get createdAt(): Date | undefined {
     return this.props.createdAt;
+  }
+
+  isAdminVote(): boolean {
+    return !this.props.committeeMemberId && !!this.props.recordedByAdminId;
+  }
+
+  changeVote(vote: VoteChoice): void {
+    this.props.vote = vote;
+  }
+
+  recordByAdmin(adminId: number): void {
+    this.props.recordedByAdminId = adminId;
   }
 
   toResponseObject() {

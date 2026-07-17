@@ -22,12 +22,21 @@ export class GetInvoiceUseCase {
     }
 
     if (requestingUser.role === UserRole.RESIDENT) {
-      const isOwnInvoice = invoice.residentId === requestingUser.residentId;
+      // If invoice has a specific residentId, use that for ownership check
+      // Otherwise, find the current occupant of the apartment
+      let invoiceResidentId = invoice.residentId;
+      if (!invoiceResidentId) {
+        const occupants = await this.residentRepository.findActiveOccupantsByApartmentId(invoice.apartmentId);
+        invoiceResidentId = occupants[0]?.id ?? null;
+      }
+
+      const isOwnInvoice = invoiceResidentId === requestingUser.residentId;
 
       if (!isOwnInvoice) {
         const isApartmentOwner = await this.isOwnerOfInvoicesApartment(
           requestingUser.residentId,
-          invoice.residentId
+          invoiceResidentId,
+          invoice.apartmentId
         );
 
         if (!isApartmentOwner) {
@@ -41,14 +50,21 @@ export class GetInvoiceUseCase {
 
   private async isOwnerOfInvoicesApartment(
     requestingResidentId: number | undefined,
-    invoiceResidentId: number
+    invoiceResidentId: number | null,
+    invoiceApartmentId: number
   ): Promise<boolean> {
     if (!requestingResidentId) return false;
 
     const requestingResident = await this.residentRepository.findById(requestingResidentId);
-    const invoiceResident = await this.residentRepository.findById(invoiceResidentId);
+    if (!requestingResident) return false;
 
-    if (!requestingResident || !invoiceResident) return false;
+    // If invoice has no residentId, check if requester is owner of the apartment
+    if (!invoiceResidentId) {
+      return requestingResident.isOwner && requestingResident.apartmentId === invoiceApartmentId;
+    }
+
+    const invoiceResident = await this.residentRepository.findById(invoiceResidentId);
+    if (!invoiceResident) return false;
 
     return (
       requestingResident.isOwner &&

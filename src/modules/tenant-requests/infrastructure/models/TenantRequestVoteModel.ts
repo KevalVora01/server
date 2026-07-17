@@ -8,9 +8,9 @@ import { ResidentModel } from "../../../residents/infrastructure/models/Resident
 interface TenantRequestVoteAttributes {
   id: number;
   tenantRequestId: number;
-  committeeMemberId: number;
+  committeeMemberId: number | null;
   vote: VoteChoice;
-  recordedByAdminId: number;
+  recordedByAdminId: number | null;
   createdAt: Date;
 }
 
@@ -22,9 +22,9 @@ export class TenantRequestVoteModel
   implements TenantRequestVoteAttributes {
   declare id: number;
   declare tenantRequestId: number;
-  declare committeeMemberId: number;
+  declare committeeMemberId: number | null;
   declare vote: VoteChoice;
-  declare recordedByAdminId: number;
+  declare recordedByAdminId: number | null;
   declare createdAt: Date;
 }
 
@@ -45,7 +45,7 @@ TenantRequestVoteModel.init(
     },
     committeeMemberId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: ResidentModel,
         key: "id",
@@ -57,7 +57,7 @@ TenantRequestVoteModel.init(
     },
     recordedByAdminId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: UserModel,
         key: "id",

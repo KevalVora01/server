@@ -5,8 +5,11 @@ import { GetResidentUseCase } from "../../application/use-cases/GetResidentUseCa
 import { ListResidentsUseCase } from "../../application/use-cases/ListResidentsUseCase";
 import { UpdateResidentUseCase } from "../../application/use-cases/UpdateResidentUseCase";
 import { DeactivateResidentUseCase } from "../../application/use-cases/DeactivateResidentUseCase";
+import { ListApartmentTenantsUseCase } from "../../application/use-cases/ListApartmentTenantsUseCase";
 
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
+import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
+import { IResidentRepository } from "../../domain/repositories/IResidentRepository";
 
 export class ResidentController {
   constructor(
@@ -14,7 +17,9 @@ export class ResidentController {
     private readonly getResidentUseCase: GetResidentUseCase,
     private readonly listResidentsUseCase: ListResidentsUseCase,
     private readonly updateResidentUseCase: UpdateResidentUseCase,
-    private readonly deactivateResidentUseCase: DeactivateResidentUseCase
+    private readonly deactivateResidentUseCase: DeactivateResidentUseCase,
+    private readonly listApartmentTenantsUseCase: ListApartmentTenantsUseCase,
+    private readonly residentRepository: IResidentRepository
   ) { }
 
   createResident = async (
@@ -135,6 +140,74 @@ export class ResidentController {
           message: "Resident deactivated successfully",
           data: null,
         })
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listApartmentTenants = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const owner = await this.residentRepository.findByUserId(authReq.user.userId);
+
+      if (!owner) {
+        res.status(404).json(ApiResponse.error("Resident profile not found"));
+        return;
+      }
+
+      if (!owner.isOwner) {
+        res.status(403).json(ApiResponse.error("Only the apartment owner can view tenant history"));
+        return;
+      }
+
+      const tenants = await this.listApartmentTenantsUseCase.execute(owner.apartmentId);
+      res.status(200).json(
+        ApiResponse.success(
+          tenants.map((t) => t.toResponseObject()),
+          "Tenant history fetched successfully"
+        )
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getMyResident = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const resident = await this.residentRepository.findByUserId(authReq.user.userId);
+
+      if (!resident) {
+        res.status(404).json(ApiResponse.error("Resident profile not found"));
+        return;
+      }
+
+      res.status(200).json(
+        ApiResponse.success(resident.toResponseObject(), "Resident profile fetched successfully")
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  promoteOccupants = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const promoted = await this.residentRepository.promoteDueOccupants();
+      res.status(200).json(
+        ApiResponse.success({ promoted }, "Occupant promotion completed")
       );
     } catch (error) {
       next(error);

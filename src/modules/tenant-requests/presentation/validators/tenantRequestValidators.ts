@@ -26,8 +26,12 @@ const submitTenantRequestSchema = Joi.object({
 });
 
 const recordVoteSchema = Joi.object({
-  committeeMemberId: Joi.number().integer().positive().required().messages({
-    'any.required': 'committeeMemberId is required',
+  committeeMemberId: Joi.number().integer().positive().optional().messages({
+    'number.base': 'committeeMemberId must be a number',
+  }),
+
+  recordedByAdminId: Joi.number().integer().positive().optional().messages({
+    'number.base': 'recordedByAdminId must be a number',
   }),
 
   vote: Joi.string().valid(...Object.values(VoteChoice)).required().messages({

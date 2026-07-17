@@ -63,6 +63,7 @@ export class LoginUseCase {
       userId: user.id!,
       email: user.email,
       role: user.role,
+      mustResetPassword: user.mustResetPassword,
     };
 
     const accessToken = this.tokenService.generateAccessToken(payload);

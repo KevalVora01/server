@@ -60,6 +60,19 @@ router.post(
 
 /*
 |--------------------------------------------------------------------------
+| Resident (Owner) Only — view own tenant-request status
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+  "/my",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  tenantRequestController.myRequest
+);
+
+/*
+|--------------------------------------------------------------------------
 | Admin + Resident — detail view
 |--------------------------------------------------------------------------
 */

@@ -25,7 +25,7 @@ export class Resident {
     return new Resident({
       ...props,
       isCommitteeMember: false,
-      isOccupant: true,
+      isOccupant: props.moveInDate <= new Date(),
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -81,6 +81,11 @@ export class Resident {
     this.props.updatedAt = new Date();
   }
 
+  reactivate(): void {
+    this.props.isActive = true;
+    this.props.updatedAt = new Date();
+  }
+
   updateApartment(apartmentId: number): void {
     this.props.apartmentId = apartmentId;
     this.props.updatedAt = new Date();
@@ -91,8 +96,13 @@ export class Resident {
     this.props.updatedAt = new Date();
   }
 
-  updateMoveOutDate(moveOutDate: Date | string): void {
-    this.props.moveOutDate = new Date(moveOutDate);
+  updateMoveOutDate(moveOutDate: Date | string | null): void {
+    this.props.moveOutDate = moveOutDate === null ? null : new Date(moveOutDate);
+    this.props.updatedAt = new Date();
+  }
+
+  updateMoveInDate(moveInDate: Date | string): void {
+    this.props.moveInDate = new Date(moveInDate);
     this.props.updatedAt = new Date();
   }
 

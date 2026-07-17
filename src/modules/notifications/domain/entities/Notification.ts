@@ -7,7 +7,11 @@ export type NotificationType =
   | "maintenance_due_today"
   | "maintenance_overdue"
   | "maintenance_overdue_reminder"
-  | "maintenance_payment_succeeded";
+  | "maintenance_payment_succeeded"
+  | "tenant_request_submitted"
+  | "tenant_request_approved"
+  | "tenant_request_rejected"
+  | "tenancy_revoked";
 
 export interface NotificationDataMap {
   complaint_created: { complaintId: number };

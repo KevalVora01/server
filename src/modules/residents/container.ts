@@ -4,7 +4,9 @@ import { CreateResidentUseCase } from "./application/use-cases/CreateResidentUse
 import { DeactivateResidentUseCase } from "./application/use-cases/DeactivateResidentUseCase";
 import { GetResidentUseCase } from "./application/use-cases/GetResidentUseCase";
 import { ListResidentsUseCase } from "./application/use-cases/ListResidentsUseCase";
+import { ListApartmentTenantsUseCase } from "./application/use-cases/ListApartmentTenantsUseCase";
 import { UpdateResidentUseCase } from "./application/use-cases/UpdateResidentUseCase";
+import { PromoteOccupantsJob } from "./application/jobs/PromoteOccupantsJob";
 import { ResidentRepository } from "./infrastructure/repositories/ResidentRepository";
 import { ResidentController } from "./presentation/controllers/ResidentController";
 
@@ -39,11 +41,22 @@ const deactivateResidentUseCase = new DeactivateResidentUseCase(
   userRepository
 );
 
+const listApartmentTenantsUseCase = new ListApartmentTenantsUseCase(
+  residentRepository
+);
+
+// Scheduled Job (exported so shared/jobs/scheduler.ts can register it)
+export const promoteOccupantsJob = new PromoteOccupantsJob(
+  residentRepository
+);
+
 // Controller
 export const residentController = new ResidentController(
   createResidentUseCase,
   getResidentUseCase,
   listResidentsUseCase,
   updateResidentUseCase,
-  deactivateResidentUseCase
+  deactivateResidentUseCase,
+  listApartmentTenantsUseCase,
+  residentRepository
 );

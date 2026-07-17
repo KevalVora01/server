@@ -21,8 +21,8 @@ const passwordResetTokenRepository = new PasswordResetTokenRepository();
 const passwordHasher = new BcryptPasswordHasher();
 const emailService = new NodemailerEmailService();
 
-const submitTenantRequestUseCase = new SubmitTenantRequestUseCase(tenantRequestRepository, residentRepository);
-const recordVoteUseCase = new RecordVoteUseCase(tenantRequestRepository, tenantRequestVoteRepository, residentRepository);
+const submitTenantRequestUseCase = new SubmitTenantRequestUseCase(tenantRequestRepository, residentRepository, userRepository);
+const recordVoteUseCase = new RecordVoteUseCase(tenantRequestRepository, tenantRequestVoteRepository, residentRepository, userRepository);
 const finalizeTenantRequestUseCase = new FinalizeTenantRequestUseCase(
   tenantRequestRepository,
   tenantRequestVoteRepository,
@@ -32,7 +32,7 @@ const finalizeTenantRequestUseCase = new FinalizeTenantRequestUseCase(
   passwordHasher,
   emailService,
 );
-const revokeTenancyUseCase = new RevokeTenancyUseCase(residentRepository);
+const revokeTenancyUseCase = new RevokeTenancyUseCase(residentRepository, userRepository);
 
 export const tenantRequestController = new TenantRequestController(
   submitTenantRequestUseCase,

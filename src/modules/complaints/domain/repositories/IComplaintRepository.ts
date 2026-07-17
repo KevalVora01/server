@@ -16,6 +16,7 @@ export interface IComplaintRepository {
   findAll(filters: ListComplaintsFilters): Promise<PaginatedResult<Complaint>>;
   findByResidentId(residentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Complaint>>;
   findByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Complaint>>
+  findTenantComplaintsByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Complaint>>
   update(complaint: Complaint): Promise<Complaint>;
   delete(id: number): Promise<void>;
 }

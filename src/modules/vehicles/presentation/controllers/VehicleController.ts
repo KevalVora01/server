@@ -51,7 +51,17 @@ export class VehicleController {
 
       if (authReq.user.role === UserRole.RESIDENT) {
         const requester = await this.residentRepository.findByUserId(authReq.user.userId);
-        if (!requester || requester.id !== residentId) {
+        const targetResident = await this.residentRepository.findById(residentId);
+
+        if (!requester || !targetResident) {
+          res.status(404).json(ApiResponse.error("Resident not found"));
+          return;
+        }
+
+        const isOwn = requester.id === residentId;
+        const isApartmentOwner = requester.isOwner && requester.apartmentId === targetResident.apartmentId;
+
+        if (!isOwn && !isApartmentOwner) {
           res.status(403).json(ApiResponse.error("You can only view your own vehicles"));
           return;
         }

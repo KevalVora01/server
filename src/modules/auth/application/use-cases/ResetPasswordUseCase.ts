@@ -37,6 +37,7 @@ export class ResetPasswordUseCase {
 
     // 6. Update password using domain method
     user.updatePassword(hashedPassword);
+    user.clearPasswordReset();
     await this.userRepository.update(user);
 
     // 7. Delete token so it can't be reused

@@ -20,6 +20,15 @@ export class GetCurrentUserUseCase {
     return {
       ...user.toResponseObject(),
       residentId: resident?.id ?? null,
+      resident: resident
+        ? {
+            id: resident.id!,
+            isOwner: resident.isOwner,
+            isOccupant: resident.isOccupant,
+            moveInDate: resident.moveInDate,
+            apartmentId: resident.apartmentId,
+          }
+        : null,
     };
   }
 }

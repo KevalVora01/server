@@ -3,13 +3,13 @@ import { IInvoiceRepository } from "../../domain/repositories/IInvoiceRepository
 import { IMaintenanceSettingRepository } from "../../domain/repositories/IMaintenanceSettingRepository";
 import { GenerateInvoicesDto } from "../dtos/GenerateInvoicesDto";
 import { MaintenanceSettingNotFoundError } from "../../domain/errors/MaintenanceErrors";
-import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
+import { IApartmentRepository } from "../../../apartments/domain/repositories/IApartmentRepository";
 
 export class GenerateInvoicesUseCase {
   constructor(
     private readonly invoiceRepository: IInvoiceRepository,
     private readonly settingRepository: IMaintenanceSettingRepository,
-    private readonly residentRepository: IResidentRepository,
+    private readonly apartmentRepository: IApartmentRepository,
   ) {}
 
   async execute(dto: GenerateInvoicesDto): Promise<Invoice[]> {
@@ -19,12 +19,12 @@ export class GenerateInvoicesUseCase {
       throw new MaintenanceSettingNotFoundError();
     }
 
-    const residents = await this.residentRepository.findAllActive();
+    const apartments = await this.apartmentRepository.findAll({ pageNumber: 1, pageSize: 1000 });
 
-    const invoices = residents.map((resident) => {
+    const invoices = apartments.items.map(({ apartment }) => {
       const invoice = Invoice.create({
-        apartmentId: resident.apartmentId,
-        residentId: resident.id!,
+        apartmentId: apartment.id!,
+        residentId: null,
         month: dto.month,
         year: dto.year,
         baseAmount: setting.amount,

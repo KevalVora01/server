@@ -7,7 +7,7 @@ import { ResidentModel } from "../../../residents/infrastructure/models/Resident
 interface InvoiceAttributes {
   id: number;
   apartmentId: number;
-  residentId: number;
+  residentId: number | null;
   month: number;
   year: number;
   baseAmount: number;
@@ -29,7 +29,7 @@ export class InvoiceModel
   implements InvoiceAttributes {
   declare id: number;
   declare apartmentId: number;
-  declare residentId: number;
+  declare residentId: number | null;
   declare month: number;
   declare year: number;
   declare baseAmount: number;
@@ -63,7 +63,7 @@ InvoiceModel.init(
     },
     residentId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: ResidentModel,
         key: "id",

@@ -17,6 +17,7 @@ import {
 import { env } from "../../../../shared/config/env";
 import { Resident } from "../../../residents/domain/entities/Resident";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
+import { notificationService } from "../../../notifications/container";
 
 export interface FinalizeResult {
   request: TenantRequest;
@@ -45,56 +46,112 @@ export class FinalizeTenantRequestUseCase {
       throw new TenantRequestAlreadyDecidedError();
     }
 
-    const [tally, committeeMembers] = await Promise.all([
+    const owner = await this.residentRepository.findById(request.requestedBy);
+
+    const [tally, committeeMembers, adminTally] = await Promise.all([
       this.tenantRequestVoteRepository.countByRequestId(dto.tenantRequestId),
       this.residentRepository.findCommitteeMembers(),
+      this.tenantRequestVoteRepository.countAdminVotes(dto.tenantRequestId),
     ]);
 
     const totalCommitteeSize = committeeMembers.length;
+    const adminVotes = adminTally.total;
 
-    if (totalCommitteeSize === 0) {
+    if (totalCommitteeSize === 0 && adminVotes === 0) {
       throw new VotingNotCompleteError();
     }
 
-    if (tally.total < totalCommitteeSize) {
+    // Total expected votes = committee members + admin (if admin voted)
+    const expectedVotes = totalCommitteeSize + (adminTally.total > 0 ? 1 : 0);
+    const totalVotes = tally.total + adminVotes;
+
+    if (totalVotes < expectedVotes) {
       throw new VotingNotCompleteError();
     }
 
-    const majorityApproved = tally.approve > totalCommitteeSize / 2;
+    const combinedApprove = tally.approve + adminTally.approve;
+    const combinedReject = tally.reject + adminTally.reject;
+    const majorityApproved = combinedApprove > combinedReject;
 
     if (!majorityApproved) {
       request.reject();
       const updated = await this.tenantRequestRepository.update(request);
+
+      if (owner) {
+        await this.notifyOwner(
+          owner.userId,
+          request.id!,
+          "tenant_request_rejected",
+          "Tenant Request Rejected",
+          "Your tenant request was rejected by the committee."
+        );
+      }
+
       return { request: updated, approved: false };
     }
 
     request.approve();
     const updatedRequest = await this.tenantRequestRepository.update(request);
 
-    const randomInitialPassword = crypto.randomBytes(32).toString("hex");
-    const passwordHash = await this.passwordHasher.hash(randomInitialPassword);
+    const passwordHash = await this.passwordHasher.hash(
+      crypto.randomBytes(32).toString("hex")
+    );
 
-    const tenantUser = User.create({
-      name: request.tenantName,
-      email: request.tenantEmail,
-      phone: request.tenantPhone,
-      passwordHash,
-      role: UserRole.RESIDENT,
-    });
-    const savedTenantUser = await this.userRepository.create(tenantUser);
+    // Reuse a dormant (previously revoked) User with the same email when one
+    // exists, otherwise create a brand-new account. Either way the tenant
+    // must reset their password before accessing anything.
+    const existingUser = await this.userRepository.findByEmail(request.tenantEmail);
+    let savedTenantUser: User;
+    if (existingUser) {
+      existingUser.updatePassword(passwordHash);
+      existingUser.reactivate();
+      existingUser.requirePasswordReset();
+      savedTenantUser = await this.userRepository.update(existingUser);
+    } else {
+      const tenantUser = User.create({
+        name: request.tenantName,
+        email: request.tenantEmail,
+        phone: request.tenantPhone,
+        passwordHash,
+        role: UserRole.RESIDENT,
+      });
+      tenantUser.requirePasswordReset();
+      savedTenantUser = await this.userRepository.create(tenantUser);
+    }
 
-    const tenantResident = Resident.create({
-      userId: savedTenantUser.id!,
-      apartmentId: request.apartmentId,
-      isOwner: false,
-      moveInDate: request.moveInDate,
-    });
-    const savedTenantResident = await this.residentRepository.create(tenantResident);
+    // Likewise reuse the Resident row tied to that user when present.
+    const existingResident = await this.residentRepository.findByUserId(savedTenantUser.id!);
+    let savedTenantResident: Resident;
+    if (existingResident) {
+      existingResident.reactivate();
+      existingResident.updateMoveInDate(request.moveInDate);
+      existingResident.updateApartment(request.apartmentId);
+      existingResident.updateIsOwner(false);
+      existingResident.updateMoveOutDate(null);
+      if (request.moveInDate <= new Date()) {
+        existingResident.markAsOccupant();
+      } else {
+        existingResident.markAsNonOccupant();
+      }
+      savedTenantResident = await this.residentRepository.update(existingResident);
+    } else {
+      const tenantResident = Resident.create({
+        userId: savedTenantUser.id!,
+        apartmentId: request.apartmentId,
+        isOwner: false,
+        moveInDate: request.moveInDate,
+      });
+      savedTenantResident = await this.residentRepository.create(tenantResident);
+    }
 
-    const owner = await this.residentRepository.findById(request.requestedBy);
     if (owner) {
-      owner.markAsNonOccupant();
-      await this.residentRepository.update(owner);
+      await this.notifyOwner(
+        owner.userId,
+        request.id!,
+        "tenant_request_approved",
+        "Tenant Request Approved",
+        "Your tenant request was approved. The tenant can now set up their account."
+      );
     }
 
     await this.passwordResetTokenRepository.deleteByUserId(savedTenantUser.id!);
@@ -132,5 +189,21 @@ export class FinalizeTenantRequestUseCase {
       approved: true,
       newResident: savedTenantResident,
     };
+  }
+
+  private async notifyOwner(
+    userId: number,
+    tenantRequestId: number,
+    type: "tenant_request_approved" | "tenant_request_rejected",
+    title: string,
+    body: string
+  ): Promise<void> {
+    try {
+      await notificationService.notify(userId, type, title, body, {
+        tenantRequestId,
+      });
+    } catch (error) {
+      console.error("Failed to send tenant request notification", error);
+    }
   }
 }

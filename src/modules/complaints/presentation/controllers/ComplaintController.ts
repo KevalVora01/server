@@ -162,7 +162,7 @@ export class ComplaintController {
         return;
       }
 
-      const result = await this.listApartmentComplaintsUseCase.execute(resident.apartmentId, {
+      const result = await this.listApartmentComplaintsUseCase.execute(resident.id!, {
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
       });

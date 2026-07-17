@@ -51,9 +51,20 @@ export class FamilyMemberController {
 
       // Residents may only view their own family members via this route;
       // Admin may view any resident's.
+      // Owner of the same apartment may also view tenant's family members.
       if (authReq.user.role === UserRole.RESIDENT) {
         const requester = await this.residentRepository.findByUserId(authReq.user.userId);
-        if (!requester || requester.id !== residentId) {
+        const targetResident = await this.residentRepository.findById(residentId);
+
+        if (!requester || !targetResident) {
+          res.status(404).json(ApiResponse.error("Resident not found"));
+          return;
+        }
+
+        const isOwn = requester.id === residentId;
+        const isApartmentOwner = requester.isOwner && requester.apartmentId === targetResident.apartmentId;
+
+        if (!isOwn && !isApartmentOwner) {
           res.status(403).json(ApiResponse.error("You can only view your own family members"));
           return;
         }
