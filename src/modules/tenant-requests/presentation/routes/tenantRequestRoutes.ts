@@ -4,7 +4,7 @@ import { createJwtMiddleware } from "../../../../shared/middleware/jwtMiddleware
 import { JwtTokenService } from "../../../auth/infrastructure/services/JwtTokenService";
 import { rbacMiddleware } from "../../../../shared/middleware/rbacMiddleware";
 import { UserRole } from "../../../auth/domain/entities/User";
-import { validateSubmitTenantRequest, validateRecordVote } from "../validators/tenantRequestValidators";
+import { validateSubmitTenantRequest, validateBulkRecordVotes } from "../validators/tenantRequestValidators";
 
 const router = Router();
 const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
@@ -44,11 +44,11 @@ router.get(
 );
 
 router.post(
-  "/:id/vote",
+  "/:id/votes",
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN),
-  validateRecordVote,
-  tenantRequestController.recordVote
+  validateBulkRecordVotes,
+  tenantRequestController.bulkRecordVotes
 );
 
 router.post(

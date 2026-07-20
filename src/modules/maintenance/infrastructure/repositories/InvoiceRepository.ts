@@ -128,6 +128,15 @@ export class InvoiceRepository implements IInvoiceRepository {
 
     const { count, rows } = await InvoiceModel.findAndCountAll({
       where: { residentId },
+      include: [
+        {
+          model: ResidentModel,
+          as: "resident",
+          attributes: ["id", "userId", "apartmentId"],
+          include: [{ model: UserModel, as: "user", attributes: ["name"] }],
+        },
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
+      ],
       limit: pagination.pageSize,
       offset,
       order: [["createdAt", "DESC"]],

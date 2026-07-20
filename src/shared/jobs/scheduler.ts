@@ -13,8 +13,10 @@ export function initScheduledJobs(): void {
   });
 
   // Promote residents to "occupant" once their move-in date has arrived
-  // (covers future-dated tenant approvals). Runs daily at 00:05.
-  cron.schedule("5 0 * * *", async () => {
+  // (covers future-dated tenant approvals) and demote the previous occupant
+  // (the owner). Runs hourly so a missed window is recovered the same day
+  // rather than depending on the server being alive at a single daily tick.
+  cron.schedule("0 * * * *", async () => {
     console.log("Running occupant promotion job...");
     try {
       await promoteOccupantsJob.execute();

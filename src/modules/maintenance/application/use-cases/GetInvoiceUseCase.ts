@@ -22,9 +22,8 @@ export class GetInvoiceUseCase {
     }
 
     if (requestingUser.role === UserRole.RESIDENT) {
-      // If invoice has a specific residentId, use that for ownership check
-      // Otherwise, find the current occupant of the apartment
-      let invoiceResidentId = invoice.residentId;
+      // Invoices are always stamped with the resident liable to pay them.
+      let invoiceResidentId: number | null = invoice.residentId;
       if (!invoiceResidentId) {
         const occupants = await this.residentRepository.findActiveOccupantsByApartmentId(invoice.apartmentId);
         invoiceResidentId = occupants[0]?.id ?? null;

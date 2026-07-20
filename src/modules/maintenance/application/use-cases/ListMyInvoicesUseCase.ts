@@ -11,10 +11,12 @@ export class ListMyInvoicesUseCase {
 
   async execute(residentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Invoice>> {
     const resident = await this.residentRepository.findById(residentId);
-    if (!resident || !resident.isOccupant) {
-      // Non-occupants don't have invoices to pay
+    if (!resident) {
       return { items: [], totalCount: 0, pageNumber: pagination.pageNumber, pageSize: pagination.pageSize, totalPages: 0, hasNextPage: false, hasPreviousPage: false };
     }
-    return this.invoiceRepository.findByApartmentForOccupant(residentId, pagination);
+    // Invoices are stamped with the resident who was the occupant when they were
+    // generated. My Invoices returns only the invoices assigned to me, so a new
+    // occupant never inherits a previous occupant's dues.
+    return this.invoiceRepository.findByResidentId(residentId, pagination);
   }
 }

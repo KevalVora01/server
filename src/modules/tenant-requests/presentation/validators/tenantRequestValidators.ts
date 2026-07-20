@@ -25,20 +25,31 @@ const submitTenantRequestSchema = Joi.object({
   }),
 });
 
-const recordVoteSchema = Joi.object({
-  committeeMemberId: Joi.number().integer().positive().optional().messages({
-    'number.base': 'committeeMemberId must be a number',
-  }),
-
-  recordedByAdminId: Joi.number().integer().positive().optional().messages({
-    'number.base': 'recordedByAdminId must be a number',
-  }),
-
-  vote: Joi.string().valid(...Object.values(VoteChoice)).required().messages({
+const bulkRecordVotesSchema = Joi.object({
+  adminVote: Joi.string().valid(...Object.values(VoteChoice)).optional().messages({
     'any.only': `Vote must be one of: ${Object.values(VoteChoice).join(', ')}`,
-    'any.required': 'Vote is required',
   }),
+
+  votes: Joi.array()
+    .items(
+      Joi.object({
+        committeeMemberId: Joi.number().integer().positive().required().messages({
+          'number.base': 'committeeMemberId must be a number',
+          'any.required': 'committeeMemberId is required for each vote',
+        }),
+        vote: Joi.string().valid(...Object.values(VoteChoice)).required().messages({
+          'any.only': `Vote must be one of: ${Object.values(VoteChoice).join(', ')}`,
+          'any.required': 'Vote is required for each entry',
+        }),
+      })
+    )
+    .min(1)
+    .required()
+    .messages({
+      'array.min': 'At least one committee member vote is required',
+      'any.required': 'votes is required',
+    }),
 });
 
 export const validateSubmitTenantRequest = [handleValidationError(submitTenantRequestSchema, 'body')];
-export const validateRecordVote = [handleValidationError(recordVoteSchema, 'body')];
+export const validateBulkRecordVotes = [handleValidationError(bulkRecordVotesSchema, 'body')];

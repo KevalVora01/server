@@ -7,13 +7,13 @@ import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { SubmitTenantRequestUseCase } from "../../application/use-cases/SubmitTenantRequestUseCase";
-import { RecordVoteUseCase } from "../../application/use-cases/RecordVoteUseCase";
+import { BulkRecordVotesUseCase } from "../../application/use-cases/BulkRecordVotesUseCase";
 import { UserRole } from "../../../auth/domain/entities/User";
 
 export class TenantRequestController {
   constructor(
     private readonly submitTenantRequestUseCase: SubmitTenantRequestUseCase,
-    private readonly recordVoteUseCase: RecordVoteUseCase,
+    private readonly bulkRecordVotesUseCase: BulkRecordVotesUseCase,
     private readonly finalizeTenantRequestUseCase: FinalizeTenantRequestUseCase,
     private readonly revokeTenancyUseCase: RevokeTenancyUseCase,
     private readonly tenantRequestRepository: ITenantRequestRepository,
@@ -101,39 +101,23 @@ export class TenantRequestController {
     }
   };
 
-  recordVote = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  bulkRecordVotes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const authReq = req as AuthenticatedRequest;
       const tenantRequestId = Number(req.params.id);
 
-      let committeeMemberId: number | undefined;
-      let recordedByAdminId: number | undefined;
-
-      if (authReq.user.role === UserRole.ADMIN) {
-        recordedByAdminId = authReq.user.userId;
-        committeeMemberId = req.body.committeeMemberId
-          ? Number(req.body.committeeMemberId)
-          : undefined;
-      } else {
-        const resident = await this.residentRepository.findByUserId(authReq.user.userId);
-        if (!resident || !resident.isCommitteeMember || !resident.id) {
-          res.status(403).json(
-            ApiResponse.error("Only committee members or admins can record votes")
-          );
-          return;
-        }
-        committeeMemberId = resident.id;
-      }
-
-      const vote = await this.recordVoteUseCase.execute({
+      const savedVotes = await this.bulkRecordVotesUseCase.execute({
         tenantRequestId,
-        committeeMemberId,
-        vote: req.body.vote,
-        recordedByAdminId,
+        recordedByAdminId: authReq.user.userId,
+        adminVote: req.body.adminVote,
+        votes: req.body.votes,
       });
 
-      res.status(201).json(
-        ApiResponse.success(vote.toResponseObject(), "Vote recorded successfully")
+      res.status(200).json(
+        ApiResponse.success(
+          savedVotes.map((v) => v.toResponseObject()),
+          "All votes recorded successfully"
+        )
       );
     } catch (error) {
       next(error);

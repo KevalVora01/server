@@ -1,9 +1,10 @@
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { ITenantRequestVoteRepository } from "../../domain/repositories/ITenantRequestVoteRepository";
 import { TenantRequestVote, VoteChoice } from "../../domain/entities/TenantRequestVote";
 import { TenantRequestVoteModel } from "../models/TenantRequestVoteModel";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
+import { sequelize } from "../../../../shared/config/sequelize";
 
 export class TenantRequestVoteRepository implements ITenantRequestVoteRepository {
 
@@ -39,6 +40,37 @@ export class TenantRequestVoteRepository implements ITenantRequestVoteRepository
     model.recordedByAdminId = vote.recordedByAdminId ?? null;
     await model.save();
     return this.toEntity(model);
+  }
+
+  async replaceAllForRequest(
+    tenantRequestId: number,
+    votes: TenantRequestVote[],
+    recordedByAdminId?: number
+  ): Promise<TenantRequestVote[]> {
+    const result = await sequelize.transaction(async (transaction: Transaction) => {
+      await TenantRequestVoteModel.destroy({
+        where: { tenantRequestId },
+        transaction,
+      });
+
+      if (votes.length === 0) {
+        return [];
+      }
+
+      const created = await TenantRequestVoteModel.bulkCreate(
+        votes.map((vote) => ({
+          tenantRequestId: vote.tenantRequestId,
+          committeeMemberId: vote.committeeMemberId ?? null,
+          vote: vote.vote,
+          recordedByAdminId: vote.recordedByAdminId ?? recordedByAdminId ?? null,
+        })),
+        { transaction }
+      );
+
+      return created.map((model) => this.toEntity(model));
+    });
+
+    return result;
   }
 
   async findByRequestId(tenantRequestId: number): Promise<TenantRequestVote[]> {

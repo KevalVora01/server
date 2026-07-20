@@ -144,6 +144,19 @@ export class FinalizeTenantRequestUseCase {
       savedTenantResident = await this.residentRepository.create(tenantResident);
     }
 
+    // The tenant now occupies the unit. When the move-in date has already
+    // arrived, the tenant becomes the occupant and any other active occupant
+    // in the same apartment (typically the owner) must yield occupancy.
+    // We do this explicitly here so it no longer depends on the overnight
+    // cron job, which only demotes occupants as a side-effect of promoting
+    // a previously non-occupant resident.
+    if (request.moveInDate <= new Date() && savedTenantResident.id != null) {
+      await this.residentRepository.clearApartmentOccupants(
+        request.apartmentId,
+        savedTenantResident.id
+      );
+    }
+
     if (owner) {
       await this.notifyOwner(
         owner.userId,
@@ -161,6 +174,12 @@ export class FinalizeTenantRequestUseCase {
 
     const setPasswordLink = `${env.CLIENT_URL}/reset-password?token=${rawToken}`;
 
+    const moveInDateLabel = new Date(request.moveInDate).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
     await this.emailService.sendEmail({
       to: savedTenantUser.email,
       subject: "Welcome — Set up your Civic Horizon account",
@@ -170,6 +189,10 @@ export class FinalizeTenantRequestUseCase {
           <p style="color: #6b7280;">
             Your tenant request has been approved. To get started, set up your
             password using the button below. This link expires in <strong>10 minutes</strong>.
+          </p>
+          <p style="color: #6b7280;">
+            You can access all features of Civic Horizon from
+            <strong>${moveInDateLabel}</strong>.
           </p>
           <a href="${setPasswordLink}"
             style="display: inline-block; background: #111827; color: #fff;

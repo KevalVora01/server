@@ -12,7 +12,7 @@ export interface ExtraCharge {
 export interface InvoiceProps {
   id?: number;
   apartmentId: number;
-  residentId?: number | null;
+  residentId: number;
   month: number;
   year: number;
   baseAmount: number;
@@ -50,7 +50,6 @@ export class Invoice {
   ): Invoice {
     return new Invoice({
       ...props,
-      residentId: props.residentId ?? null,
       extraCharges: [],
       totalAmount: props.baseAmount,
       status: InvoiceStatus.PENDING,
@@ -69,7 +68,7 @@ export class Invoice {
     return this.props.apartmentId;
   }
 
-  get residentId(): number | null | undefined {
+  get residentId(): number {
     return this.props.residentId;
   }
 

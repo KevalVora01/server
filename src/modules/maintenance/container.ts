@@ -43,6 +43,7 @@ const generateInvoicesUseCase = new GenerateInvoicesUseCase(
   invoiceRepository,
   maintenanceSettingRepository,
   apartmentRepository,
+  residentRepository,
 );
 const listInvoicesUseCase = new ListInvoicesUseCase(invoiceRepository);
 const listMyInvoicesUseCase = new ListMyInvoicesUseCase(invoiceRepository, residentRepository);

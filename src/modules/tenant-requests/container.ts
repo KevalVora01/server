@@ -6,7 +6,7 @@ import { BcryptPasswordHasher } from "../auth/infrastructure/services/BcryptPass
 import { NodemailerEmailService } from "../auth/infrastructure/services/NodemailerEmailService";
 
 import { SubmitTenantRequestUseCase } from "./application/use-cases/SubmitTenantRequestUseCase";
-import { RecordVoteUseCase } from "./application/use-cases/RecordVoteUseCase";
+import { BulkRecordVotesUseCase } from "./application/use-cases/BulkRecordVotesUseCase";
 import { FinalizeTenantRequestUseCase } from "./application/use-cases/FinalizeTenantRequestUseCase";
 import { RevokeTenancyUseCase } from "./application/use-cases/RevokeTenancyUseCase";
 
@@ -22,7 +22,7 @@ const passwordHasher = new BcryptPasswordHasher();
 const emailService = new NodemailerEmailService();
 
 const submitTenantRequestUseCase = new SubmitTenantRequestUseCase(tenantRequestRepository, residentRepository, userRepository);
-const recordVoteUseCase = new RecordVoteUseCase(tenantRequestRepository, tenantRequestVoteRepository, residentRepository, userRepository);
+const bulkRecordVotesUseCase = new BulkRecordVotesUseCase(tenantRequestRepository, tenantRequestVoteRepository, residentRepository, userRepository);
 const finalizeTenantRequestUseCase = new FinalizeTenantRequestUseCase(
   tenantRequestRepository,
   tenantRequestVoteRepository,
@@ -36,7 +36,7 @@ const revokeTenancyUseCase = new RevokeTenancyUseCase(residentRepository, userRe
 
 export const tenantRequestController = new TenantRequestController(
   submitTenantRequestUseCase,
-  recordVoteUseCase,
+  bulkRecordVotesUseCase,
   finalizeTenantRequestUseCase,
   revokeTenancyUseCase,
   tenantRequestRepository,

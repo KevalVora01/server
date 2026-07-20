@@ -32,4 +32,5 @@ export interface IResidentRepository {
   deactivate(id: number): Promise<void>;
   getStats(): Promise<ResidentStats>;
   promoteDueOccupants(): Promise<number>;
+  clearApartmentOccupants(apartmentId: number, exceptResidentId?: number): Promise<number>;
 }

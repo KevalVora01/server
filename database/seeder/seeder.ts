@@ -40,6 +40,8 @@ const residents = [
   { name: "Sunita Mehta", email: "sunita@society.com", phone: "9876543215" },
   { name: "Vikram Desai", email: "vikram@society.com", phone: "9876543216" },
   { name: "Anjali Gupta", email: "anjali@society.com", phone: "9876543217" },
+  { name: "Karan Malhotra", email: "karan@society.com", phone: "9876543218" },
+  { name: "Deepa Nair", email: "deepa@society.com", phone: "9876543219" },
 ];
 
 const familyMembers = [
@@ -776,6 +778,18 @@ const seedInvoices = async (): Promise<void> => {
     for (let i = 0; i < apartments.length; i++) {
       const apartment = apartments[i];
 
+      // The invoice belongs to whoever currently occupies the apartment.
+      const occupant = await ResidentModel.findOne({
+        where: { apartmentId: apartment.id, isActive: true, isOccupant: true },
+      });
+      const occupantResidentId = occupant?.id ?? null;
+
+      // No occupant means nobody to bill — resident_id cannot be null.
+      if (occupantResidentId == null) {
+        console.log(`[Database Seeder]: Apartment ${apartment.id} has no occupant. Skipping invoices.`);
+        continue;
+      }
+
       const juneStatus =
         i < 3 ? InvoiceStatus.PAID
         : i < 5 ? InvoiceStatus.OVERDUE
@@ -793,7 +807,7 @@ const seedInvoices = async (): Promise<void> => {
 
       await InvoiceModel.create({
         apartmentId: apartment.id,
-        residentId: null,
+        residentId: occupantResidentId,
         month: 6,
         year: 2026,
         baseAmount: 1500,
@@ -818,7 +832,7 @@ const seedInvoices = async (): Promise<void> => {
 
       await InvoiceModel.create({
         apartmentId: apartment.id,
-        residentId: null,
+        residentId: occupantResidentId,
         month: 7,
         year: 2026,
         baseAmount: 1500,
@@ -839,6 +853,39 @@ const seedInvoices = async (): Promise<void> => {
   }
 };
 
+// One-time backfill: older invoices were created with residentId = null. Assign
+// each to the apartment's current occupant, falling back to the owner.
+const backfillInvoiceResidents = async (): Promise<void> => {
+  try {
+    const orphanInvoices = await InvoiceModel.findAll({ where: { residentId: null as any } });
+    if (orphanInvoices.length === 0) return;
+
+    console.log(`[Database Seeder]: Backfilling residentId for ${orphanInvoices.length} invoice(s)...`);
+
+    let updated = 0;
+    for (const invoice of orphanInvoices) {
+      const occupant = await ResidentModel.findOne({
+        where: { apartmentId: invoice.apartmentId, isActive: true, isOccupant: true },
+      });
+      const owner = occupant
+        ? null
+        : await ResidentModel.findOne({
+            where: { apartmentId: invoice.apartmentId, isOwner: true },
+          });
+
+      const residentId = occupant?.id ?? owner?.id ?? null;
+      if (residentId != null) {
+        await InvoiceModel.update({ residentId }, { where: { id: invoice.id } });
+        updated++;
+      }
+    }
+
+    console.log(`[Database Seeder]: Backfilled residentId for ${updated} invoice(s).`);
+  } catch (error) {
+    console.error("[Database Seeder] CRITICAL: Failed to backfill invoice residents:", error);
+  }
+};
+
 export const runDatabaseSeeders = async (): Promise<void> => {
   console.log("-----------------------------------------");
   console.log("[Database Seeder]: Initializing data seeding sequence...");
@@ -855,6 +902,7 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   await seedComplaintImages();
   await seedMaintenanceSetting();
   await seedInvoices();
+  await backfillInvoiceResidents();
 
   console.log("[Database Seeder]: Seeding sequence complete.");
   console.log("-----------------------------------------");

@@ -278,9 +278,16 @@ export class ResidentRepository implements IResidentRepository {
 
   async promoteDueOccupants(): Promise<number> {
     const now = new Date();
+
+    // Find every active tenant whose move-in date has arrived but who is not
+    // yet marked as the occupant. These are the residents the cron must promote.
+    // Only tenants are promoted here — owners must never be auto-promoted, since
+    // an owner with a past move-in date would otherwise be re-promoted every run,
+    // flip-flopping occupancy with their current tenant.
     const due = await ResidentModel.findAll({
       where: {
         isActive: true,
+        isOwner: false,
         moveOutDate: null,
         isOccupant: false,
         moveInDate: { [Op.lte]: now },
@@ -288,26 +295,40 @@ export class ResidentRepository implements IResidentRepository {
       attributes: ["id", "apartmentId"],
     });
 
+    let changed = 0;
+
     for (const resident of due) {
-      await ResidentModel.update(
+      // Promote this resident to occupant.
+      const [promoted] = await ResidentModel.update(
         { isOccupant: true },
         { where: { id: resident.id } }
       );
-      // The tenant now occupies the unit, so the previous active occupant
-      // (typically the owner) yields occupancy.
-      await ResidentModel.update(
-        { isOccupant: false },
-        {
-          where: {
-            apartmentId: resident.apartmentId,
-            id: { [Op.ne]: resident.id },
-            isActive: true,
-            isOccupant: true,
-          },
-        }
-      );
+      changed += promoted;
+
+      // The tenant now occupies the unit, so every other active occupant in the
+      // same apartment (typically the owner) must yield occupancy. This runs
+      // independently of the promotion above so the owner is always demoted once
+      // the tenant's move-in date has passed.
+      await this.clearApartmentOccupants(resident.apartmentId, resident.id);
     }
 
-    return due.length;
+    return changed;
+  }
+
+  async clearApartmentOccupants(apartmentId: number, exceptResidentId?: number): Promise<number> {
+    const where: any = {
+      apartmentId,
+      isActive: true,
+      isOccupant: true,
+    };
+    if (exceptResidentId != null) {
+      where.id = { [Op.ne]: exceptResidentId };
+    }
+
+    const [affectedCount] = await ResidentModel.update(
+      { isOccupant: false },
+      { where }
+    );
+    return affectedCount;
   }
 }

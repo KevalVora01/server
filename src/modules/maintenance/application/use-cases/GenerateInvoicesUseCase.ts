@@ -4,12 +4,14 @@ import { IMaintenanceSettingRepository } from "../../domain/repositories/IMainte
 import { GenerateInvoicesDto } from "../dtos/GenerateInvoicesDto";
 import { MaintenanceSettingNotFoundError } from "../../domain/errors/MaintenanceErrors";
 import { IApartmentRepository } from "../../../apartments/domain/repositories/IApartmentRepository";
+import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 
 export class GenerateInvoicesUseCase {
   constructor(
     private readonly invoiceRepository: IInvoiceRepository,
     private readonly settingRepository: IMaintenanceSettingRepository,
     private readonly apartmentRepository: IApartmentRepository,
+    private readonly residentRepository: IResidentRepository,
   ) {}
 
   async execute(dto: GenerateInvoicesDto): Promise<Invoice[]> {
@@ -21,24 +23,35 @@ export class GenerateInvoicesUseCase {
 
     const apartments = await this.apartmentRepository.findAll({ pageNumber: 1, pageSize: 1000 });
 
-    const invoices = apartments.items.map(({ apartment }) => {
-      const invoice = Invoice.create({
-        apartmentId: apartment.id!,
-        residentId: null,
-        month: dto.month,
-        year: dto.year,
-        baseAmount: setting.amount,
-        dueDate: dto.dueDate,
-      });
+    const invoicesOrNull = await Promise.all(
+      apartments.items.map(async ({ apartment }) => {
+        // The invoice belongs to whoever is the current occupant of the
+        // apartment at generation time. That resident is the one liable to pay.
+        // Apartments without a current occupant are skipped — there is no one
+        // to bill and resident_id cannot be null.
+        const occupant = await this.residentRepository.findOccupantByApartmentId(apartment.id!);
+        if (!occupant?.id) return null;
 
-      if (dto.extraCharges && dto.extraCharges.length > 0) {
-        invoice.setExtraCharges(dto.extraCharges);
-        const extraTotal = dto.extraCharges.reduce((sum, c) => sum + Number(c.amount), 0);
-        invoice.setTotalAmount(setting.amount + extraTotal);
-      }
+        const invoice = Invoice.create({
+          apartmentId: apartment.id!,
+          residentId: occupant.id,
+          month: dto.month,
+          year: dto.year,
+          baseAmount: setting.amount,
+          dueDate: dto.dueDate,
+        });
 
-      return invoice;
-    });
+        if (dto.extraCharges && dto.extraCharges.length > 0) {
+          invoice.setExtraCharges(dto.extraCharges);
+          const extraTotal = dto.extraCharges.reduce((sum, c) => sum + Number(c.amount), 0);
+          invoice.setTotalAmount(setting.amount + extraTotal);
+        }
+
+        return invoice;
+      })
+    );
+
+    const invoices = invoicesOrNull.filter((inv): inv is Invoice => inv !== null);
 
     const created = await Promise.all(invoices.map((invoice) => this.invoiceRepository.create(invoice)));
 
