@@ -39,7 +39,7 @@ export class ApartmentRepository implements IApartmentRepository {
         {
           model: ResidentModel,
           as: "residents",
-          where: { isActive: true },
+          where: { isOccupant: true },
           required: false,
           include: [
             {
@@ -55,11 +55,8 @@ export class ApartmentRepository implements IApartmentRepository {
     if (!model) return null;
 
     const apartment = this.toEntity(model);
-    const activeResident = (model as any).residents?.[0] ?? null;
-    const now = new Date();
-    const isOccupied =
-      activeResident !== null && new Date(activeResident.moveInDate) <= now;
-    (apartment as any).resident = activeResident;
+    const isOccupied = (model as any).residents?.length > 0;
+    (apartment as any).resident = (model as any).residents?.[0] ?? null;
     (apartment as any).isOccupied = isOccupied;
     return apartment;
   }
@@ -81,23 +78,21 @@ export class ApartmentRepository implements IApartmentRepository {
 
     const offset = (filters.pageNumber - 1) * filters.pageSize;
 
-    const now = new Date();
     const residentInclude: any = {
       model: ResidentModel,
       as: "residents",
-      where: { isActive: true },
+      where: { isOccupant: true },
       required: false,
-      attributes: ["id", "moveInDate"],
+      attributes: ["id"],
     };
 
     if (filters.isOccupied !== undefined) {
       if (filters.isOccupied) {
         residentInclude.required = true;
-        residentInclude.where.moveInDate = { [Op.lte]: now };
       } else {
         where.id = {
           [Op.notIn]: literal(
-            `(SELECT apartment_id FROM residents WHERE is_active = true AND move_in_date <= NOW() AND apartment_id IS NOT NULL)`
+            `(SELECT apartment_id FROM residents WHERE is_occupant = true AND apartment_id IS NOT NULL)`
           ),
         };
       }
@@ -114,9 +109,7 @@ export class ApartmentRepository implements IApartmentRepository {
 
     return buildPaginatedResult(
       rows.map((row) => {
-        const activeResident = (row as any).residents?.[0] ?? null;
-        const isOccupied =
-          activeResident !== null && new Date(activeResident.moveInDate) <= now;
+        const isOccupied = (row as any).residents?.length > 0;
         return {
           apartment: this.toEntity(row),
           isOccupied,
@@ -153,7 +146,7 @@ export class ApartmentRepository implements IApartmentRepository {
       include: [{
         model: ResidentModel,
         as: "residents",
-        where: { isActive: true, moveInDate: { [Op.lte]: new Date() } },
+        where: { isOccupant: true },
         required: true,
       }],
     });

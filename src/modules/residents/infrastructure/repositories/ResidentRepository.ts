@@ -67,10 +67,17 @@ export class ResidentRepository implements IResidentRepository {
   async findByUserId(userId: number): Promise<Resident | null> {
     const model = await ResidentModel.findOne({
       where: { userId },
+      include: [
+        { association: 'apartment' },
+        { association: 'user' },
+      ],
     });
 
     if (!model) return null;
-    return this.toEntity(model);
+    const resident = this.toEntity(model);
+    (resident as any).user = (model as any).user ?? null;
+    (resident as any).apartment = (model as any).apartment ?? null;
+    return resident;
   }
 
   async findAll(filters: ListResidentsFilters): Promise<PaginatedResult<Resident>> {

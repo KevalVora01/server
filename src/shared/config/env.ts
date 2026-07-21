@@ -32,12 +32,6 @@ export const env = {
   JWT_REFRESH_EXPIRES_IN:
     process.env.JWT_REFRESH_EXPIRES_IN || "7d",
 
-  RESEND_API_KEY:
-    process.env.RESEND_API_KEY,
-
-  RESEND_FROM_EMAIL:
-    process.env.RESEND_FROM_EMAIL,
-
   SMTP_HOST:
     process.env.SMTP_HOST,
 
