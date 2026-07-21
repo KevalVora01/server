@@ -20,6 +20,9 @@ export const env = {
   DATABASE_NAME:
     process.env.DATABASE_NAME || "postgres",
 
+  DATABASE_URL:
+    process.env.DATABASE_URL,
+
   JWT_ACCESS_SECRET:
     process.env.JWT_ACCESS_SECRET!,
 
@@ -67,7 +70,7 @@ export const env = {
 
   SOCIETY_NAME:
     process.env.SOCIETY_NAME || "My Society",
-  
+
   SOCIETY_ADDRESS:
     process.env.SOCIETY_ADDRESS || "123 Main St, City, Country",
 };
