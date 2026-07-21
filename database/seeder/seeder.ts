@@ -891,8 +891,8 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   console.log("[Database Seeder]: Initializing data seeding sequence...");
 
   await seedDefaultUsers();
-  // await seedApartments();
-  // await seedResidents();
+  await seedApartments();
+  await seedResidents();
   await seedCommitteeMembers();
   await seedFamilyMembers();
   await seedVehicles();
