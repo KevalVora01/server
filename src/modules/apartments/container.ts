@@ -3,6 +3,7 @@ import { CreateApartmentUseCase } from "./application/use-cases/CreateApartmentU
 import { GetApartmentUseCase } from "./application/use-cases/GetApartmentUseCase";
 import { ListApartmentsUseCase } from "./application/use-cases/ListApartmentsUseCase";
 import { UpdateApartmentUseCase } from "./application/use-cases/UpdateApartmentUseCase";
+import { ImportApartmentsUseCase } from "./application/use-cases/ImportApartmentsUseCase";
 import { ApartmentController } from "./presentation/controllers/ApartmentController";
 
 // Repositories
@@ -13,6 +14,7 @@ const createApartmentUseCase = new CreateApartmentUseCase(apartmentRepository);
 const getApartmentUseCase = new GetApartmentUseCase(apartmentRepository);
 const listApartmentsUseCase = new ListApartmentsUseCase(apartmentRepository);
 const updateApartmentUseCase = new UpdateApartmentUseCase(apartmentRepository);
+const importApartmentsUseCase = new ImportApartmentsUseCase();
 
 // Controller
 export const apartmentController = new ApartmentController(
@@ -20,4 +22,5 @@ export const apartmentController = new ApartmentController(
   getApartmentUseCase,
   listApartmentsUseCase,
   updateApartmentUseCase,
+  importApartmentsUseCase
 );

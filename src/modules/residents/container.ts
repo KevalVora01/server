@@ -6,6 +6,7 @@ import { GetResidentUseCase } from "./application/use-cases/GetResidentUseCase";
 import { ListResidentsUseCase } from "./application/use-cases/ListResidentsUseCase";
 import { ListApartmentTenantsUseCase } from "./application/use-cases/ListApartmentTenantsUseCase";
 import { UpdateResidentUseCase } from "./application/use-cases/UpdateResidentUseCase";
+import { ImportResidentsUseCase } from "./application/use-cases/ImportResidentsUseCase";
 import { PromoteOccupantsJob } from "./application/jobs/PromoteOccupantsJob";
 import { ResidentRepository } from "./infrastructure/repositories/ResidentRepository";
 import { ResidentController } from "./presentation/controllers/ResidentController";
@@ -45,6 +46,12 @@ const listApartmentTenantsUseCase = new ListApartmentTenantsUseCase(
   residentRepository
 );
 
+const importResidentsUseCase = new ImportResidentsUseCase(
+  residentRepository,
+  userRepository,
+  passwordHasher
+);
+
 // Scheduled Job (exported so shared/jobs/scheduler.ts can register it)
 export const promoteOccupantsJob = new PromoteOccupantsJob(
   residentRepository
@@ -58,5 +65,6 @@ export const residentController = new ResidentController(
   updateResidentUseCase,
   deactivateResidentUseCase,
   listApartmentTenantsUseCase,
-  residentRepository
+  residentRepository,
+  importResidentsUseCase
 );

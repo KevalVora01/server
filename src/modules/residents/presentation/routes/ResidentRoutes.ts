@@ -15,8 +15,14 @@ import {
 } from "../validators/residentValidators";
 import familyMemberRoutes from "../../../family-members/presentation/routes/familyMemberRoutes";
 
+import multer from "multer";
+
 const router = Router();
 const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +36,14 @@ router.post(
   rbacMiddleware(UserRole.ADMIN),
   validateCreateResident,
   residentController.createResident
+);
+
+router.post(
+  "/import",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  upload.single("file"),
+  residentController.importResidents
 );
 
 router.get(

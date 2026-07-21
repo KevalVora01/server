@@ -3,6 +3,7 @@ import { CreateApartmentUseCase } from "../../application/use-cases/CreateApartm
 import { GetApartmentUseCase } from "../../application/use-cases/GetApartmentUseCase";
 import { ListApartmentsUseCase } from "../../application/use-cases/ListApartmentsUseCase";
 import { UpdateApartmentUseCase } from "../../application/use-cases/UpdateApartmentUseCase";
+import { ImportApartmentsUseCase } from "../../application/use-cases/ImportApartmentsUseCase";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 
 
@@ -12,6 +13,7 @@ export class ApartmentController {
     private readonly getApartmentUseCase: GetApartmentUseCase,
     private readonly listApartmentsUseCase: ListApartmentsUseCase,
     private readonly updateApartmentUseCase: UpdateApartmentUseCase,
+    private readonly importApartmentsUseCase: ImportApartmentsUseCase,
   ) { }
 
   createApartment = async (
@@ -114,6 +116,32 @@ export class ApartmentController {
         ApiResponse.success({
           message: "Apartment updated successfully",
           data: apartment.toResponseObject(),
+        })
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  importApartments = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      if (!req.file) {
+        res.status(400).json(
+          ApiResponse.error("Excel file is required")
+        );
+        return;
+      }
+
+      const result = await this.importApartmentsUseCase.execute(req.file.buffer);
+
+      res.status(201).json(
+        ApiResponse.success({
+          message: `Successfully imported ${result.successCount} apartments.`,
+          data: result,
         })
       );
     } catch (error) {

@@ -6,6 +6,7 @@ import { ListResidentsUseCase } from "../../application/use-cases/ListResidentsU
 import { UpdateResidentUseCase } from "../../application/use-cases/UpdateResidentUseCase";
 import { DeactivateResidentUseCase } from "../../application/use-cases/DeactivateResidentUseCase";
 import { ListApartmentTenantsUseCase } from "../../application/use-cases/ListApartmentTenantsUseCase";
+import { ImportResidentsUseCase } from "../../application/use-cases/ImportResidentsUseCase";
 
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
@@ -19,7 +20,8 @@ export class ResidentController {
     private readonly updateResidentUseCase: UpdateResidentUseCase,
     private readonly deactivateResidentUseCase: DeactivateResidentUseCase,
     private readonly listApartmentTenantsUseCase: ListApartmentTenantsUseCase,
-    private readonly residentRepository: IResidentRepository
+    private readonly residentRepository: IResidentRepository,
+    private readonly importResidentsUseCase: ImportResidentsUseCase
   ) { }
 
   createResident = async (
@@ -208,6 +210,32 @@ export class ResidentController {
       const promoted = await this.residentRepository.promoteDueOccupants();
       res.status(200).json(
         ApiResponse.success({ promoted }, "Occupant promotion completed")
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  importResidents = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      if (!req.file) {
+        res.status(400).json(
+          ApiResponse.error("Excel file is required")
+        );
+        return;
+      }
+
+      const result = await this.importResidentsUseCase.execute(req.file.buffer);
+
+      res.status(201).json(
+        ApiResponse.success(
+          result,
+          `Successfully imported ${result.successCount} residents.`
+        )
       );
     } catch (error) {
       next(error);
