@@ -1,9 +1,7 @@
 import type { PaginatedRequest } from "../../../../shared/types/Pagination";
 
 export interface ListApartmentsDto extends PaginatedRequest {
-  block?: string;
-  floorNumber?: number;
-  flateNumber?: string;
+  search?: string;
   type?: string;
   isOccupied?: boolean;
 }

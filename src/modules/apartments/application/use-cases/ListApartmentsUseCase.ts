@@ -21,8 +21,7 @@ export class ListApartmentsUseCase {
     const filters: ListApartmentsFilters = {
       pageNumber: dto.pageNumber,
       pageSize: dto.pageSize,
-      block: dto.block,
-      floorNumber: dto.floorNumber,
+      search: dto.search,
       type: dto.type,
       isOccupied: dto.isOccupied,
     };

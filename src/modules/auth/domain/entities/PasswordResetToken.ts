@@ -13,9 +13,9 @@ export class PasswordResetToken {
     this.props = props;
   }
 
-  public static create(userId: number, token: string): PasswordResetToken {
+  public static create(userId: number, token: string, expiresInMinutes = 10): PasswordResetToken {
     const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 10); // expires in 10 minutes
+    expiresAt.setMinutes(expiresAt.getMinutes() + expiresInMinutes);
 
     return new PasswordResetToken({
       userId,

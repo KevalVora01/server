@@ -70,10 +70,14 @@ export class ApartmentRepository implements IApartmentRepository {
   }
 
   async findAll(filters: ListApartmentsFilters): Promise<PaginatedResult<ApartmentWithOccupancy>> {
-    const where: Record<string, unknown> = {};
+    const where: any = {};
 
-    if (filters.block) where.block = filters.block;
-    if (filters.floorNumber) where.floorNumber = filters.floorNumber;
+    if (filters.search) {
+      const searchTerm = filters.search.trim().replace(/[-\s]/g, '');
+      where[Op.and] = [
+        literal(`CONCAT(block, floor_number, unit_number) ILIKE :search`)
+      ];
+    }
     if (filters.type) where.type = filters.type;
 
     const offset = (filters.pageNumber - 1) * filters.pageSize;
@@ -105,6 +109,7 @@ export class ApartmentRepository implements IApartmentRepository {
       offset,
       order: [["block", "ASC"], ["floor_number", "ASC"], ["unit_number", "ASC"]],
       distinct: true,
+      replacements: filters.search ? { search: `%${filters.search.trim().replace(/[-\s]/g, '')}%` } : undefined
     });
 
     return buildPaginatedResult(

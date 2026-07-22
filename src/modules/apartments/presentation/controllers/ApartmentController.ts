@@ -66,10 +66,7 @@ export class ApartmentController {
       const { list, stats } = await this.listApartmentsUseCase.execute({
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
-        block: req.query.block as string | undefined,
-        floorNumber: req.query.floorNumber
-          ? Number(req.query.floorNumber)
-          : undefined,
+        search: req.query.search as string | undefined,
         type: req.query.type as string | undefined,
         isOccupied: req.query.isOccupied !== undefined
           ? req.query.isOccupied === "true"

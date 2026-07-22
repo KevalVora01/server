@@ -77,8 +77,7 @@ const updateApartmentSchema = Joi.object({
 const listApartmentsSchema = Joi.object({
   pageNumber: Joi.number().integer().positive().default(1),
   pageSize: Joi.number().integer().positive().max(100).default(10),
-  block: Joi.string().trim().uppercase().optional(),
-  floorNumber: Joi.number().integer().min(0).optional(),
+  search: Joi.string().trim().allow('').optional(),
   type: Joi.string().valid(...Object.values(ApartmentType)).optional(),
   isOccupied: Joi.boolean().optional().messages({
     'boolean.base': 'isOccupied must be a boolean',

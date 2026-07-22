@@ -32,52 +32,52 @@ const apartments = [
 ];
 
 const residents = [
-  { name: "Rahul Sharma", email: "rahul@society.com", phone: "9876543210", isCommitteeMember: true },
-  { name: "Priya Patel", email: "priya@society.com", phone: "9876543211", isCommitteeMember: true },
-  { name: "Amit Joshi", email: "amit@society.com", phone: "9876543212", isCommitteeMember: true },
-  { name: "Neha Singh", email: "neha@society.com", phone: "9876543213" },
-  { name: "Ravi Kumar", email: "ravi@society.com", phone: "9876543214" },
-  { name: "Sunita Mehta", email: "sunita@society.com", phone: "9876543215" },
-  { name: "Vikram Desai", email: "vikram@society.com", phone: "9876543216" },
-  { name: "Anjali Gupta", email: "anjali@society.com", phone: "9876543217" },
-  { name: "Karan Malhotra", email: "karan@society.com", phone: "9876543218" },
-  { name: "Deepa Nair", email: "deepa@society.com", phone: "9876543219" },
+  { name: "Rahul Sharma", email: "rahul@yopmail.com", phone: "9876543210", isCommitteeMember: true },
+  { name: "Priya Patel", email: "priya@yopmail.com", phone: "9876543211", isCommitteeMember: true },
+  { name: "Amit Joshi", email: "amit@yopmail.com", phone: "9876543212", isCommitteeMember: true },
+  { name: "Neha Singh", email: "neha@yopmail.com", phone: "9876543213" },
+  { name: "Ravi Kumar", email: "ravi@yopmail.com", phone: "9876543214" },
+  { name: "Sunita Mehta", email: "sunita@yopmail.com", phone: "9876543215" },
+  { name: "Vikram Desai", email: "vikram@yopmail.com", phone: "9876543216" },
+  { name: "Anjali Gupta", email: "anjali@yopmail.com", phone: "9876543217" },
+  { name: "Karan Malhotra", email: "karan@yopmail.com", phone: "9876543218" },
+  { name: "Deepa Nair", email: "deepa@yopmail.com", phone: "9876543219" },
 ];
 
 const familyMembers = [
-  { residentEmail: "rahul@society.com", name: "Pooja Sharma", relation: "Spouse", age: 30 },
-  { residentEmail: "rahul@society.com", name: "Aarav Sharma", relation: "Child", age: 5 },
+  { residentEmail: "rahul@yopmail.com", name: "Pooja Sharma", relation: "Spouse", age: 30 },
+  { residentEmail: "rahul@yopmail.com", name: "Aarav Sharma", relation: "Child", age: 5 },
 
-  { residentEmail: "priya@society.com", name: "Kunal Patel", relation: "Spouse", age: 33 },
-  { residentEmail: "priya@society.com", name: "Riya Patel", relation: "Child", age: 7 },
+  { residentEmail: "priya@yopmail.com", name: "Kunal Patel", relation: "Spouse", age: 33 },
+  { residentEmail: "priya@yopmail.com", name: "Riya Patel", relation: "Child", age: 7 },
 
-  { residentEmail: "amit@society.com", name: "Suresh Joshi", relation: "Parent", age: 63 },
-  { residentEmail: "amit@society.com", name: "Meena Joshi", relation: "Parent", age: 59 },
+  { residentEmail: "amit@yopmail.com", name: "Suresh Joshi", relation: "Parent", age: 63 },
+  { residentEmail: "amit@yopmail.com", name: "Meena Joshi", relation: "Parent", age: 59 },
 
-  { residentEmail: "neha@society.com", name: "Ankit Singh", relation: "Sibling", age: 29 },
+  { residentEmail: "neha@yopmail.com", name: "Ankit Singh", relation: "Sibling", age: 29 },
 
-  { residentEmail: "ravi@society.com", name: "Sneha Kumar", relation: "Spouse", age: 31 },
-  { residentEmail: "ravi@society.com", name: "Vivaan Kumar", relation: "Child", age: 3 },
+  { residentEmail: "ravi@yopmail.com", name: "Sneha Kumar", relation: "Spouse", age: 31 },
+  { residentEmail: "ravi@yopmail.com", name: "Vivaan Kumar", relation: "Child", age: 3 },
 
-  { residentEmail: "sunita@society.com", name: "Harish Mehta", relation: "Spouse", age: 38 },
-  { residentEmail: "sunita@society.com", name: "Rohan Mehta", relation: "Child", age: 10 },
+  { residentEmail: "sunita@yopmail.com", name: "Harish Mehta", relation: "Spouse", age: 38 },
+  { residentEmail: "sunita@yopmail.com", name: "Rohan Mehta", relation: "Child", age: 10 },
 
-  { residentEmail: "vikram@society.com", name: "Kokila Desai", relation: "Parent", age: 61 },
+  { residentEmail: "vikram@yopmail.com", name: "Kokila Desai", relation: "Parent", age: 61 },
 
-  { residentEmail: "anjali@society.com", name: "Nikhil Gupta", relation: "Sibling", age: 27 },
+  { residentEmail: "anjali@yopmail.com", name: "Nikhil Gupta", relation: "Sibling", age: 27 },
 ];
 
 const vehicles = [
-  { residentEmail: "rahul@society.com", plateNumber: "GJ01AB1234", type: VehicleType.CAR, brandName: "Honda", model: "City", color: "White", fuelType: FuelType.PETROL },
-  { residentEmail: "priya@society.com", plateNumber: "GJ02CD5678", type: VehicleType.CAR, brandName: "Maruti", model: "Swift", color: "Red", fuelType: FuelType.PETROL },
-  { residentEmail: "amit@society.com", plateNumber: "GJ03EF9012", type: VehicleType.BIKE, brandName: "Royal Enfield", model: "Classic 350", color: "Black", fuelType: FuelType.PETROL },
-  { residentEmail: "neha@society.com", plateNumber: "GJ04GH3456", type: VehicleType.SCOOTER, brandName: "Honda", model: "Activa 6G", color: "Blue", fuelType: FuelType.PETROL },
-  { residentEmail: "ravi@society.com", plateNumber: "GJ05IJ7890", type: VehicleType.CAR, brandName: "Hyundai", model: "Creta", color: "Silver", fuelType: FuelType.DIESEL },
-  { residentEmail: "sunita@society.com", plateNumber: "GJ06KL1234", type: VehicleType.SCOOTER, brandName: "TVS", model: "Jupiter", color: "Green", fuelType: FuelType.PETROL },
-  { residentEmail: "vikram@society.com", plateNumber: "GJ07MN5678", type: VehicleType.CAR, brandName: "Toyota", model: "Fortuner", color: "White", fuelType: FuelType.DIESEL },
-  { residentEmail: "anjali@society.com", plateNumber: "GJ08OP9012", type: VehicleType.BIKE, brandName: "Bajaj", model: "Pulsar NS200", color: "Orange", fuelType: FuelType.PETROL },
-  { residentEmail: "rahul@society.com", plateNumber: "GJ09QR3456", type: VehicleType.BIKE, brandName: "KTM", model: "Duke 390", color: "Black", fuelType: FuelType.PETROL },
-  { residentEmail: "priya@society.com", plateNumber: "GJ10ST7890", type: VehicleType.CAR, brandName: "Tata", model: "Nexon EV", color: "Teal", fuelType: FuelType.ELECTRIC },
+  { residentEmail: "rahul@yopmail.com", plateNumber: "GJ01AB1234", type: VehicleType.CAR, brandName: "Honda", model: "City", color: "White", fuelType: FuelType.PETROL },
+  { residentEmail: "priya@yopmail.com", plateNumber: "GJ02CD5678", type: VehicleType.CAR, brandName: "Maruti", model: "Swift", color: "Red", fuelType: FuelType.PETROL },
+  { residentEmail: "amit@yopmail.com", plateNumber: "GJ03EF9012", type: VehicleType.BIKE, brandName: "Royal Enfield", model: "Classic 350", color: "Black", fuelType: FuelType.PETROL },
+  { residentEmail: "neha@yopmail.com", plateNumber: "GJ04GH3456", type: VehicleType.SCOOTER, brandName: "Honda", model: "Activa 6G", color: "Blue", fuelType: FuelType.PETROL },
+  { residentEmail: "ravi@yopmail.com", plateNumber: "GJ05IJ7890", type: VehicleType.CAR, brandName: "Hyundai", model: "Creta", color: "Silver", fuelType: FuelType.DIESEL },
+  { residentEmail: "sunita@yopmail.com", plateNumber: "GJ06KL1234", type: VehicleType.SCOOTER, brandName: "TVS", model: "Jupiter", color: "Green", fuelType: FuelType.PETROL },
+  { residentEmail: "vikram@yopmail.com", plateNumber: "GJ07MN5678", type: VehicleType.CAR, brandName: "Toyota", model: "Fortuner", color: "White", fuelType: FuelType.DIESEL },
+  { residentEmail: "anjali@yopmail.com", plateNumber: "GJ08OP9012", type: VehicleType.BIKE, brandName: "Bajaj", model: "Pulsar NS200", color: "Orange", fuelType: FuelType.PETROL },
+  { residentEmail: "rahul@yopmail.com", plateNumber: "GJ09QR3456", type: VehicleType.BIKE, brandName: "KTM", model: "Duke 390", color: "Black", fuelType: FuelType.PETROL },
+  { residentEmail: "priya@yopmail.com", plateNumber: "GJ10ST7890", type: VehicleType.CAR, brandName: "Tata", model: "Nexon EV", color: "Teal", fuelType: FuelType.ELECTRIC },
 ];
 
 const seedDefaultUsers = async (): Promise<void> => {
@@ -96,14 +96,14 @@ const seedDefaultUsers = async (): Promise<void> => {
     const users = [
       {
         name: "System Administrator",
-        email: "admin@society.com",
+        email: "admin@yopmail.com",
         password: "Admin@123",
         phone: "0000000000",
         role: UserRole.ADMIN,
       },
       {
         name: "Security Guard",
-        email: "security@society.com",
+        email: "security@yopmail.com",
         password: "Security@123",
         phone: "0000000002",
         role: UserRole.SECURITY,
@@ -399,7 +399,7 @@ const seedNotices = async (): Promise<void> => {
     console.log("[Database Seeder]: Seeding notices...");
 
     const adminUser = await UserModel.findOne({
-      where: { email: "admin@society.com" },
+      where: { email: "admin@yopmail.com" },
     });
 
     if (!adminUser) {
@@ -429,7 +429,7 @@ const seedNotices = async (): Promise<void> => {
 
 const complaints = [
   {
-    residentEmail: "rahul@society.com",
+    residentEmail: "rahul@yopmail.com",
     title: "Water leakage from bathroom ceiling",
     description: "There is a persistent water leak from the bathroom ceiling since last 3 days. The upstairs neighbor's plumbing may be damaged. The drip has worsened and tiles are starting to stain.",
     priority: ComplaintPriority.HIGH,
@@ -443,7 +443,7 @@ const complaints = [
     ]
   },
   {
-    residentEmail: "priya@society.com",
+    residentEmail: "priya@yopmail.com",
     title: "Broken street light near Block B entrance",
     description: "The street light near the Block B main entrance has been broken for over a week. It gets very dark at night and is a safety concern for residents walking their dogs or returning late.",
     priority: ComplaintPriority.LOW,
@@ -455,7 +455,7 @@ const complaints = [
     ]
   },
   {
-    residentEmail: "amit@society.com",
+    residentEmail: "amit@yopmail.com",
     title: "Noise complaint — late night parties in Block A",
     description: "Residents on the 3rd floor of Block A have been hosting loud parties until 2 AM regularly. This is disturbing the peace, especially for elderly residents and young children. Request strict action.",
     priority: ComplaintPriority.MEDIUM,
@@ -465,7 +465,7 @@ const complaints = [
     imageUrls: []
   },
   {
-    residentEmail: "neha@society.com",
+    residentEmail: "neha@yopmail.com",
     title: "Improper garbage disposal in common area",
     description: "Some residents are leaving garbage bags near the Block C staircase instead of the designated disposal area. This is attracting stray animals and creating unhygienic conditions.",
     priority: ComplaintPriority.LOW,
@@ -477,7 +477,7 @@ const complaints = [
     ]
   },
   {
-    residentEmail: "ravi@society.com",
+    residentEmail: "ravi@yopmail.com",
     title: "Lift not working properly — gets stuck between floors",
     description: "The passenger lift in Block A has been malfunctioning for the past 2 days. It jerks suddenly and got stuck between the 1st and 2nd floor yesterday with my family inside. Needs urgent servicing.",
     priority: ComplaintPriority.HIGH,
@@ -489,7 +489,7 @@ const complaints = [
     ]
   },
   {
-    residentEmail: "sunita@society.com",
+    residentEmail: "sunita@yopmail.com",
     title: "Security gate remote not functioning",
     description: "The remote for the main security gate has stopped working. The battery was replaced but it still does not respond. Request a replacement or repair at the earliest.",
     priority: ComplaintPriority.MEDIUM,
@@ -499,7 +499,7 @@ const complaints = [
     imageUrls: []
   },
   {
-    residentEmail: "vikram@society.com",
+    residentEmail: "vikram@yopmail.com",
     title: "Parking space occupied by unauthorized vehicle",
     description: "A white Honda City with plate number GJ05IJ7890 has been parked in my allotted parking space (A-201) for the last 3 days. The vehicle does not belong to any resident in Block A.",
     priority: ComplaintPriority.MEDIUM,
@@ -511,7 +511,7 @@ const complaints = [
     ]
   },
   {
-    residentEmail: "anjali@society.com",
+    residentEmail: "anjali@yopmail.com",
     title: "Pest control required in Block C basement",
     description: "There is a severe cockroach and rodent infestation in the Block C basement area near the storage units. Regular pest control has not been conducted this month. Please schedule fumigation urgently.",
     priority: ComplaintPriority.LOW,
@@ -592,7 +592,7 @@ const seedComplaintComments = async (): Promise<void> => {
 
     console.log("[Database Seeder]: Seeding complaint comments...");
 
-    const admin = await UserModel.findOne({ where: { email: "admin@society.com" } });
+    const admin = await UserModel.findOne({ where: { email: "admin@yopmail.com" } });
     if (!admin) {
       console.log("[Database Seeder]: Admin user not found. Skipping complaint comments.");
       return;

@@ -20,6 +20,11 @@ export class DeactivateResidentUseCase {
       throw new ResidentAlreadyInactiveError();
     }
 
+    // 3. Prevent deactivating tenants directly
+    if (!resident.isOwner) {
+      throw new Error("Tenants cannot be deactivated directly from the Resident page.");
+    }
+
     // 3. Deactivate both resident and linked user
     await this.residentRepository.deactivate(id);
     await this.userRepository.deactivate(resident.userId);

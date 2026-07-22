@@ -71,7 +71,9 @@ export class FinalizeTenantRequestUseCase {
 
     const combinedApprove = tally.approve + adminTally.approve;
     const combinedReject = tally.reject + adminTally.reject;
-    const majorityApproved = combinedApprove > combinedReject;
+    const majorityApproved = combinedApprove === combinedReject
+      ? adminTally.approve > 0
+      : combinedApprove > combinedReject;
 
     if (!majorityApproved) {
       request.reject();
@@ -169,7 +171,7 @@ export class FinalizeTenantRequestUseCase {
 
     await this.passwordResetTokenRepository.deleteByUserId(savedTenantUser.id!);
     const rawToken = crypto.randomBytes(32).toString("hex");
-    const tokenEntity = PasswordResetToken.create(savedTenantUser.id!, rawToken);
+    const tokenEntity = PasswordResetToken.create(savedTenantUser.id!, rawToken, 48 * 60); // 48 hours
     await this.passwordResetTokenRepository.create(tokenEntity);
 
     const setPasswordLink = `${env.CLIENT_URL}/reset-password?token=${rawToken}`;
@@ -188,7 +190,7 @@ export class FinalizeTenantRequestUseCase {
           <h2 style="color: #111827;">Welcome to Civic Horizon</h2>
           <p style="color: #6b7280;">
             Your tenant request has been approved. To get started, set up your
-            password using the button below. This link expires in <strong>10 minutes</strong>.
+            password using the button below. This link expires in <strong>48 hours</strong>.
           </p>
           <p style="color: #6b7280;">
             You can access all features of Civic Horizon from

@@ -2,8 +2,7 @@ import { PaginatedRequest, PaginatedResult } from "../../../../shared/types/Pagi
 import { Apartment } from "../entities/Apartment";
 
 export interface ListApartmentsFilters extends PaginatedRequest {
-  block?: string;
-  floorNumber?: number;
+  search?: string;
   type?: string;
   isOccupied?: boolean;
 }

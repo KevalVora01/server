@@ -20,6 +20,11 @@ export class UpdateResidentUseCase {
       throw new ResidentAlreadyInactiveError();
     }
 
+    // 2. Prevent editing tenants directly
+    if (!resident.isOwner) {
+      throw new Error("Tenants cannot be edited directly from the Resident page.");
+    }
+
     // 2. Update user fields if provided
     if (dto.name !== undefined || dto.phone !== undefined) {
       const user = await this.userRepository.findById(resident.userId);
