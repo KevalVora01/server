@@ -78,6 +78,7 @@ export class Resident {
 
   deactivate(): void {
     this.props.isActive = false;
+    this.props.isOccupant = false;
     this.props.updatedAt = new Date();
   }
 

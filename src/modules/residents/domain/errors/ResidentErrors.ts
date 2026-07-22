@@ -38,3 +38,12 @@ export class UnauthorizedVehicleAccessError extends Error {
     this.name = "UnauthorizedVehicleAccessError";
   }
 }
+
+export class OwnerHasActiveTenantError extends Error {
+  public readonly statusCode = 400;
+
+  constructor() {
+    super("Cannot deactivate owner because this apartment has an active tenant");
+    this.name = "OwnerHasActiveTenantError";
+  }
+}

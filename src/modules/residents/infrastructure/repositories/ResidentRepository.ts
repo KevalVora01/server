@@ -176,7 +176,7 @@ export class ResidentRepository implements IResidentRepository {
 
   async deactivate(id: number): Promise<void> {
     await ResidentModel.update(
-      { isActive: false, moveOutDate: new Date() },
+      { isActive: false, isOccupant: false, moveOutDate: new Date() },
       { where: { id } }
     );
   }

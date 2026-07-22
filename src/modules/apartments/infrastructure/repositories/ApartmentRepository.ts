@@ -39,7 +39,7 @@ export class ApartmentRepository implements IApartmentRepository {
         {
           model: ResidentModel,
           as: "residents",
-          where: { isOccupant: true },
+          where: { isOccupant: true, isActive: true },
           required: false,
           include: [
             {
@@ -85,7 +85,7 @@ export class ApartmentRepository implements IApartmentRepository {
     const residentInclude: any = {
       model: ResidentModel,
       as: "residents",
-      where: { isOccupant: true },
+      where: { isOccupant: true, isActive: true },
       required: false,
       attributes: ["id"],
     };
@@ -96,7 +96,7 @@ export class ApartmentRepository implements IApartmentRepository {
       } else {
         where.id = {
           [Op.notIn]: literal(
-            `(SELECT apartment_id FROM residents WHERE is_occupant = true AND apartment_id IS NOT NULL)`
+            `(SELECT apartment_id FROM residents WHERE is_occupant = true AND is_active = true AND apartment_id IS NOT NULL)`
           ),
         };
       }
@@ -151,7 +151,7 @@ export class ApartmentRepository implements IApartmentRepository {
       include: [{
         model: ResidentModel,
         as: "residents",
-        where: { isOccupant: true },
+        where: { isOccupant: true, isActive: true },
         required: true,
       }],
     });

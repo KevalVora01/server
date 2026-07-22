@@ -1,6 +1,6 @@
 import { IResidentRepository } from "../../domain/repositories/IResidentRepository";
 import { IUserRepository } from "../../../auth/domain/repositories/IUserRepository";
-import { ResidentNotFoundError, ResidentAlreadyInactiveError } from "../../domain/errors/ResidentErrors";
+import { ResidentNotFoundError, ResidentAlreadyInactiveError, OwnerHasActiveTenantError } from "../../domain/errors/ResidentErrors";
 
 export class DeactivateResidentUseCase {
   constructor(
@@ -23,6 +23,14 @@ export class DeactivateResidentUseCase {
     // 3. Prevent deactivating tenants directly
     if (!resident.isOwner) {
       throw new Error("Tenants cannot be deactivated directly from the Resident page.");
+    }
+
+    // 4. Verify owner does not have any active tenants
+    if (resident.isOwner) {
+      const activeTenant = await this.residentRepository.findActiveTenantByApartmentId(resident.apartmentId);
+      if (activeTenant) {
+        throw new OwnerHasActiveTenantError();
+      }
     }
 
     // 3. Deactivate both resident and linked user
