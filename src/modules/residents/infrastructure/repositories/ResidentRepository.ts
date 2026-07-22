@@ -181,6 +181,14 @@ export class ResidentRepository implements IResidentRepository {
     );
   }
 
+  async findOwnerByApartmentId(apartmentId: number): Promise<Resident | null> {
+    const model = await ResidentModel.findOne({
+      where: { apartmentId, isOwner: true, isActive: true },
+    });
+    if (!model) return null;
+    return this.toEntity(model);
+  }
+
   async findActiveByApartmentId(apartmentId: number): Promise<Resident | null> {
     const model = await ResidentModel.findOne({
       where: { apartmentId, isActive: true },

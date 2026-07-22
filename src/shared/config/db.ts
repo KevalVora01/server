@@ -15,6 +15,8 @@ import "../../modules/complaints/infrastructure/models/ComplaintImageModel";
 import "../../modules/notifications/infrastructure/models/NotificationModel";
 import "../../modules/maintenance/infrastructure/models/MaintenanceSettingModel";
 import "../../modules/maintenance/infrastructure/models/InvoiceModel";
+import "../../modules/document-requests/infrastructure/models/DocumentRequestModel";
+import "../../modules/document-requests/infrastructure/models/DocumentRequestVoteModel";
 
 import { runDatabaseSeeders } from '../../../database/seeder/seeder';
 

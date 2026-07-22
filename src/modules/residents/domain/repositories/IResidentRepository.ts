@@ -22,6 +22,7 @@ export interface IResidentRepository {
   findByUserId(userId: number): Promise<Resident | null>;
   findActiveByApartmentId(apartmentId: number): Promise<Resident | null>;
   findOccupantByApartmentId(apartmentId: number): Promise<Resident | null>;
+  findOwnerByApartmentId(apartmentId: number): Promise<Resident | null>;
   findActiveTenantByApartmentId(apartmentId: number): Promise<Resident | null>;
   findTenantsByApartmentId(apartmentId: number): Promise<Resident[]>;
   findCommitteeMembers(): Promise<Resident[]>;
