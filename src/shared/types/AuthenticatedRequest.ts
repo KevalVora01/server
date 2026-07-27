@@ -1,0 +1,11 @@
+import { Request } from "express";
+import { UserRole } from "../../modules/auth/domain/entities/User";
+
+export interface AuthenticatedRequest extends Request {
+  user: {
+    userId: number;
+    email: string;
+    role: UserRole;
+    mustResetPassword: boolean;
+  };
+}
