@@ -25,11 +25,13 @@ const upload = multer({
       "image/webp",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Only PDF, Image, or Word document files are allowed"));
+      cb(new Error("Only PDF, Image, Word, or Excel files are allowed"));
     }
   },
 });
