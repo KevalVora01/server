@@ -1,9 +1,11 @@
 import { DocumentRequestVote, VoteChoice } from "../../domain/entities/DocumentRequestVote";
 import { IDocumentRequestVoteRepository } from "../../domain/repositories/IDocumentRequestVoteRepository";
 import { IDocumentRequestRepository } from "../../domain/repositories/IDocumentRequestRepository";
-import { BulkRecordDocumentVotesDto } from "../dto/BulkRecordDocumentVotesDto";
+import { BulkRecordDocumentVotesDto } from "../dtos/BulkRecordDocumentVotesDto";
 import { DocumentRequestNotFoundError, DocumentRequestVotingError, DocumentRequestAlreadyFinalizedError } from "../../domain/errors/DocumentRequestErrors";
 import { DocumentRequestStatus } from "../../domain/entities/DocumentRequest";
+
+import { VotingEngine } from "../../../../shared/voting";
 
 export class BulkRecordDocumentVotesUseCase {
   constructor(
@@ -21,18 +23,18 @@ export class BulkRecordDocumentVotesUseCase {
       throw new DocumentRequestAlreadyFinalizedError();
     }
 
-    if ((!dto.votes || dto.votes.length === 0) && !dto.adminVote) {
-      throw new DocumentRequestVotingError("At least one vote must be provided.");
+    try {
+      VotingEngine.validateVoteBatch({
+        votes: dto.votes as any,
+        adminVote: dto.adminVote as any,
+      });
+    } catch (err: any) {
+      throw new DocumentRequestVotingError(err.message);
     }
 
     const voteEntities: DocumentRequestVote[] = [];
 
     if (dto.votes) {
-      const uniqueMembers = new Set(dto.votes.map((v) => v.committeeMemberId));
-      if (uniqueMembers.size !== dto.votes.length) {
-        throw new DocumentRequestVotingError("Duplicate committee member votes are not allowed.");
-      }
-
       dto.votes.forEach((v) => {
         voteEntities.push(
           DocumentRequestVote.create({

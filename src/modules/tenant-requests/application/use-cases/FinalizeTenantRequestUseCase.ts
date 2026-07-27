@@ -18,6 +18,7 @@ import { env } from "../../../../shared/config/env";
 import { Resident } from "../../../residents/domain/entities/Resident";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { notificationService } from "../../../notifications/container";
+import { VotingEngine } from "../../../../shared/voting";
 
 export interface FinalizeResult {
   request: TenantRequest;
@@ -69,13 +70,14 @@ export class FinalizeTenantRequestUseCase {
       throw new VotingNotCompleteError();
     }
 
-    const combinedApprove = tally.approve + adminTally.approve;
-    const combinedReject = tally.reject + adminTally.reject;
-    const majorityApproved = combinedApprove === combinedReject
-      ? adminTally.approve > 0
-      : combinedApprove > combinedReject;
+    const outcome = VotingEngine.evaluateOutcomeFromCounts({
+      committeeApprove: tally.approve,
+      committeeReject: tally.reject,
+      adminApprove: adminTally.approve,
+      adminReject: adminTally.reject,
+    });
 
-    if (!majorityApproved) {
+    if (!outcome.isApproved) {
       request.reject();
       const updated = await this.tenantRequestRepository.update(request);
 

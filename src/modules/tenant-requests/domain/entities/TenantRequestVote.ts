@@ -1,7 +1,6 @@
-export enum VoteChoice {
-  APPROVE = "Approve",
-  REJECT = "Reject",
-}
+import { VoteChoice } from "../../../../shared/voting";
+export { VoteChoice };
+
 
 export interface TenantRequestVoteProps {
   id?: number;

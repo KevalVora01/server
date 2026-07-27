@@ -3,6 +3,7 @@ import { VoteChoice } from "../../domain/entities/DocumentRequestVote";
 import { IDocumentRequestRepository } from "../../domain/repositories/IDocumentRequestRepository";
 import { IDocumentRequestVoteRepository } from "../../domain/repositories/IDocumentRequestVoteRepository";
 import { DocumentRequestNotFoundError, DocumentRequestAlreadyFinalizedError } from "../../domain/errors/DocumentRequestErrors";
+import { VotingEngine } from "../../../../shared/voting";
 
 export class FinalizeDocumentRequestUseCase {
   constructor(
@@ -25,24 +26,12 @@ export class FinalizeDocumentRequestUseCase {
       throw new Error("No votes recorded for this document request.");
     }
 
-    const committeeVotes = votes.filter((v) => v.committeeMemberId != null);
-    const adminVote = votes.find((v) => v.committeeMemberId == null);
+    const outcome = VotingEngine.evaluateOutcome(votes);
 
-    const approveCount = committeeVotes.filter((v) => v.vote === VoteChoice.APPROVE).length;
-    const rejectCount = committeeVotes.filter((v) => v.vote === VoteChoice.REJECT).length;
-
-    if (approveCount > rejectCount) {
+    if (outcome.isApproved) {
       request.approve();
-    } else if (rejectCount > approveCount) {
-      request.reject("Rejected by committee vote.");
-    } else if (adminVote) {
-      if (adminVote.vote === VoteChoice.APPROVE) {
-        request.approve();
-      } else {
-        request.reject("Rejected by admin vote (tiebreaker).");
-      }
     } else {
-      request.reject("Rejected — tie could not be resolved.");
+      request.reject(outcome.reason);
     }
 
     return this.documentRequestRepository.update(request);

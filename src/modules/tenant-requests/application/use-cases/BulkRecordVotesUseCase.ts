@@ -10,6 +10,7 @@ import {
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { IUserRepository } from "../../../auth/domain/repositories/IUserRepository";
 import { UserRole } from "../../../auth/domain/entities/User";
+import { VotingEngine } from "../../../../shared/voting";
 
 export class BulkRecordVotesUseCase {
   constructor(
@@ -33,6 +34,11 @@ export class BulkRecordVotesUseCase {
     if (!admin || admin.role !== UserRole.ADMIN) {
       throw new NotACommitteeMemberError();
     }
+
+    VotingEngine.validateVoteBatch({
+      votes: dto.votes,
+      adminVote: dto.adminVote,
+    });
 
     const votes: TenantRequestVote[] = [];
 
