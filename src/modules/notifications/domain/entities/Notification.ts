@@ -11,13 +11,23 @@ export type NotificationType =
   | "tenant_request_submitted"
   | "tenant_request_approved"
   | "tenant_request_rejected"
-  | "tenancy_revoked";
+  | "tenancy_revoked"
+  | "document_request_created"
+  | "document_request_status_changed"
+  | "document_request_approved"
+  | "document_request_uploaded"
+  | "document_request_rejected";
 
 export interface NotificationDataMap {
   complaint_created: { complaintId: number };
   complaint_status_changed: { complaintId: number; status: string };
   complaint_comment_added: { complaintId: number };
   notice_created: { noticeId: number };
+  document_request_created: { documentRequestId: number };
+  document_request_status_changed: { documentRequestId: number; status: string };
+  document_request_approved: { documentRequestId: number; status: string };
+  document_request_uploaded: { documentRequestId: number; status: string };
+  document_request_rejected: { documentRequestId: number; status: string };
 }
 
 export interface NotificationProps {

@@ -123,6 +123,7 @@ export class Complaint {
       updatedAt: this.props.updatedAt,
       resolvedAt: this.props.resolvedAt,
       resident: (this as any).resident ?? null,
+      images: (this as any).images ? (this as any).images.map((img: any) => typeof img.toResponseObject === 'function' ? img.toResponseObject() : img) : undefined,
     };
   }
 }

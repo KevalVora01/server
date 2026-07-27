@@ -2,12 +2,14 @@ import { DocumentRequest, RequestRole } from "../../domain/entities/DocumentRequ
 import { IDocumentRequestRepository } from "../../domain/repositories/IDocumentRequestRepository";
 import { CreateDocumentRequestDto } from "../dtos/CreateDocumentRequestDto";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
+import { IDocumentRequestNotifier } from "../../domain/services/IDocumentRequestNotifier";
 import { NoApartmentAssociatedError, DocumentOwnerNotFoundError } from "../../domain/errors/DocumentRequestErrors";
 
 export class CreateDocumentRequestUseCase {
   constructor(
     private readonly documentRequestRepository: IDocumentRequestRepository,
     private readonly residentRepository: IResidentRepository,
+    private readonly documentRequestNotifier?: IDocumentRequestNotifier,
   ) {}
 
   async execute(dto: CreateDocumentRequestDto, userId: number): Promise<DocumentRequest> {
@@ -42,6 +44,12 @@ export class CreateDocumentRequestUseCase {
       note: dto.note || null,
     });
 
-    return this.documentRequestRepository.create(request);
+    const created = await this.documentRequestRepository.create(request);
+
+    if (this.documentRequestNotifier) {
+      await this.documentRequestNotifier.notifyCreated(created);
+    }
+
+    return created;
   }
 }

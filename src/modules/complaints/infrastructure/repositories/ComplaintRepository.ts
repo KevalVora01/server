@@ -25,6 +25,9 @@ export class ComplaintRepository implements IComplaintRepository {
     });
 
     (complaint as any).resident = (model as any).resident ?? null;
+    if ((model as any).images) {
+      (complaint as any).images = (model as any).images.map((img: any) => this.toImageEntity(img));
+    }
     return complaint;
   }
 
@@ -62,6 +65,10 @@ export class ComplaintRepository implements IComplaintRepository {
     const model = await ComplaintModel.findOne({
       where: { id },
       include: [
+        {
+          model: ComplaintImageModel,
+          as: "images",
+        },
         {
           model: ResidentModel,
           as: "resident",
@@ -111,6 +118,10 @@ export class ComplaintRepository implements IComplaintRepository {
       where,
       include: [
         {
+          model: ComplaintImageModel,
+          as: "images",
+        },
+        {
           model: ResidentModel,
           as: "resident",
           attributes: ["id", "userId", "apartmentId"],
@@ -143,6 +154,10 @@ export class ComplaintRepository implements IComplaintRepository {
       where: { residentId },
       include: [
         {
+          model: ComplaintImageModel,
+          as: "images",
+        },
+        {
           model: ResidentModel,
           as: "resident",
           attributes: ["id", "userId", "apartmentId"],
@@ -173,6 +188,10 @@ export class ComplaintRepository implements IComplaintRepository {
 
     const { count, rows } = await ComplaintModel.findAndCountAll({
       include: [
+        {
+          model: ComplaintImageModel,
+          as: "images",
+        },
         {
           model: ResidentModel,
           as: "resident",
@@ -207,6 +226,10 @@ export class ComplaintRepository implements IComplaintRepository {
 
     const { count, rows } = await ComplaintModel.findAndCountAll({
       include: [
+        {
+          model: ComplaintImageModel,
+          as: "images",
+        },
         {
           model: ResidentModel,
           as: "resident",

@@ -2,6 +2,7 @@ import { DocumentRequest, DocumentRequestStatus } from "../../domain/entities/Do
 import { VoteChoice } from "../../domain/entities/DocumentRequestVote";
 import { IDocumentRequestRepository } from "../../domain/repositories/IDocumentRequestRepository";
 import { IDocumentRequestVoteRepository } from "../../domain/repositories/IDocumentRequestVoteRepository";
+import { IDocumentRequestNotifier } from "../../domain/services/IDocumentRequestNotifier";
 import { DocumentRequestNotFoundError, DocumentRequestAlreadyFinalizedError } from "../../domain/errors/DocumentRequestErrors";
 import { VotingEngine } from "../../../../shared/voting";
 
@@ -9,6 +10,7 @@ export class FinalizeDocumentRequestUseCase {
   constructor(
     private readonly documentRequestRepository: IDocumentRequestRepository,
     private readonly documentRequestVoteRepository: IDocumentRequestVoteRepository,
+    private readonly documentRequestNotifier?: IDocumentRequestNotifier,
   ) {}
 
   async execute(documentRequestId: number): Promise<DocumentRequest> {
@@ -26,6 +28,7 @@ export class FinalizeDocumentRequestUseCase {
       throw new Error("No votes recorded for this document request.");
     }
 
+    const oldStatus = request.status;
     const outcome = VotingEngine.evaluateOutcome(votes);
 
     if (outcome.isApproved) {
@@ -34,6 +37,12 @@ export class FinalizeDocumentRequestUseCase {
       request.reject(outcome.reason);
     }
 
-    return this.documentRequestRepository.update(request);
+    const updated = await this.documentRequestRepository.update(request);
+
+    if (this.documentRequestNotifier) {
+      await this.documentRequestNotifier.notifyStatusChanged(updated, oldStatus);
+    }
+
+    return updated;
   }
 }
