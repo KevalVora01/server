@@ -52,7 +52,6 @@ router.get(
 router.patch(
   "/invoices/:id/settle",
   jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN),
   maintenanceController.markInvoiceSettled
 );
 

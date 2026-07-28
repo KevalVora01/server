@@ -40,6 +40,13 @@ export class InvalidChequeNumberError extends Error {
   }
 }
 
+export class InvalidUpiRefError extends Error {
+  constructor() {
+    super("UPI UTR / Reference number must be a valid 12-digit transaction number");
+    this.name = "InvalidUpiRefError";
+  }
+}
+
 export class ResidentNotOccupantError extends Error {
   constructor() {
     super("Only the current occupant of the apartment can pay this invoice");

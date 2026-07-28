@@ -184,9 +184,13 @@ export class MaintenanceController {
 
   markInvoiceSettled = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const authReq = req as AuthenticatedRequest;
+      const requestingUser = await this.buildRequestingUser(authReq);
+
       const invoice = await this.markInvoiceSettledUseCase.execute(
         Number(req.params.id),
-        req.body.paymentRef
+        req.body.paymentRef,
+        requestingUser,
       );
 
       res.status(200).json(

@@ -57,7 +57,8 @@ export const errorHandler = (
     error.name === "ComplaintCannotBeDeletedError" ||
     error.name === "InvoiceAlreadyPaidError" ||
     error.name === "InvalidPaymentAmountError" ||
-    error.name === "InvalidChequeNumberError"
+    error.name === "InvalidChequeNumberError" ||
+    error.name === "InvalidUpiRefError"
   ) {
     res.status(400).json(ApiResponse.error(error.message));
     return;

@@ -59,6 +59,7 @@ const markInvoiceSettledUseCase = new MarkInvoiceSettledUseCase(
   invoiceRepository,
   generateInvoicePdfUseCase,
   maintenanceNotifier,
+  residentRepository,
 );
 const handleStripePaymentSucceededUseCase = new HandleStripePaymentSucceededUseCase(
   invoiceRepository,

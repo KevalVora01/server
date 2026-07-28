@@ -71,18 +71,23 @@ export class InvoicePdfService {
 
     const isOnline = invoice.paymentRef?.startsWith("pi_");
     const isCheque = invoice.paymentRef?.startsWith("Cheque");
+    const isUpi = invoice.paymentRef?.toUpperCase().startsWith("UPI");
 
     const paymentMethod = isOnline
       ? "Online Card Payment"
       : isCheque
         ? "Cheque"
-        : "Cash";
+        : isUpi
+          ? "UPI (GPay / PhonePe / Paytm)"
+          : "Cash / Manual";
 
     const paymentReference = isOnline
       ? invoice.paymentRef
       : isCheque
-        ? `Cheque No: ${invoice.paymentRef?.replace("Cheque - #", "")}`
-        : "—";
+        ? `Cheque No: ${invoice.paymentRef?.replace("Cheque - #", "").replace("Cheque - ", "")}`
+        : isUpi
+          ? `UPI Ref / UTR: ${invoice.paymentRef?.replace(/^UPI\s*[-:]?\s*/i, "")}`
+          : invoice.paymentRef || "—";
 
     const extraChargesRows = invoice.extraCharges
       .map(
