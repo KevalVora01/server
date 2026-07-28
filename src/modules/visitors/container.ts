@@ -16,6 +16,7 @@ import { GetDashboardMetricsUseCase } from "./application/use-cases/GetDashboard
 import { AutoRejectExpiredApprovalsJob } from "./application/jobs/AutoRejectExpiredApprovalsJob";
 
 import { VisitorController } from "./presentation/controllers/VisitorController";
+import { SearchPreRegisteredVisitorsUseCase } from "./application/use-cases/SearchPreRegisteredVisitorsUseCase";
 
 // Repositories
 const visitorRepository = new VisitorRepository();
@@ -34,6 +35,7 @@ const checkOutVisitorUseCase = new CheckOutVisitorUseCase(visitorRepository);
 const cancelPreRegisteredVisitorUseCase = new CancelPreRegisteredVisitorUseCase(visitorRepository);
 const listVisitorsUseCase = new ListVisitorsUseCase(visitorRepository);
 const listMyVisitorsUseCase = new ListMyVisitorsUseCase(visitorRepository, residentRepository);
+const searchPreRegisteredVisitorsUseCase = new SearchPreRegisteredVisitorsUseCase(visitorRepository);
 const listCurrentlyInsideUseCase = new ListCurrentlyInsideUseCase(visitorRepository);
 const getDashboardMetricsUseCase = new GetDashboardMetricsUseCase(visitorRepository);
 
@@ -52,6 +54,7 @@ export const visitorController = new VisitorController(
   listMyVisitorsUseCase,
   listCurrentlyInsideUseCase,
   getDashboardMetricsUseCase,
+  searchPreRegisteredVisitorsUseCase,
   residentRepository,
   cloudinaryService,
 );

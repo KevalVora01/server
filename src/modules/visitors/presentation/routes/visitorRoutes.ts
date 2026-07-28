@@ -55,6 +55,13 @@ router.get(
   visitorController.listCurrentlyInside
 );
 
+router.get(
+  "/search",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.SECURITY, UserRole.ADMIN),
+  visitorController.searchPreRegistered
+);
+
 // Admin: metrics (today, inside, avg duration)
 router.get(
   "/dashboard",

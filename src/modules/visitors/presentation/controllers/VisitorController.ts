@@ -13,6 +13,7 @@ import { IResidentRepository } from "../../../residents/domain/repositories/IRes
 import { CloudinaryService } from "../../../../shared/services/CloudinaryService";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
+import { SearchPreRegisteredVisitorsUseCase } from "../../application/use-cases/SearchPreRegisteredVisitorsUseCase";
 
 export class VisitorController {
   constructor(
@@ -26,10 +27,10 @@ export class VisitorController {
     private readonly listMyVisitorsUseCase: ListMyVisitorsUseCase,
     private readonly listCurrentlyInsideUseCase: ListCurrentlyInsideUseCase,
     private readonly getDashboardMetricsUseCase: GetDashboardMetricsUseCase,
+    private readonly searchPreRegisteredVisitorsUseCase: SearchPreRegisteredVisitorsUseCase,
     private readonly residentRepository: IResidentRepository,
     private readonly cloudinaryService: CloudinaryService,
   ) { }
-
   preRegister = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const authReq = req as AuthenticatedRequest;
@@ -219,6 +220,19 @@ export class VisitorController {
 
       res.status(200).json(
         ApiResponse.success(metrics, "Dashboard metrics fetched successfully")
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  searchPreRegistered = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const query = (req.query.q as string) || "";
+      const visitors = await this.searchPreRegisteredVisitorsUseCase.execute(query);
+
+      res.status(200).json(
+        ApiResponse.success(visitors.map((v) => v.toResponseObject()), "Search results fetched successfully")
       );
     } catch (error) {
       next(error);

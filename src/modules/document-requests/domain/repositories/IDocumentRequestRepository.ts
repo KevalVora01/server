@@ -10,8 +10,8 @@ export interface IDocumentRequestDetail {
 export interface IDocumentRequestRepository {
   create(request: DocumentRequest): Promise<DocumentRequest>;
   findById(id: number): Promise<DocumentRequest | null>;
-  findMyRequests(residentIds: number[]): Promise<DocumentRequest[]>;
-  findReceivedRequests(residentIds: number[]): Promise<DocumentRequest[]>;
+  findMyRequests(residentId: number): Promise<DocumentRequest[]>;
+  findReceivedRequests(residentId: number): Promise<DocumentRequest[]>;
   findAdminReceivedRequests(): Promise<DocumentRequest[]>;
   findWithDetail(id: number): Promise<IDocumentRequestDetail | null>;
   update(request: DocumentRequest): Promise<DocumentRequest>;

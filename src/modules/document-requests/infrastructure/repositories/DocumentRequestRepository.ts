@@ -58,9 +58,9 @@ export class DocumentRequestRepository implements IDocumentRequestRepository {
     return this.toEntity(model);
   }
 
-  async findMyRequests(residentIds: number[]): Promise<DocumentRequest[]> {
+  async findMyRequests(residentId: number): Promise<DocumentRequest[]> {
     const models = await DocumentRequestModel.findAll({
-      where: { requesterId: { [Op.in]: residentIds } },
+      where: { requesterId: residentId },
       include: [
         { model: ApartmentModel, as: "apartment", required: false },
         {
@@ -78,9 +78,9 @@ export class DocumentRequestRepository implements IDocumentRequestRepository {
     return models.map((m) => this.toEntity(m));
   }
 
-  async findReceivedRequests(residentIds: number[]): Promise<DocumentRequest[]> {
+  async findReceivedRequests(residentId: number): Promise<DocumentRequest[]> {
     const models = await DocumentRequestModel.findAll({
-      where: { targetId: { [Op.in]: residentIds } },
+      where: { targetId: residentId },
       include: [
         { model: ApartmentModel, as: "apartment", required: false },
         {

@@ -52,10 +52,8 @@ export class DocumentRequestController {
     try {
       const authReq = req as AuthenticatedRequest;
 
-      const residents = await this.residentRepository.findByUserId(authReq.user.userId);
-      const residentIds = residents ? [residents.id!] : [];
-
-      const requests = await this.getMyRequestsUseCase.execute(residentIds);
+      const resident = await this.residentRepository.findByUserId(authReq.user.userId);
+      const requests = await this.getMyRequestsUseCase.execute(resident?.id);
 
       res.status(200).json(
         ApiResponse.success(requests.map((r) => r.toResponseObject()), "Requests fetched successfully"),
@@ -70,13 +68,13 @@ export class DocumentRequestController {
       const authReq = req as AuthenticatedRequest;
       const isAdmin = authReq.user.role === UserRole.ADMIN;
 
-      let residentIds: number[] = [];
+      let residentId: number | undefined;
       if (!isAdmin) {
-        const residents = await this.residentRepository.findByUserId(authReq.user.userId);
-        residentIds = residents ? [residents.id!] : [];
+        const resident = await this.residentRepository.findByUserId(authReq.user.userId);
+        residentId = resident?.id;
       }
 
-      const requests = await this.getReceivedRequestsUseCase.execute(residentIds, isAdmin);
+      const requests = await this.getReceivedRequestsUseCase.execute(residentId, isAdmin);
 
       res.status(200).json(
         ApiResponse.success(requests.map((r) => r.toResponseObject()), "Received requests fetched successfully"),

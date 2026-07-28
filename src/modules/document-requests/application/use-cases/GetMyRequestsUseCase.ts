@@ -6,8 +6,8 @@ export class GetMyRequestsUseCase {
     private readonly documentRequestRepository: IDocumentRequestRepository,
   ) {}
 
-  async execute(residentIds: number[]): Promise<DocumentRequest[]> {
-    if (residentIds.length === 0) return [];
-    return this.documentRequestRepository.findMyRequests(residentIds);
+  async execute(residentId?: number | null): Promise<DocumentRequest[]> {
+    if (!residentId) return [];
+    return this.documentRequestRepository.findMyRequests(residentId);
   }
 }

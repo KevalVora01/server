@@ -6,11 +6,11 @@ export class GetReceivedRequestsUseCase {
     private readonly documentRequestRepository: IDocumentRequestRepository,
   ) {}
 
-  async execute(residentIds: number[], isAdmin: boolean): Promise<DocumentRequest[]> {
+  async execute(residentId?: number | null, isAdmin: boolean = false): Promise<DocumentRequest[]> {
     if (isAdmin) {
       return this.documentRequestRepository.findAdminReceivedRequests();
     }
-    if (residentIds.length === 0) return [];
-    return this.documentRequestRepository.findReceivedRequests(residentIds);
+    if (!residentId) return [];
+    return this.documentRequestRepository.findReceivedRequests(residentId);
   }
 }
