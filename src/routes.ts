@@ -12,6 +12,7 @@ import apartmentFamilyMembersRoutes from './modules/family-members/presentation/
 import apartmentVehiclesRoutes from './modules/vehicles/presentation/routes/apartmentVehiclesRoutes';
 import tenantRequestRoutes from './modules/tenant-requests/presentation/routes/tenantRequestRoutes';
 import documentRequestRoutes from './modules/document-requests/presentation/routes/documentRequestRoutes';
+import visitorRoutes from './modules/visitors/presentation/routes/visitorRoutes';
 
 const router = Router();
 
@@ -42,10 +43,11 @@ router.use("/tenant-requests", tenantRequestRoutes);
 
 router.use("/document-requests", documentRequestRoutes);
 
+router.use('/visitors', visitorRoutes);
+
 // ─── Add more modules here as you build them ──────────────────────
 // router.use('/invoices',   invoiceRoutes);
 // router.use('/events',     eventRoutes);
-// router.use('/visitors',   visitorRoutes);
 // router.use('/dashboard',  dashboardRoutes);
 
 export default router;

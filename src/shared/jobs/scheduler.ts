@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import { sendMaintenanceRemindersJob } from "../../modules/maintenance/container";
 import { promoteOccupantsJob } from "../../modules/residents/container";
+import { autoRejectExpiredApprovalsJob } from "../../modules/visitors/container";
 
 export function initScheduledJobs(): void {
   cron.schedule("0 8 * * *", async () => {
@@ -22,6 +23,17 @@ export function initScheduledJobs(): void {
       await promoteOccupantsJob.execute();
     } catch (err) {
       console.error("Occupant promotion job failed:", err);
+    }
+  });
+
+  // Auto-reject walk-in visitor approval requests the resident never responded to.
+  // Runs every 2 minutes since the timeout window itself is only 5–10 minutes —
+  // an hourly or daily tick would leave visitors waiting at the gate far too long.
+  cron.schedule("*/2 * * * *", async () => {
+    try {
+      await autoRejectExpiredApprovalsJob.execute();
+    } catch (err) {
+      console.error("Visitor auto-reject job failed:", err);
     }
   });
 }

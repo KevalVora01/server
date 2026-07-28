@@ -1,0 +1,52 @@
+import { IVisitorNotifier } from "../../domain/services/IVisitorNotifier";
+import { Visitor } from "../../domain/entities/Visitor";
+import { notificationService } from "../../../notifications/container";
+import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
+
+export class VisitorNotifier implements IVisitorNotifier {
+  constructor(private readonly residentRepository: IResidentRepository) {}
+
+  async notifyApprovalNeeded(visitor: Visitor): Promise<void> {
+    const userId = await this.resolveUserId(visitor.residentId);
+    if (!userId) return;
+
+    await notificationService.notify(
+      userId,
+      "visitor_approval_needed",
+      "Visitor at the gate",
+      `${visitor.name} is at the gate for "${visitor.purpose}". Approve or reject entry.`,
+      { visitorId: visitor.id }
+    );
+  }
+
+  async notifyApprovalTimedOut(visitor: Visitor): Promise<void> {
+    const userId = await this.resolveUserId(visitor.residentId);
+    if (!userId) return;
+
+    await notificationService.notify(
+      userId,
+      "visitor_approval_timed_out",
+      "Visitor request expired",
+      `Your approval request for ${visitor.name} timed out and was automatically rejected.`,
+      { visitorId: visitor.id }
+    );
+  }
+
+  async notifyPreRegisteredCheckedIn(visitor: Visitor): Promise<void> {
+    const userId = await this.resolveUserId(visitor.residentId);
+    if (!userId) return;
+
+    await notificationService.notify(
+      userId,
+      "visitor_checked_in",
+      "Visitor arrived",
+      `${visitor.name} has checked in at the gate.`,
+      { visitorId: visitor.id }
+    );
+  }
+
+  private async resolveUserId(residentId: number): Promise<number | null> {
+    const resident = await this.residentRepository.findById(residentId);
+    return resident?.userId ?? null;
+  }
+}
