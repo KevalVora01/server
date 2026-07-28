@@ -28,12 +28,5 @@ const updateMaintenanceAmountSchema = Joi.object({
   }),
 });
 
-const createPaymentIntentSchema = Joi.object({
-  invoiceId: Joi.number().integer().positive().required().messages({
-    'any.required': 'invoiceId is required',
-  }),
-});
-
 export const validateGenerateInvoices = [handleValidationError(generateInvoicesSchema, 'body')];
 export const validateUpdateMaintenanceAmount = [handleValidationError(updateMaintenanceAmountSchema, 'body')];
-export const validateCreatePaymentIntent = [handleValidationError(createPaymentIntentSchema, 'body')];

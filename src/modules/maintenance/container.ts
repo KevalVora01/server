@@ -3,7 +3,6 @@ import { MaintenanceSettingRepository } from "./infrastructure/repositories/Main
 import { ResidentRepository } from "../residents/infrastructure/repositories/ResidentRepository";
 import { ApartmentRepository } from "../apartments/infrastructure/repositories/ApartmentRepository";
 
-import { StripeService } from "./infrastructure/services/StripeService";
 import { InvoicePdfService } from "./infrastructure/services/InvoicePdfService";
 import { MaintenanceNotifier } from "./infrastructure/services/MaintenanceNotifier";
 
@@ -15,15 +14,11 @@ import { ListMyInvoicesUseCase } from "./application/use-cases/ListMyInvoicesUse
 import { ListApartmentInvoicesUseCase } from "./application/use-cases/ListApartmentInvoicesUseCase";
 import { GetInvoiceUseCase } from "./application/use-cases/GetInvoiceUseCase";
 import { MarkInvoiceSettledUseCase } from "./application/use-cases/MarkInvoiceSettledUseCase";
-import { CreatePaymentIntentUseCase } from "./application/use-cases/CreatePaymentIntentUseCase";
-import { ConfirmPaymentUseCase } from "./application/use-cases/ConfirmPaymentUseCase";
 import { GenerateInvoicePdfUseCase } from "./application/use-cases/GenerateInvoicePdfUseCase";
-import { HandleStripePaymentSucceededUseCase } from "./application/use-cases/HandleStripePaymentSucceededUseCase";
 import { GetDashboardMetricsUseCase } from "./application/use-cases/GetDashboardMetricsUseCase";
 import { SendMaintenanceRemindersJob } from "./application/jobs/SendMaintenanceRemindersJob";
 
 import { MaintenanceController } from "./presentation/controllers/MaintenanceController";
-import { WebhookController } from "./presentation/controllers/WebhookController";
 
 // Repositories
 const invoiceRepository = new InvoiceRepository();
@@ -32,7 +27,6 @@ const residentRepository = new ResidentRepository();
 const apartmentRepository = new ApartmentRepository();
 
 // Services
-const stripeService = new StripeService();
 const invoicePdfService = new InvoicePdfService();
 const maintenanceNotifier = new MaintenanceNotifier(residentRepository);
 
@@ -49,7 +43,6 @@ const listInvoicesUseCase = new ListInvoicesUseCase(invoiceRepository);
 const listMyInvoicesUseCase = new ListMyInvoicesUseCase(invoiceRepository, residentRepository);
 const listApartmentInvoicesUseCase = new ListApartmentInvoicesUseCase(invoiceRepository, residentRepository);
 const getInvoiceUseCase = new GetInvoiceUseCase(invoiceRepository, residentRepository);
-const createPaymentIntentUseCase = new CreatePaymentIntentUseCase(invoiceRepository, stripeService, residentRepository);
 const generateInvoicePdfUseCase = new GenerateInvoicePdfUseCase(
   invoiceRepository,
   invoicePdfService,
@@ -60,18 +53,6 @@ const markInvoiceSettledUseCase = new MarkInvoiceSettledUseCase(
   generateInvoicePdfUseCase,
   maintenanceNotifier,
   residentRepository,
-);
-const handleStripePaymentSucceededUseCase = new HandleStripePaymentSucceededUseCase(
-  invoiceRepository,
-  maintenanceNotifier,
-  generateInvoicePdfUseCase,
-);
-
-const confirmPaymentUseCase = new ConfirmPaymentUseCase(
-  invoiceRepository,
-  stripeService,
-  maintenanceNotifier,
-  generateInvoicePdfUseCase,
 );
 const getDashboardMetricsUseCase = new GetDashboardMetricsUseCase(invoiceRepository);
 
@@ -91,14 +72,7 @@ export const maintenanceController = new MaintenanceController(
   listApartmentInvoicesUseCase,
   getInvoiceUseCase,
   markInvoiceSettledUseCase,
-  createPaymentIntentUseCase,
-  confirmPaymentUseCase,
   generateInvoicePdfUseCase,
   getDashboardMetricsUseCase,
   residentRepository,
-);
-
-export const webhookController = new WebhookController(
-  stripeService,
-  handleStripePaymentSucceededUseCase,
 );

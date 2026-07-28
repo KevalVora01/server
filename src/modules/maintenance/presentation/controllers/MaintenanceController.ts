@@ -7,8 +7,6 @@ import { ListMyInvoicesUseCase } from "../../application/use-cases/ListMyInvoice
 import { v2 as cloudinary } from "cloudinary";
 import { GetInvoiceUseCase } from "../../application/use-cases/GetInvoiceUseCase";
 import { MarkInvoiceSettledUseCase } from "../../application/use-cases/MarkInvoiceSettledUseCase";
-import { CreatePaymentIntentUseCase } from "../../application/use-cases/CreatePaymentIntentUseCase";
-import { ConfirmPaymentUseCase } from "../../application/use-cases/ConfirmPaymentUseCase";
 import { GenerateInvoicePdfUseCase } from "../../application/use-cases/GenerateInvoicePdfUseCase";
 import { GetDashboardMetricsUseCase } from "../../application/use-cases/GetDashboardMetricsUseCase";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
@@ -28,8 +26,6 @@ export class MaintenanceController {
     private readonly listApartmentInvoicesUseCase: ListApartmentInvoicesUseCase,
     private readonly getInvoiceUseCase: GetInvoiceUseCase,
     private readonly markInvoiceSettledUseCase: MarkInvoiceSettledUseCase,
-    private readonly createPaymentIntentUseCase: CreatePaymentIntentUseCase,
-    private readonly confirmPaymentUseCase: ConfirmPaymentUseCase,
     private readonly generateInvoicePdfUseCase: GenerateInvoicePdfUseCase,
     private readonly getDashboardMetricsUseCase: GetDashboardMetricsUseCase,
     private readonly residentRepository: IResidentRepository,
@@ -201,32 +197,7 @@ export class MaintenanceController {
     }
   };
 
-  createPaymentIntent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const result = await this.createPaymentIntentUseCase.execute({ invoiceId: req.body.invoiceId });
 
-      res.status(200).json(
-        ApiResponse.success(result, "Payment intent created successfully")
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  confirmPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      await this.confirmPaymentUseCase.execute({
-        invoiceId: req.body.invoiceId,
-        paymentIntentId: req.body.paymentIntentId,
-      });
-
-      res.status(200).json(
-        ApiResponse.success(null, "Payment confirmed successfully")
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
 
   regenerateReceipt = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

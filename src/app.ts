@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 
 import { errorHandler } from "./shared/middleware/errorHandler";
 import routes from "./routes";
-import webhookRoutes from "./modules/maintenance/presentation/routes/webhookRoutes";
 
 const app = express();
 
@@ -23,9 +22,6 @@ app.use(
     credentials: true,
   })
 );
-
-// Stripe webhook needs raw body — must be before express.json()
-app.use('/api/maintenance/webhook', webhookRoutes);
 
 app.use(express.json());
 

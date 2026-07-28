@@ -7,7 +7,6 @@ import { UserRole } from "../../../auth/domain/entities/User";
 import {
   validateGenerateInvoices,
   validateUpdateMaintenanceAmount,
-  validateCreatePaymentIntent,
 } from "../validators/maintenanceValidators";
 
 const router = Router();
@@ -99,20 +98,7 @@ router.get(
   maintenanceController.listApartmentInvoices
 );
 
-router.post(
-  "/invoices/create-payment-intent",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.RESIDENT),
-  validateCreatePaymentIntent,
-  maintenanceController.createPaymentIntent
-);
 
-router.post(
-  "/invoices/confirm-payment",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.RESIDENT),
-  maintenanceController.confirmPayment
-);
 
 /*
 |--------------------------------------------------------------------------

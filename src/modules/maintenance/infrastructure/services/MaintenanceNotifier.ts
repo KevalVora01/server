@@ -65,8 +65,8 @@ export class MaintenanceNotifier implements IMaintenanceNotifier {
     await notificationService.notify(
       userId,
       "maintenance_payment_succeeded",
-      "Payment received",
-      `Your maintenance payment of ₹${invoice.totalAmount.toFixed(2)} has been received. Receipt available for download.`,
+      "Payment Successful",
+      `Your maintenance payment of ₹${invoice.totalAmount.toFixed(2)} has been completed successfully. Receipt available for download.`,
       { invoiceId: invoice.id }
     );
   }
