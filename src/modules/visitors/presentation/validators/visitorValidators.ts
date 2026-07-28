@@ -19,6 +19,8 @@ const preRegisterVisitorSchema = Joi.object({
   expectedAt: Joi.date().iso().required().messages({
     'any.required': 'Expected arrival time is required',
   }),
+
+  vehicleNumber: Joi.string().trim().max(20).optional().allow(''),
 });
 
 const logWalkInVisitorSchema = Joi.object({

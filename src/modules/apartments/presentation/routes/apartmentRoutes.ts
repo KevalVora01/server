@@ -36,7 +36,7 @@ router.post(
 router.get(
   "/",
   jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN),
+  rbacMiddleware(UserRole.ADMIN, UserRole.SECURITY, UserRole.RESIDENT),
   validateListApartments,
   apartmentController.listApartments
 );
@@ -44,7 +44,7 @@ router.get(
 router.get(
   "/:id",
   jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN),
+  rbacMiddleware(UserRole.ADMIN, UserRole.SECURITY, UserRole.RESIDENT),
   apartmentController.getApartment
 );
 

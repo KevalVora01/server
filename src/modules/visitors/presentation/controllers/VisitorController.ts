@@ -47,6 +47,7 @@ export class VisitorController {
         phone: req.body.phone,
         purpose: req.body.purpose,
         expectedAt: new Date(req.body.expectedAt),
+        vehicleNumber: req.body.vehicleNumber,
       });
 
       res.status(201).json(

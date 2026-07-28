@@ -33,14 +33,14 @@ export class Visitor {
   }
 
   public static createPreRegistered(
-    props: Omit<VisitorProps, "id" | "status" | "isPreRegistered" | "approvalRequestedAt" | "checkedInAt" | "checkedOutAt" | "loggedBySecurityId" | "createdAt" | "photoUrl" | "vehicleNumber">
+    props: Omit<VisitorProps, "id" | "status" | "isPreRegistered" | "approvalRequestedAt" | "checkedInAt" | "checkedOutAt" | "loggedBySecurityId" | "createdAt" | "photoUrl">
   ): Visitor {
     return new Visitor({
       ...props,
       isPreRegistered: true,
       status: VisitorStatus.APPROVED,
       photoUrl: null,
-      vehicleNumber: null,
+      vehicleNumber: props.vehicleNumber ?? null,
       approvalRequestedAt: null,
       checkedInAt: null,
       checkedOutAt: null,

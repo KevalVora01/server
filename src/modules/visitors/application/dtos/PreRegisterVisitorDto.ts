@@ -5,4 +5,5 @@ export interface PreRegisterVisitorDto {
   phone: string;
   purpose: string;
   expectedAt: Date;
+  vehicleNumber?: string;
 }

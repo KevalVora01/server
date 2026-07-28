@@ -16,10 +16,11 @@ const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
 
 /*
 |--------------------------------------------------------------------------
-| Resident Only
+| Static Segment Routes (Declared before any dynamic /:id route)
 |--------------------------------------------------------------------------
 */
 
+// Resident: pre-register an expected visitor
 router.post(
   "/pre-register",
   jwtMiddleware,
@@ -28,19 +29,7 @@ router.post(
   visitorController.preRegister
 );
 
-router.get(
-  "/my",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.RESIDENT),
-  visitorController.listMyVisitors
-);
-
-/*
-|--------------------------------------------------------------------------
-| Security Only
-|--------------------------------------------------------------------------
-*/
-
+// Security: log an unregistered walk-in visitor (+ photo)
 router.post(
   "/walk-in",
   jwtMiddleware,
@@ -50,6 +39,15 @@ router.post(
   visitorController.logWalkIn
 );
 
+// Resident: own apartment's visitor history
+router.get(
+  "/my",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  visitorController.listMyVisitors
+);
+
+// Security / Admin: everyone currently inside
 router.get(
   "/current",
   jwtMiddleware,
@@ -57,33 +55,7 @@ router.get(
   visitorController.listCurrentlyInside
 );
 
-router.patch(
-  "/:id/check-in",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.SECURITY),
-  visitorController.checkIn
-);
-
-router.patch(
-  "/:id/check-out",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.SECURITY),
-  visitorController.checkOut
-);
-
-/*
-|--------------------------------------------------------------------------
-| Admin Only
-|--------------------------------------------------------------------------
-*/
-
-router.get(
-  "/",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN),
-  visitorController.listAll
-);
-
+// Admin: metrics (today, inside, avg duration)
 router.get(
   "/dashboard",
   jwtMiddleware,
@@ -91,12 +63,21 @@ router.get(
   visitorController.getDashboardMetrics
 );
 
+// Admin / Security: full visitor log, filterable
+router.get(
+  "/",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.SECURITY),
+  visitorController.listAll
+);
+
 /*
 |--------------------------------------------------------------------------
-| Resident + Admin — respond, cancel
+| Dynamic /:id Segment Routes
 |--------------------------------------------------------------------------
 */
 
+// Resident: approve or reject a Pending visitor
 router.post(
   "/:id/respond",
   jwtMiddleware,
@@ -105,6 +86,23 @@ router.post(
   visitorController.respond
 );
 
+// Security: mark visitor as entered
+router.patch(
+  "/:id/check-in",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.SECURITY),
+  visitorController.checkIn
+);
+
+// Security: mark visitor as exited
+router.patch(
+  "/:id/check-out",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.SECURITY),
+  visitorController.checkOut
+);
+
+// Resident: cancel a pre-registered visitor
 router.delete(
   "/:id",
   jwtMiddleware,
