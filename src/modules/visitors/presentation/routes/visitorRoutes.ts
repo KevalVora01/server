@@ -66,7 +66,7 @@ router.get(
 router.get(
   "/dashboard",
   jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN),
+  rbacMiddleware(UserRole.ADMIN, UserRole.SECURITY),
   visitorController.getDashboardMetrics
 );
 
