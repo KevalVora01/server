@@ -182,6 +182,7 @@ export class Visitor {
       loggedBySecurityId: this.props.loggedBySecurityId,
       createdAt: this.props.createdAt,
       resident: (this as any).resident ?? null,
+      apartment: (this as any).apartment ?? null,
     };
   }
 }

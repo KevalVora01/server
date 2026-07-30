@@ -3,6 +3,7 @@ import { IVisitorRepository, ListVisitorsFilters } from "../../domain/repositori
 import { Visitor, VisitorStatus } from "../../domain/entities/Visitor";
 import { VisitorModel } from "../models/VisitorModel";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
+import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 import { PaginatedRequest, PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
 import { VisitorDashboardMetrics } from "../../application/use-cases/GetDashboardMetricsUseCase";
 
@@ -28,6 +29,7 @@ export class VisitorRepository implements IVisitorRepository {
       createdAt: model.createdAt,
     });
 
+    (visitor as any).apartment = (model as any).apartment ?? null;
     (visitor as any).resident = (model as any).resident ?? null;
     return visitor;
   }
@@ -35,7 +37,7 @@ export class VisitorRepository implements IVisitorRepository {
   async create(visitor: Visitor): Promise<Visitor> {
     const created = await VisitorModel.create({
       apartmentId: visitor.apartmentId,
-      residentId: visitor.residentId,
+      residentId: visitor.residentId ?? null,
       name: visitor.name,
       phone: visitor.phone,
       purpose: visitor.purpose,
@@ -53,7 +55,10 @@ export class VisitorRepository implements IVisitorRepository {
   async findById(id: number): Promise<Visitor | null> {
     const model = await VisitorModel.findOne({
       where: { id },
-      include: [{ model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] }],
+      include: [
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
+        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+      ],
     });
 
     if (!model) return null;
@@ -70,6 +75,10 @@ export class VisitorRepository implements IVisitorRepository {
           { phone: { [Op.iLike]: `%${query}%` } },
         ],
       },
+      include: [
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
+        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+      ],
       order: [["expectedAt", "ASC"]],
       limit: 10,
     });
@@ -93,7 +102,10 @@ export class VisitorRepository implements IVisitorRepository {
 
     const { count, rows } = await VisitorModel.findAndCountAll({
       where,
-      include: [{ model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] }],
+      include: [
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
+        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+      ],
       limit: filters.pageSize,
       offset,
       order: [["createdAt", "DESC"]],
@@ -112,6 +124,10 @@ export class VisitorRepository implements IVisitorRepository {
 
     const { count, rows } = await VisitorModel.findAndCountAll({
       where: { apartmentId },
+      include: [
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
+        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+      ],
       limit: pagination.pageSize,
       offset,
       order: [["createdAt", "DESC"]],
@@ -128,7 +144,10 @@ export class VisitorRepository implements IVisitorRepository {
   async findCurrentlyInside(): Promise<Visitor[]> {
     const models = await VisitorModel.findAll({
       where: { status: VisitorStatus.CHECKED_IN },
-      include: [{ model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] }],
+      include: [
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
+        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+      ],
       order: [["checkedInAt", "ASC"]],
     });
 
@@ -150,15 +169,19 @@ export class VisitorRepository implements IVisitorRepository {
     await VisitorModel.update(
       {
         status: visitor.status,
-        checkedInAt: visitor.checkedInAt,
-        checkedOutAt: visitor.checkedOutAt,
-        loggedBySecurityId: visitor.loggedBySecurityId,
+        approvalRequestedAt: visitor.approvalRequestedAt ?? null,
+        checkedInAt: visitor.checkedInAt ?? null,
+        checkedOutAt: visitor.checkedOutAt ?? null,
+        loggedBySecurityId: visitor.loggedBySecurityId ?? null,
       },
       { where: { id: visitor.id } }
     );
 
-    const updated = await VisitorModel.findByPk(visitor.id);
-    return this.toEntity(updated!);
+    const updated = await this.findById(visitor.id!);
+    if (!updated) {
+      throw new Error(`Failed to retrieve updated visitor ${visitor.id}`);
+    }
+    return updated;
   }
 
   async delete(id: number): Promise<void> {
@@ -166,31 +189,45 @@ export class VisitorRepository implements IVisitorRepository {
   }
 
   async getDashboardMetrics(): Promise<VisitorDashboardMetrics> {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    const [visitorsToday, currentlyInside, completedVisits] = await Promise.all([
-      VisitorModel.count({ where: { createdAt: { [Op.gte]: startOfToday } } }),
-      VisitorModel.count({ where: { status: VisitorStatus.CHECKED_IN } }),
-      VisitorModel.findAll({
-        where: {
-          status: VisitorStatus.CHECKED_OUT,
-          checkedInAt: { [Op.ne]: null as any },
-          checkedOutAt: { [Op.ne]: null as any },
-        },
-        attributes: ["checkedInAt", "checkedOutAt"],
-      }),
-    ]);
+    const visitorsToday = await VisitorModel.count({
+      where: {
+        createdAt: { [Op.gte]: today },
+      },
+    });
 
-    let averageVisitDurationMinutes = 0;
-    if (completedVisits.length > 0) {
-      const totalMinutes = completedVisits.reduce((sum, v) => {
-        const durationMs = v.checkedOutAt!.getTime() - v.checkedInAt!.getTime();
-        return sum + durationMs / 60000;
-      }, 0);
-      averageVisitDurationMinutes = Math.round(totalMinutes / completedVisits.length);
+    const currentlyInside = await VisitorModel.count({
+      where: { status: VisitorStatus.CHECKED_IN },
+    });
+
+    const checkedOutVisitors = await VisitorModel.findAll({
+      where: {
+        status: VisitorStatus.CHECKED_OUT,
+        checkedInAt: { [Op.ne]: null as any },
+        checkedOutAt: { [Op.ne]: null as any },
+      },
+      attributes: ["checkedInAt", "checkedOutAt"],
+    });
+
+    let totalDurationMinutes = 0;
+    for (const v of checkedOutVisitors) {
+      if (v.checkedInAt && v.checkedOutAt) {
+        const diffMs = new Date(v.checkedOutAt).getTime() - new Date(v.checkedInAt).getTime();
+        totalDurationMinutes += diffMs / (1000 * 60);
+      }
     }
 
-    return { visitorsToday, currentlyInside, averageVisitDurationMinutes };
+    const averageVisitDurationMinutes =
+      checkedOutVisitors.length > 0
+        ? Math.round(totalDurationMinutes / checkedOutVisitors.length)
+        : 0;
+
+    return {
+      visitorsToday,
+      currentlyInside,
+      averageVisitDurationMinutes,
+    };
   }
 }
