@@ -43,7 +43,7 @@ router.post(
 router.get(
   "/my",
   jwtMiddleware,
-  rbacMiddleware(UserRole.RESIDENT),
+  rbacMiddleware(UserRole.RESIDENT, UserRole.ADMIN, UserRole.SECURITY),
   visitorController.listMyVisitors
 );
 
@@ -62,7 +62,7 @@ router.get(
   visitorController.searchPreRegistered
 );
 
-// Admin: metrics (today, inside, avg duration)
+// Admin / Security: metrics (today, inside, avg duration)
 router.get(
   "/dashboard",
   jwtMiddleware,
@@ -70,11 +70,11 @@ router.get(
   visitorController.getDashboardMetrics
 );
 
-// Admin / Security: full visitor log, filterable
+// Admin / Security / Resident: full visitor log, filterable
 router.get(
   "/",
   jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN, UserRole.SECURITY),
+  rbacMiddleware(UserRole.ADMIN, UserRole.SECURITY, UserRole.RESIDENT),
   visitorController.listAll
 );
 
@@ -84,11 +84,11 @@ router.get(
 |--------------------------------------------------------------------------
 */
 
-// Resident: approve or reject a Pending visitor
+// Resident / Security: approve or reject a Pending visitor
 router.post(
   "/:id/respond",
   jwtMiddleware,
-  rbacMiddleware(UserRole.RESIDENT),
+  rbacMiddleware(UserRole.RESIDENT, UserRole.SECURITY),
   validateRespondToApproval,
   visitorController.respond
 );

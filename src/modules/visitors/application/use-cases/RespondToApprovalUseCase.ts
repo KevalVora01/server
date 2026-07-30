@@ -17,7 +17,7 @@ export class RespondToApprovalUseCase {
       throw new VisitorNotFoundError(dto.visitorId);
     }
 
-    if (visitor.residentId !== dto.residentId) {
+    if (dto.residentId && visitor.residentId !== dto.residentId) {
       throw new UnauthorizedVisitorAccessError();
     }
 

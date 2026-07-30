@@ -91,15 +91,10 @@ export class VisitorController {
       const authReq = req as AuthenticatedRequest;
       const resident = await this.residentRepository.findByUserId(authReq.user.userId);
 
-      if (!resident) {
-        res.status(404).json(ApiResponse.error("Resident profile not found"));
-        return;
-      }
-
       const visitor = await this.respondToApprovalUseCase.execute({
         visitorId: Number(req.params.id),
         decision: req.body.decision,
-        residentId: resident.id!,
+        residentId: resident?.id,
       });
 
       res.status(200).json(
