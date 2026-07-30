@@ -1,10 +1,10 @@
 import cron from "node-cron";
 import { sendMaintenanceRemindersJob } from "../../modules/maintenance/container";
 import { promoteOccupantsJob } from "../../modules/residents/container";
-import { autoRejectExpiredApprovalsJob } from "../../modules/visitors/container";
+import { autoRejectExpiredApprovalsJob, deleteExpiredVisitorPhotosJob } from "../../modules/visitors/container";
 
 export function initScheduledJobs(): void {
-  cron.schedule("0 8 * * *", async () => {
+  cron.schedule("0 3 * * *", async () => {
     console.log("Running daily maintenance reminder job...");
     try {
       await sendMaintenanceRemindersJob.execute();
@@ -34,6 +34,17 @@ export function initScheduledJobs(): void {
       await autoRejectExpiredApprovalsJob.execute();
     } catch (err) {
       console.error("Visitor auto-reject job failed:", err);
+    }
+  });
+
+  // Delete visitor photos older than 30 days from Cloudinary.
+  // Runs daily at 3 AM to clean up storage during low-traffic hours.
+  cron.schedule("0 3 * * *", async () => {
+    console.log("Running expired visitor photos cleanup job...");
+    try {
+      await deleteExpiredVisitorPhotosJob.execute();
+    } catch (err) {
+      console.error("Visitor photo cleanup job failed:", err);
     }
   });
 }

@@ -1,5 +1,8 @@
 import { IVisitorRepository } from "../../domain/repositories/IVisitorRepository";
 import { IVisitorNotifier } from "../../domain/services/IVisitorNotifier";
+import { getIO } from "../../../../shared/socket/socket.server";
+import { Rooms } from "../../../../shared/socket/socket.rooms";
+import { SOCKET_EVENTS } from "../../../../shared/socket/socket.events";
 
 const TIMEOUT_MINUTES = 10;
 
@@ -17,6 +20,14 @@ export class AutoRejectExpiredApprovalsJob {
       visitor.reject();
       await this.visitorRepository.update(visitor);
       await this.visitorNotifier.notifyApprovalTimedOut(visitor);
+
+      // Notify security in real-time
+      try {
+        getIO().to(Rooms.role("security")).emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+          visitorId: visitor.id,
+          status: "Rejected",
+        });
+      } catch { /* socket not initialized */ }
     }
   }
 }

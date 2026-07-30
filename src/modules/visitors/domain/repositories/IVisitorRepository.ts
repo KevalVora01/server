@@ -16,6 +16,8 @@ export interface IVisitorRepository {
   findByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Visitor>>;
   findCurrentlyInside(): Promise<Visitor[]>;
   findAllExpiredPending(cutoff: Date): Promise<Visitor[]>;
+  findAllWithExpiredPhotos(cutoff: Date): Promise<Visitor[]>;
+  findAllPreRegisteredApproved(): Promise<Visitor[]>;
   update(visitor: Visitor): Promise<Visitor>;
   delete(id: number): Promise<void>;
   getDashboardMetrics(): Promise<VisitorDashboardMetrics>;

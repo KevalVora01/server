@@ -18,4 +18,15 @@ export class CloudinaryService {
     const uploads = files.map((file) => this.uploadImage(file.buffer, folder));
     return Promise.all(uploads);
   }
+
+  async deleteImage(photoUrl: string): Promise<void> {
+    try {
+      const parts = photoUrl.split("/");
+      const folderAndFile = parts.slice(parts.indexOf("upload") + 1).join("/");
+      const publicId = folderAndFile.replace(/\.[^.]+$/, "");
+      await cloudinary.uploader.destroy(publicId);
+    } catch {
+      console.error("Failed to delete image from Cloudinary:", photoUrl);
+    }
+  }
 }

@@ -9,7 +9,7 @@ export class CheckInVisitorUseCase {
     private readonly visitorNotifier?: IVisitorNotifier,
   ) {}
 
-  async execute(visitorId: number, securityUserId: number): Promise<Visitor> {
+  async execute(visitorId: number, securityUserId: number, photoUrl?: string): Promise<Visitor> {
     const visitor = await this.visitorRepository.findById(visitorId);
 
     if (!visitor) {
@@ -20,6 +20,10 @@ export class CheckInVisitorUseCase {
       visitor.checkIn(securityUserId);
     } catch {
       throw new VisitorNotApprovedError();
+    }
+
+    if (photoUrl) {
+      visitor.setPhoto(photoUrl);
     }
 
     const updated = await this.visitorRepository.update(visitor);

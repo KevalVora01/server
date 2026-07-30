@@ -21,11 +21,12 @@ interface VisitorAttributes {
   checkedInAt: Date | null;
   checkedOutAt: Date | null;
   loggedBySecurityId: number | null;
+  photoUploadedAt: Date | null;
   createdAt: Date;
 }
 
 interface VisitorCreationAttributes
-  extends Optional<VisitorAttributes, "id" | "photoUrl" | "vehicleNumber" | "expectedAt" | "status" | "approvalRequestedAt" | "checkedInAt" | "checkedOutAt" | "loggedBySecurityId" | "createdAt"> { }
+  extends Optional<VisitorAttributes, "id" | "photoUrl" | "vehicleNumber" | "expectedAt" | "status" | "approvalRequestedAt" | "checkedInAt" | "checkedOutAt" | "loggedBySecurityId" | "photoUploadedAt" | "createdAt"> { }
 
 export class VisitorModel
   extends Model<VisitorAttributes, VisitorCreationAttributes>
@@ -45,6 +46,7 @@ export class VisitorModel
   declare checkedInAt: Date | null;
   declare checkedOutAt: Date | null;
   declare loggedBySecurityId: number | null;
+  declare photoUploadedAt: Date | null;
   declare createdAt: Date;
 }
 
@@ -124,6 +126,10 @@ VisitorModel.init(
         model: UserModel,
         key: "id",
       },
+    },
+    photoUploadedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
     createdAt: {
       type: DataTypes.DATE,

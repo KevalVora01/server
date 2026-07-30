@@ -10,10 +10,14 @@ import { ListMyVisitorsUseCase } from "../../application/use-cases/ListMyVisitor
 import { ListCurrentlyInsideUseCase } from "../../application/use-cases/ListCurrentlyInsideUseCase";
 import { GetDashboardMetricsUseCase } from "../../application/use-cases/GetDashboardMetricsUseCase";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
+import { IVisitorRepository } from "../../domain/repositories/IVisitorRepository";
 import { CloudinaryService } from "../../../../shared/services/CloudinaryService";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
 import { SearchPreRegisteredVisitorsUseCase } from "../../application/use-cases/SearchPreRegisteredVisitorsUseCase";
+import { getIO } from "../../../../shared/socket/socket.server";
+import { Rooms } from "../../../../shared/socket/socket.rooms";
+import { SOCKET_EVENTS } from "../../../../shared/socket/socket.events";
 
 export class VisitorController {
   constructor(
@@ -29,8 +33,25 @@ export class VisitorController {
     private readonly getDashboardMetricsUseCase: GetDashboardMetricsUseCase,
     private readonly searchPreRegisteredVisitorsUseCase: SearchPreRegisteredVisitorsUseCase,
     private readonly residentRepository: IResidentRepository,
+    private readonly visitorRepository: IVisitorRepository,
     private readonly cloudinaryService: CloudinaryService,
   ) { }
+
+  findById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const visitor = await this.visitorRepository.findById(Number(req.params.id));
+      if (!visitor) {
+        res.status(404).json(ApiResponse.error("Visitor not found"));
+        return;
+      }
+      res.status(200).json(
+        ApiResponse.success(visitor.toResponseObject(), "Visitor fetched successfully")
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
   preRegister = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const authReq = req as AuthenticatedRequest;
@@ -51,6 +72,15 @@ export class VisitorController {
         vehicleNumber: req.body.vehicleNumber,
       });
 
+      // Notify security in real-time
+      try {
+        getIO().to(Rooms.role("security")).emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+          visitorId: visitor.id,
+          status: "Approved",
+          type: "pre_registered",
+        });
+      } catch { /* socket not initialized */ }
+
       res.status(201).json(
         ApiResponse.success(visitor.toResponseObject(), "Visitor pre-registered successfully")
       );
@@ -63,9 +93,9 @@ export class VisitorController {
     try {
       const authReq = req as AuthenticatedRequest;
 
-      const files = (req.files as Express.Multer.File[]) || [];
-      const photoUrl = files.length > 0
-        ? (await this.cloudinaryService.uploadImages(files, "visitors"))[0]
+      const file = req.file as Express.Multer.File | undefined;
+      const photoUrl = file
+        ? (await this.cloudinaryService.uploadImages([file], "visitors"))[0]
         : undefined;
 
       const visitor = await this.logWalkInVisitorUseCase.execute({
@@ -97,6 +127,14 @@ export class VisitorController {
         residentId: resident?.id,
       });
 
+      // Notify security in real-time
+      try {
+        getIO().to(Rooms.role("security")).emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+          visitorId: visitor.id,
+          status: visitor.toResponseObject().status,
+        });
+      } catch { /* socket not initialized */ }
+
       res.status(200).json(
         ApiResponse.success(visitor.toResponseObject(), `Visitor ${req.body.decision.toLowerCase()}d`)
       );
@@ -108,7 +146,13 @@ export class VisitorController {
   checkIn = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const authReq = req as AuthenticatedRequest;
-      const visitor = await this.checkInVisitorUseCase.execute(Number(req.params.id), authReq.user.userId);
+
+      const files = (req.files as Express.Multer.File[]) || [];
+      const photoUrl = files.length > 0
+        ? (await this.cloudinaryService.uploadImages(files, "visitors"))[0]
+        : undefined;
+
+      const visitor = await this.checkInVisitorUseCase.execute(Number(req.params.id), authReq.user.userId, photoUrl);
 
       res.status(200).json(
         ApiResponse.success(visitor.toResponseObject(), "Visitor checked in successfully")

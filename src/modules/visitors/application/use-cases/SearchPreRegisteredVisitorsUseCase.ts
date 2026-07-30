@@ -6,7 +6,7 @@ export class SearchPreRegisteredVisitorsUseCase {
 
   async execute(query: string): Promise<Visitor[]> {
     if (!query || query.trim().length < 2) {
-      return [];
+      return this.visitorRepository.findAllPreRegisteredApproved();
     }
 
     return this.visitorRepository.findByNameOrPhone(query.trim());

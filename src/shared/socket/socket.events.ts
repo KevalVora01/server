@@ -4,4 +4,5 @@ export const SOCKET_EVENTS = {
   COMPLAINT_STATUS_UPDATED: "complaint:statusUpdated",
   MESSAGE_NEW: "message:new",
   NOTIFICATION_NEW: "notification:new",
+  VISITOR_UPDATED: "visitor:updated",
 } as const;

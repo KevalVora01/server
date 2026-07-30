@@ -14,6 +14,7 @@ import { ListMyVisitorsUseCase } from "./application/use-cases/ListMyVisitorsUse
 import { ListCurrentlyInsideUseCase } from "./application/use-cases/ListCurrentlyInsideUseCase";
 import { GetDashboardMetricsUseCase } from "./application/use-cases/GetDashboardMetricsUseCase";
 import { AutoRejectExpiredApprovalsJob } from "./application/jobs/AutoRejectExpiredApprovalsJob";
+import { DeleteExpiredVisitorPhotosJob } from "./application/jobs/DeleteExpiredVisitorPhotosJob";
 
 import { VisitorController } from "./presentation/controllers/VisitorController";
 import { SearchPreRegisteredVisitorsUseCase } from "./application/use-cases/SearchPreRegisteredVisitorsUseCase";
@@ -41,6 +42,7 @@ const getDashboardMetricsUseCase = new GetDashboardMetricsUseCase(visitorReposit
 
 // Scheduled Job (exported so shared/jobs/scheduler.ts can register it)
 export const autoRejectExpiredApprovalsJob = new AutoRejectExpiredApprovalsJob(visitorRepository, visitorNotifier);
+export const deleteExpiredVisitorPhotosJob = new DeleteExpiredVisitorPhotosJob(visitorRepository, cloudinaryService);
 
 // Controller
 export const visitorController = new VisitorController(
@@ -56,5 +58,6 @@ export const visitorController = new VisitorController(
   getDashboardMetricsUseCase,
   searchPreRegisteredVisitorsUseCase,
   residentRepository,
+  visitorRepository,
   cloudinaryService,
 );

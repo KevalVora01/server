@@ -26,6 +26,7 @@ export class VisitorRepository implements IVisitorRepository {
       checkedInAt: model.checkedInAt,
       checkedOutAt: model.checkedOutAt,
       loggedBySecurityId: model.loggedBySecurityId,
+      photoUploadedAt: model.photoUploadedAt,
       createdAt: model.createdAt,
     });
 
@@ -47,6 +48,7 @@ export class VisitorRepository implements IVisitorRepository {
       expectedAt: visitor.expectedAt ?? null,
       status: visitor.status,
       approvalRequestedAt: visitor.approvalRequestedAt ?? null,
+      photoUploadedAt: visitor.photoUploadedAt ?? null,
     });
 
     return this.toEntity(created);
@@ -165,6 +167,33 @@ export class VisitorRepository implements IVisitorRepository {
     return models.map((m) => this.toEntity(m));
   }
 
+  async findAllWithExpiredPhotos(cutoff: Date): Promise<Visitor[]> {
+    const models = await VisitorModel.findAll({
+      where: {
+        photoUrl: { [Op.ne]: null },
+        photoUploadedAt: { [Op.lt]: cutoff },
+      },
+    });
+
+    return models.map((m) => this.toEntity(m));
+  }
+
+  async findAllPreRegisteredApproved(): Promise<Visitor[]> {
+    const models = await VisitorModel.findAll({
+      where: {
+        isPreRegistered: true,
+        status: VisitorStatus.APPROVED,
+      },
+      include: [
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
+        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+      ],
+      order: [["expectedAt", "ASC"]],
+    });
+
+    return models.map((m) => this.toEntity(m));
+  }
+
   async update(visitor: Visitor): Promise<Visitor> {
     await VisitorModel.update(
       {
@@ -173,6 +202,8 @@ export class VisitorRepository implements IVisitorRepository {
         checkedInAt: visitor.checkedInAt ?? null,
         checkedOutAt: visitor.checkedOutAt ?? null,
         loggedBySecurityId: visitor.loggedBySecurityId ?? null,
+        photoUrl: visitor.photoUrl ?? null,
+        photoUploadedAt: visitor.photoUploadedAt ?? null,
       },
       { where: { id: visitor.id } }
     );

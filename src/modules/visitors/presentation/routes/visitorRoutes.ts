@@ -84,6 +84,14 @@ router.get(
 |--------------------------------------------------------------------------
 */
 
+// Resident / Security: get visitor by ID
+router.get(
+  "/:id",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT, UserRole.SECURITY, UserRole.ADMIN),
+  visitorController.findById
+);
+
 // Resident / Security: approve or reject a Pending visitor
 router.post(
   "/:id/respond",
@@ -93,11 +101,12 @@ router.post(
   visitorController.respond
 );
 
-// Security: mark visitor as entered
+// Security: mark visitor as entered (+ optional photo)
 router.patch(
   "/:id/check-in",
   jwtMiddleware,
   rbacMiddleware(UserRole.SECURITY),
+  uploadMiddleware.single("photo"),
   visitorController.checkIn
 );
 

@@ -22,6 +22,7 @@ export interface VisitorProps {
   checkedInAt?: Date | null;
   checkedOutAt?: Date | null;
   loggedBySecurityId?: number | null;
+  photoUploadedAt?: Date | null;
   createdAt: Date;
 }
 
@@ -33,7 +34,7 @@ export class Visitor {
   }
 
   public static createPreRegistered(
-    props: Omit<VisitorProps, "id" | "status" | "isPreRegistered" | "approvalRequestedAt" | "checkedInAt" | "checkedOutAt" | "loggedBySecurityId" | "createdAt" | "photoUrl">
+    props: Omit<VisitorProps, "id" | "status" | "isPreRegistered" | "approvalRequestedAt" | "checkedInAt" | "checkedOutAt" | "loggedBySecurityId" | "createdAt" | "photoUrl" | "photoUploadedAt">
   ): Visitor {
     return new Visitor({
       ...props,
@@ -45,6 +46,7 @@ export class Visitor {
       checkedInAt: null,
       checkedOutAt: null,
       loggedBySecurityId: null,
+      photoUploadedAt: null,
       createdAt: new Date(),
     });
   }
@@ -60,6 +62,7 @@ export class Visitor {
       approvalRequestedAt: new Date(),
       checkedInAt: null,
       checkedOutAt: null,
+      photoUploadedAt: props.photoUrl ? new Date() : null,
       createdAt: new Date(),
     });
   }
@@ -124,6 +127,10 @@ export class Visitor {
     return this.props.loggedBySecurityId;
   }
 
+  get photoUploadedAt(): Date | null | undefined {
+    return this.props.photoUploadedAt;
+  }
+
   get createdAt(): Date {
     return this.props.createdAt;
   }
@@ -163,6 +170,16 @@ export class Visitor {
     this.props.checkedOutAt = new Date();
   }
 
+  clearPhoto(): void {
+    this.props.photoUrl = null;
+    this.props.photoUploadedAt = null;
+  }
+
+  setPhoto(photoUrl: string): void {
+    this.props.photoUrl = photoUrl;
+    this.props.photoUploadedAt = new Date();
+  }
+
   toResponseObject() {
     return {
       id: this.props.id,
@@ -180,6 +197,7 @@ export class Visitor {
       checkedInAt: this.props.checkedInAt,
       checkedOutAt: this.props.checkedOutAt,
       loggedBySecurityId: this.props.loggedBySecurityId,
+      photoUploadedAt: this.props.photoUploadedAt,
       createdAt: this.props.createdAt,
       resident: (this as any).resident ?? null,
       apartment: (this as any).apartment ?? null,
