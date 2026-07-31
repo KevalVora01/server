@@ -15,7 +15,7 @@ export class CheckInVisitorUseCase {
     if (!visitor) {
       throw new VisitorNotFoundError(visitorId);
     }
-
+    
     try {
       visitor.checkIn(securityUserId);
     } catch {

@@ -67,10 +67,11 @@ router.post(
   rbacMiddleware(UserRole.ADMIN),
   async (req, res, next) => {
     try {
-      await sendMaintenanceRemindersJob.execute();
+      const result = await sendMaintenanceRemindersJob.execute();
       res.status(200).json({
         success: true,
         message: "Overdue penalties and reminders processed successfully",
+        data: result,
       });
     } catch (error) {
       next(error);
