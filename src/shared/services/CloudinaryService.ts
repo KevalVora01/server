@@ -24,9 +24,11 @@ export class CloudinaryService {
       const parts = photoUrl.split("/");
       const folderAndFile = parts.slice(parts.indexOf("upload") + 1).join("/");
       const publicId = folderAndFile.replace(/\.[^.]+$/, "");
-      await cloudinary.uploader.destroy(publicId);
-    } catch {
-      console.error("Failed to delete image from Cloudinary:", photoUrl);
+      console.log("[CloudinaryService] Deleting image, publicId:", publicId);
+      const result = await cloudinary.uploader.destroy(publicId);
+      console.log("[CloudinaryService] Delete result:", result);
+    } catch (err) {
+      console.error("[CloudinaryService] Failed to delete image from Cloudinary:", photoUrl, err);
     }
   }
 }

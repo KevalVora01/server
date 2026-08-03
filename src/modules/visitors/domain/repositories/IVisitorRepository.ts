@@ -6,6 +6,7 @@ export interface ListVisitorsFilters extends PaginatedRequest {
   status?: VisitorStatus;
   apartmentId?: number;
   search?: string;
+  loggedOnly?: boolean;
 }
 
 export interface IVisitorRepository {
@@ -13,7 +14,7 @@ export interface IVisitorRepository {
   findById(id: number): Promise<Visitor | null>;
   findByNameOrPhone(query: string): Promise<Visitor[]>;
   findAll(filters: ListVisitorsFilters): Promise<PaginatedResult<Visitor>>;
-  findByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Visitor>>;
+  findByApartmentId(apartmentId: number, pagination: PaginatedRequest, filters?: { status?: VisitorStatus; search?: string }): Promise<PaginatedResult<Visitor>>;
   findCurrentlyInside(): Promise<Visitor[]>;
   findAllExpiredPending(cutoff: Date): Promise<Visitor[]>;
   findAllWithExpiredPhotos(cutoff: Date): Promise<Visitor[]>;

@@ -26,6 +26,7 @@ export class CancelPreRegisteredVisitorUseCase {
       throw new Error("Cannot cancel a visitor who has already checked in");
     }
 
-    await this.visitorRepository.delete(visitorId);
+    visitor.cancel();
+    await this.visitorRepository.update(visitor);
   }
 }

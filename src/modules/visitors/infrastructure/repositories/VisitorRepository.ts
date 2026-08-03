@@ -91,7 +91,11 @@ export class VisitorRepository implements IVisitorRepository {
   async findAll(filters: ListVisitorsFilters): Promise<PaginatedResult<Visitor>> {
     const where: Record<string, unknown> = {};
 
-    if (filters.status) where.status = filters.status;
+    if (filters.status) {
+      where.status = filters.status;
+    } else if (filters.loggedOnly) {
+      where.status = { [Op.in]: [VisitorStatus.CHECKED_OUT, VisitorStatus.CANCELLED, VisitorStatus.REJECTED] };
+    }
     if (filters.apartmentId) where.apartmentId = filters.apartmentId;
     if (filters.search) {
       where[Op.or as any] = [
@@ -121,11 +125,20 @@ export class VisitorRepository implements IVisitorRepository {
     );
   }
 
-  async findByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Visitor>> {
+  async findByApartmentId(apartmentId: number, pagination: PaginatedRequest, filters?: { status?: VisitorStatus; search?: string }): Promise<PaginatedResult<Visitor>> {
     const offset = (pagination.pageNumber - 1) * pagination.pageSize;
 
+    const where: Record<string, unknown> = { apartmentId };
+    if (filters?.status) where.status = filters.status;
+    if (filters?.search) {
+      where[Op.or as any] = [
+        { name: { [Op.iLike]: `%${filters.search}%` } },
+        { phone: { [Op.iLike]: `%${filters.search}%` } },
+      ];
+    }
+
     const { count, rows } = await VisitorModel.findAndCountAll({
-      where: { apartmentId },
+      where,
       include: [
         { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
         { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },

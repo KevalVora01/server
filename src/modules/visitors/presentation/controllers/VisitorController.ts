@@ -207,6 +207,9 @@ export class VisitorController {
       const result = await this.listMyVisitorsUseCase.execute(resident.id!, {
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
+      }, {
+        status: req.query.status as any,
+        search: req.query.search as string | undefined,
       });
 
       res.status(200).json(
@@ -240,6 +243,7 @@ export class VisitorController {
         status: req.query.status as any,
         apartmentId: req.query.apartmentId ? Number(req.query.apartmentId) : undefined,
         search: req.query.search as string | undefined,
+        loggedOnly: req.query.loggedOnly === 'true',
       });
 
       res.status(200).json(

@@ -16,8 +16,17 @@ const preRegisterVisitorSchema = Joi.object({
     'string.empty': 'Purpose is required',
   }),
 
-  expectedAt: Joi.date().iso().required().messages({
-    'any.required': 'Expected arrival time is required',
+  expectedAt: Joi.date().iso().custom((value, helpers) => {
+    const inputDate = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (inputDate < today) {
+      return helpers.error('date.greater');
+    }
+    return value;
+  }).required().messages({
+    'any.required': 'Expected arrival date is required',
+    'date.greater': 'Expected arrival date cannot be in the past',
   }),
 
   vehicleNumber: Joi.string().trim().max(20).optional().allow(''),

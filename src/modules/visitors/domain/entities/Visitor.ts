@@ -4,6 +4,7 @@ export enum VisitorStatus {
   REJECTED = "Rejected",
   CHECKED_IN = "CheckedIn",
   CHECKED_OUT = "CheckedOut",
+  CANCELLED = "Cancelled",
 }
 
 export interface VisitorProps {
@@ -151,6 +152,10 @@ export class Visitor {
       throw new Error("Only a pending visitor can be rejected");
     }
     this.props.status = VisitorStatus.REJECTED;
+  }
+
+  cancel(): void {
+    this.props.status = VisitorStatus.CANCELLED;
   }
 
   checkIn(securityUserId: number): void {
