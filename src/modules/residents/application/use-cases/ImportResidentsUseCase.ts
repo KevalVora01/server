@@ -219,15 +219,43 @@ export class ImportResidentsUseCase {
     const transaction = await sequelize.transaction();
     try {
       for (const row of uniqueValidRows) {
-        // 1. Verify User doesn't already exist with this email
+        // 1. Check if a user with this email already exists
         const existingUser = await this.userRepository.findByEmail(row.email);
-        if (existingUser) {
+
+        let createdUser: any;
+
+        if (existingUser && existingUser.isActive) {
+          // Active user — cannot import duplicate
           failedItems.push({
             row: row.rowNum,
             identifier: row.email,
-            reason: `User with this email already exists in database`,
+            reason: `User with this email already exists and is active`,
           });
           continue;
+        }
+
+        if (existingUser && !existingUser.isActive) {
+          // Dormant user — reactivate and reuse their account
+          const passwordHash = await this.passwordHasher.hash(row.password);
+          existingUser.updatePassword(passwordHash);
+          existingUser.updateName(row.name);
+          existingUser.updatePhone(row.phone);
+          existingUser.reactivate();
+          existingUser.requirePasswordReset();
+          createdUser = await this.userRepository.update(existingUser);
+        } else {
+          // No existing user — create new
+          const passwordHash = await this.passwordHasher.hash(row.password);
+          createdUser = await UserModel.create(
+            {
+              name: row.name,
+              email: row.email,
+              phone: row.phone,
+              passwordHash,
+              role: UserRole.RESIDENT,
+            },
+            { transaction }
+          );
         }
 
         // 2. Resolve Apartment
@@ -260,22 +288,7 @@ export class ImportResidentsUseCase {
           continue;
         }
 
-        // 4. Hash Password
-        const passwordHash = await this.passwordHasher.hash(row.password);
-
-        // 5. Create User
-        const createdUser = await UserModel.create(
-          {
-            name: row.name,
-            email: row.email,
-            phone: row.phone,
-            passwordHash,
-            role: UserRole.RESIDENT,
-          },
-          { transaction }
-        );
-
-        // 6. Create Resident
+        // 4. Create Resident
         await ResidentModel.create(
           {
             userId: createdUser.id,

@@ -15,13 +15,38 @@ export class CreateResidentUseCase {
   ) { }
 
   async execute(dto: CreateResidentDto): Promise<Resident> {
-    // 1. Check user with this email doesn't already exist
+    // 1. Check if a user with this email already exists
     const existingUser = await this.userRepository.findByEmail(dto.email);
-    if (existingUser) {
+
+    if (existingUser && existingUser.isActive) {
       throw new UserAlreadyExistsError();
     }
 
-    // 2. Check apartment doesn't already have an active resident
+    let savedUser: User;
+
+    if (existingUser && !existingUser.isActive) {
+      // 2a. Dormant user exists — reactivate and reuse their account
+      const passwordHash = await this.passwordHasher.hash(dto.password);
+      existingUser.updatePassword(passwordHash);
+      existingUser.updateName(dto.name);
+      existingUser.updatePhone(dto.phone);
+      existingUser.reactivate();
+      existingUser.requirePasswordReset();
+      savedUser = await this.userRepository.update(existingUser);
+    } else {
+      // 2b. No existing user — create a new one
+      const passwordHash = await this.passwordHasher.hash(dto.password);
+      const userInstance = User.create({
+        name: dto.name,
+        email: dto.email,
+        phone: dto.phone,
+        passwordHash,
+        role: UserRole.RESIDENT,
+      });
+      savedUser = await this.userRepository.create(userInstance);
+    }
+
+    // 3. Check apartment doesn't already have an active resident
     if (dto.apartmentId) {
       const existingActiveResident = await this.residentRepository.findActiveByApartmentId(dto.apartmentId);
       if (existingActiveResident) {
@@ -29,19 +54,9 @@ export class CreateResidentUseCase {
       }
     }
 
-    // 3. Create the user row with role = RESIDENT
-    const passwordHash = await this.passwordHasher.hash(dto.password);
-    const userInstance = User.create({
-      name: dto.name,
-      email: dto.email,
-      phone: dto.phone,
-      passwordHash,
-      role: UserRole.RESIDENT,
-    });
-    const savedUser = await this.userRepository.create(userInstance);
-
-    // 4. Create the resident row — Admin-created residents are always the Owner by default.
-    //    Tenants are only ever created via the Tenant Request approval workflow, never here.
+    // 4. Create a new resident row — always create fresh, even if user was reused.
+    //    The old deactivated resident record stays untouched as historical data.
+    //    Admin-created residents are always owners by default.
     const residentInstance = Resident.create({
       userId: savedUser.id!,
       apartmentId: dto.apartmentId,
