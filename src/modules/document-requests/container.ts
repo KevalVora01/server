@@ -29,7 +29,7 @@ const getMyRequestsUseCase = new GetMyRequestsUseCase(documentRequestRepository)
 const getReceivedRequestsUseCase = new GetReceivedRequestsUseCase(documentRequestRepository);
 const uploadDocumentUseCase = new UploadDocumentUseCase(documentRequestRepository, cloudinaryService, documentRequestNotifier);
 const rejectRequestUseCase = new RejectRequestUseCase(documentRequestRepository, documentRequestNotifier);
-const cancelRequestUseCase = new CancelRequestUseCase(documentRequestRepository);
+const cancelRequestUseCase = new CancelRequestUseCase(documentRequestRepository, documentRequestNotifier);
 const bulkRecordDocumentVotesUseCase = new BulkRecordDocumentVotesUseCase(
   documentRequestRepository,
   documentRequestVoteRepository,

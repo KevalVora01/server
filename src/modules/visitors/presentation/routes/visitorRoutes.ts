@@ -20,11 +20,12 @@ const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
 |--------------------------------------------------------------------------
 */
 
-// Resident: pre-register an expected visitor
+// Resident: pre-register an expected visitor (+ optional photo)
 router.post(
   "/pre-register",
   jwtMiddleware,
   rbacMiddleware(UserRole.RESIDENT),
+  uploadMiddleware.single("photo"),
   validatePreRegisterVisitor,
   visitorController.preRegister
 );

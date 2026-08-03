@@ -17,6 +17,7 @@ export type NotificationType =
   | "document_request_approved"
   | "document_request_uploaded"
   | "document_request_rejected"
+  | "document_request_cancelled"
   | "visitor_approval_needed"
   | "visitor_approval_timed_out"
   | "visitor_checked_in";
@@ -31,6 +32,7 @@ export interface NotificationDataMap {
   document_request_approved: { documentRequestId: number; status: string };
   document_request_uploaded: { documentRequestId: number; status: string };
   document_request_rejected: { documentRequestId: number; status: string };
+  document_request_cancelled: { documentRequestId: number };
 }
 
 export interface NotificationProps {

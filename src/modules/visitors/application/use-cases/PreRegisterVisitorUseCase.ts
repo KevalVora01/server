@@ -25,6 +25,7 @@ export class PreRegisterVisitorUseCase {
       purpose: dto.purpose,
       expectedAt: dto.expectedAt,
       vehicleNumber: dto.vehicleNumber,
+      photoUrl: dto.photoUrl,
     });
 
     return this.visitorRepository.create(visitor);

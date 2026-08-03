@@ -180,6 +180,23 @@ export class VisitorRepository implements IVisitorRepository {
     return models.map((m) => this.toEntity(m));
   }
 
+  async findAllExpiredExpectedVisits(): Promise<Visitor[]> {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const models = await VisitorModel.findAll({
+      where: {
+        status: { [Op.in]: [VisitorStatus.APPROVED, VisitorStatus.PENDING] },
+        expectedAt: {
+          [Op.ne]: null,
+          [Op.lt]: startOfToday,
+        },
+      },
+    });
+
+    return models.map((m) => this.toEntity(m));
+  }
+
   async findAllWithExpiredPhotos(cutoff: Date): Promise<Visitor[]> {
     const models = await VisitorModel.findAll({
       where: {

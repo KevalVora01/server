@@ -94,4 +94,38 @@ export class DocumentRequestNotifier implements IDocumentRequestNotifier {
       console.error("Failed to send document-request status change notification:", error);
     }
   }
+
+  async notifyCancelled(request: DocumentRequest): Promise<void> {
+    try {
+      const docName = request.customDocumentName || request.documentType;
+
+      // Notify requester
+      const requesterResident = await ResidentModel.findByPk(request.requesterId);
+      if (requesterResident?.userId) {
+        await notificationService.notify(
+          requesterResident.userId,
+          "document_request_cancelled",
+          "Document Request Cancelled",
+          `Your document request for "${docName}" has been cancelled.`,
+          { documentRequestId: request.id }
+        );
+      }
+
+      // Notify target owner if different from requester
+      if (request.targetId && request.targetId !== request.requesterId) {
+        const targetResident = await ResidentModel.findByPk(request.targetId);
+        if (targetResident?.userId && targetResident.userId !== requesterResident?.userId) {
+          await notificationService.notify(
+            targetResident.userId,
+            "document_request_cancelled",
+            "Document Request Cancelled",
+            `A document request for "${docName}" has been cancelled.`,
+            { documentRequestId: request.id }
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Failed to send document-request-cancelled notification:", error);
+    }
+  }
 }

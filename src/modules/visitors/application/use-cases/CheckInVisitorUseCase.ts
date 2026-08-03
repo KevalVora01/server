@@ -1,7 +1,7 @@
 import { Visitor } from "../../domain/entities/Visitor";
 import { IVisitorRepository } from "../../domain/repositories/IVisitorRepository";
 import { IVisitorNotifier } from "../../domain/services/IVisitorNotifier";
-import { VisitorNotFoundError, VisitorNotApprovedError } from "../../domain/errors/VisitorErrors";
+import { VisitorNotFoundError, VisitorNotApprovedError, VisitorPhotoRequiredError } from "../../domain/errors/VisitorErrors";
 
 export class CheckInVisitorUseCase {
   constructor(
@@ -24,6 +24,10 @@ export class CheckInVisitorUseCase {
 
     if (photoUrl) {
       visitor.setPhoto(photoUrl);
+    }
+
+    if (!visitor.photoUrl) {
+      throw new VisitorPhotoRequiredError();
     }
 
     const updated = await this.visitorRepository.update(visitor);

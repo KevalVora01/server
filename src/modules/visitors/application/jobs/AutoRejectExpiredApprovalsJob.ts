@@ -13,15 +13,30 @@ export class AutoRejectExpiredApprovalsJob {
   ) { }
 
   async execute(): Promise<void> {
+    // 1. Reject pending walk-in approvals exceeding 10 minutes timeout
     const cutoff = new Date(Date.now() - TIMEOUT_MINUTES * 60 * 1000);
-    const expired = await this.visitorRepository.findAllExpiredPending(cutoff);
+    const expiredPending = await this.visitorRepository.findAllExpiredPending(cutoff);
 
-    for (const visitor of expired) {
+    for (const visitor of expiredPending) {
       visitor.reject();
       await this.visitorRepository.update(visitor);
       await this.visitorNotifier.notifyApprovalTimedOut(visitor);
 
       // Notify security in real-time
+      try {
+        getIO().to(Rooms.role("security")).emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+          visitorId: visitor.id,
+          status: "Rejected",
+        });
+      } catch { /* socket not initialized */ }
+    }
+
+    // 2. Reject pre-registered / expected visitors whose expected visit date has passed
+    const expiredExpected = await this.visitorRepository.findAllExpiredExpectedVisits();
+    for (const visitor of expiredExpected) {
+      visitor.rejectExpiredExpectedVisit();
+      await this.visitorRepository.update(visitor);
+
       try {
         getIO().to(Rooms.role("security")).emit(SOCKET_EVENTS.VISITOR_UPDATED, {
           visitorId: visitor.id,

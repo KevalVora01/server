@@ -35,19 +35,19 @@ export class Visitor {
   }
 
   public static createPreRegistered(
-    props: Omit<VisitorProps, "id" | "status" | "isPreRegistered" | "approvalRequestedAt" | "checkedInAt" | "checkedOutAt" | "loggedBySecurityId" | "createdAt" | "photoUrl" | "photoUploadedAt">
+    props: Omit<VisitorProps, "id" | "status" | "isPreRegistered" | "approvalRequestedAt" | "checkedInAt" | "checkedOutAt" | "loggedBySecurityId" | "createdAt" | "photoUploadedAt">
   ): Visitor {
     return new Visitor({
       ...props,
       isPreRegistered: true,
       status: VisitorStatus.APPROVED,
-      photoUrl: null,
+      photoUrl: props.photoUrl ?? null,
       vehicleNumber: props.vehicleNumber ?? null,
       approvalRequestedAt: null,
       checkedInAt: null,
       checkedOutAt: null,
       loggedBySecurityId: null,
-      photoUploadedAt: null,
+      photoUploadedAt: props.photoUrl ? new Date() : null,
       createdAt: new Date(),
     });
   }
@@ -150,6 +150,13 @@ export class Visitor {
   reject(): void {
     if (!this.isPending()) {
       throw new Error("Only a pending visitor can be rejected");
+    }
+    this.props.status = VisitorStatus.REJECTED;
+  }
+
+  rejectExpiredExpectedVisit(): void {
+    if (this.props.status === VisitorStatus.CHECKED_IN || this.props.status === VisitorStatus.CHECKED_OUT) {
+      return;
     }
     this.props.status = VisitorStatus.REJECTED;
   }

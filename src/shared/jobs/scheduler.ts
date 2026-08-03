@@ -4,6 +4,7 @@ import { promoteOccupantsJob } from "../../modules/residents/container";
 import { autoRejectExpiredApprovalsJob, deleteExpiredVisitorPhotosJob } from "../../modules/visitors/container";
 
 export function initScheduledJobs(): void {
+  // Job 1: Sends daily maintenance payment reminders to residents (Daily at 3:00 AM)
   cron.schedule("0 3 * * *", async () => {
     console.log("Running daily maintenance reminder job...");
     try {
@@ -13,10 +14,7 @@ export function initScheduledJobs(): void {
     }
   });
 
-  // Promote residents to "occupant" once their move-in date has arrived
-  // (covers future-dated tenant approvals) and demote the previous occupant
-  // (the owner). Runs hourly so a missed window is recovered the same day
-  // rather than depending on the server being alive at a single daily tick.
+  // Job 2: Promotes approved tenants to occupants once move-in date arrives (Hourly)
   cron.schedule("0 * * * *", async () => {
     console.log("Running occupant promotion job...");
     try {
@@ -26,9 +24,7 @@ export function initScheduledJobs(): void {
     }
   });
 
-  // Auto-reject walk-in visitor approval requests the resident never responded to.
-  // Runs every 2 minutes since the timeout window itself is only 5–10 minutes —
-  // an hourly or daily tick would leave visitors waiting at the gate far too long.
+  // Job 3: Auto-rejects pending walk-ins (>10m) and visitors past expected date (Every 2 minutes)
   cron.schedule("*/2 * * * *", async () => {
     try {
       await autoRejectExpiredApprovalsJob.execute();
@@ -37,8 +33,7 @@ export function initScheduledJobs(): void {
     }
   });
 
-  // Delete visitor photos older than 30 days from Cloudinary.
-  // Runs daily at 3 AM to clean up storage during low-traffic hours.
+  // Job 4: Deletes visitor photos older than 30 days from Cloudinary (Daily at 3:00 AM)
   cron.schedule("0 3 * * *", async () => {
     console.log("Running expired visitor photos cleanup job...");
     try {

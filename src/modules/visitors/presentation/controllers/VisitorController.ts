@@ -62,6 +62,12 @@ export class VisitorController {
         return;
       }
 
+      const file = req.file as Express.Multer.File | undefined;
+      const files = (req.files as Express.Multer.File[]) || (file ? [file] : []);
+      const photoUrl = files.length > 0
+        ? (await this.cloudinaryService.uploadImages(files, "visitors"))[0]
+        : undefined;
+
       const visitor = await this.preRegisterVisitorUseCase.execute({
         residentId: resident.id!,
         apartmentId: resident.apartmentId,
@@ -70,6 +76,7 @@ export class VisitorController {
         purpose: req.body.purpose,
         expectedAt: new Date(req.body.expectedAt),
         vehicleNumber: req.body.vehicleNumber,
+        photoUrl,
       });
 
       // Notify security in real-time
@@ -147,7 +154,8 @@ export class VisitorController {
     try {
       const authReq = req as AuthenticatedRequest;
 
-      const files = (req.files as Express.Multer.File[]) || [];
+      const file = req.file as Express.Multer.File | undefined;
+      const files = (req.files as Express.Multer.File[]) || (file ? [file] : []);
       const photoUrl = files.length > 0
         ? (await this.cloudinaryService.uploadImages(files, "visitors"))[0]
         : undefined;
