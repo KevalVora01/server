@@ -32,12 +32,18 @@ const createResidentSchema = Joi.object({
     'string.pattern.base': 'Phone must contain only numbers',
   }),
 
-  apartmentId: Joi.number().integer().optional().messages({
+  apartmentId: Joi.number().integer().required().messages({
     'number.base': 'Apartment ID must be a number',
+    'any.required': 'Apartment ID is required',
   }),
 });
 
 const updateResidentSchema = Joi.object({
+  apartmentId: Joi.number().integer().required().messages({
+    'number.base': 'Apartment ID must be a number',
+    'any.required': 'Apartment ID is required',
+  }),
+
   name: Joi.string().trim().min(2).max(100).optional().messages({
     'string.min': 'Name must be at least 2 characters',
     'string.max': 'Name must be at most 100 characters',
