@@ -26,10 +26,11 @@ const upload = multer({
 
 /*
 |--------------------------------------------------------------------------
-| Admin Only
+| Admin Only — full CRUD + import + promote
 |--------------------------------------------------------------------------
 */
 
+// Create a new resident
 router.post(
   "/",
   jwtMiddleware,
@@ -38,6 +39,7 @@ router.post(
   residentController.createResident
 );
 
+// Bulk import residents via CSV
 router.post(
   "/import",
   jwtMiddleware,
@@ -46,6 +48,7 @@ router.post(
   residentController.importResidents
 );
 
+// List all residents (with filters)
 router.get(
   "/",
   jwtMiddleware,
@@ -54,20 +57,7 @@ router.get(
   residentController.listResidents
 );
 
-router.get(
-  "/my/tenants",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.RESIDENT),
-  residentController.listApartmentTenants
-);
-
-router.get(
-  "/me",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.RESIDENT),
-  residentController.getMyResident
-);
-
+// Promote pending tenants to occupants
 router.post(
   "/promote-occupants",
   jwtMiddleware,
@@ -75,6 +65,7 @@ router.post(
   residentController.promoteOccupants
 );
 
+// Get resident by ID
 router.get(
   "/:id",
   jwtMiddleware,
@@ -82,6 +73,7 @@ router.get(
   residentController.getResident
 );
 
+// Update resident
 router.put(
   "/:id",
   jwtMiddleware,
@@ -90,11 +82,34 @@ router.put(
   residentController.updateResident
 );
 
+// Deactivate resident
 router.delete(
   "/:id",
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN),
   residentController.deactivateResident
+);
+
+/*
+|--------------------------------------------------------------------------
+| Resident Only — own data
+|--------------------------------------------------------------------------
+*/
+
+// List tenants in own apartment
+router.get(
+  "/my/tenants",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  residentController.listApartmentTenants
+);
+
+// Get own resident record
+router.get(
+  "/me",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  residentController.getMyResident
 );
 
 

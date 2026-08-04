@@ -16,11 +16,17 @@ const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
 
 /*
 |--------------------------------------------------------------------------
-| Static Segment Routes (Declared before any dynamic /:id route)
+| Static Segment Routes (declared before any dynamic /:id route)
 |--------------------------------------------------------------------------
 */
 
-// Resident: pre-register an expected visitor (+ optional photo)
+/*
+|--------------------------------------------------------------------------
+| Resident Only — pre-register + cancel + own visitors
+|--------------------------------------------------------------------------
+*/
+
+// Pre-register an expected visitor (+ optional photo)
 router.post(
   "/pre-register",
   jwtMiddleware,
@@ -30,7 +36,21 @@ router.post(
   visitorController.preRegister
 );
 
-// Security: log an unregistered walk-in visitor (+ photo)
+// Cancel a pre-registered visitor
+router.delete(
+  "/:id",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  visitorController.cancel
+);
+
+/*
+|--------------------------------------------------------------------------
+| Security Only — walk-in + check-in + check-out
+|--------------------------------------------------------------------------
+*/
+
+// Log an unregistered walk-in visitor (+ photo)
 router.post(
   "/walk-in",
   jwtMiddleware,
@@ -40,7 +60,45 @@ router.post(
   visitorController.logWalkIn
 );
 
-// Resident: own apartment's visitor history
+// Mark visitor as entered (+ optional photo)
+router.patch(
+  "/:id/check-in",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.SECURITY),
+  uploadMiddleware.single("photo"),
+  visitorController.checkIn
+);
+
+// Mark visitor as exited
+router.patch(
+  "/:id/check-out",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.SECURITY),
+  visitorController.checkOut
+);
+
+/*
+|--------------------------------------------------------------------------
+| Resident + Security — approve/reject pending visitors
+|--------------------------------------------------------------------------
+*/
+
+// Approve or reject a Pending visitor
+router.post(
+  "/:id/respond",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT, UserRole.SECURITY),
+  validateRespondToApproval,
+  visitorController.respond
+);
+
+/*
+|--------------------------------------------------------------------------
+| Resident + Admin + Security — read-only queries
+|--------------------------------------------------------------------------
+*/
+
+// Own apartment's visitor history
 router.get(
   "/my",
   jwtMiddleware,
@@ -48,7 +106,7 @@ router.get(
   visitorController.listMyVisitors
 );
 
-// Security / Admin: everyone currently inside
+// Everyone currently inside
 router.get(
   "/current",
   jwtMiddleware,
@@ -56,6 +114,7 @@ router.get(
   visitorController.listCurrentlyInside
 );
 
+// Search pre-registered visitors
 router.get(
   "/search",
   jwtMiddleware,
@@ -63,7 +122,7 @@ router.get(
   visitorController.searchPreRegistered
 );
 
-// Admin / Security: metrics (today, inside, avg duration)
+// Visitor dashboard metrics (today, inside, avg duration)
 router.get(
   "/dashboard",
   jwtMiddleware,
@@ -71,7 +130,7 @@ router.get(
   visitorController.getDashboardMetrics
 );
 
-// Admin / Security / Resident: full visitor log, filterable
+// Full visitor log, filterable
 router.get(
   "/",
   jwtMiddleware,
@@ -85,46 +144,12 @@ router.get(
 |--------------------------------------------------------------------------
 */
 
-// Resident / Security: get visitor by ID
+// Get visitor by ID
 router.get(
   "/:id",
   jwtMiddleware,
   rbacMiddleware(UserRole.RESIDENT, UserRole.SECURITY, UserRole.ADMIN),
   visitorController.findById
-);
-
-// Resident / Security: approve or reject a Pending visitor
-router.post(
-  "/:id/respond",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.RESIDENT, UserRole.SECURITY),
-  validateRespondToApproval,
-  visitorController.respond
-);
-
-// Security: mark visitor as entered (+ optional photo)
-router.patch(
-  "/:id/check-in",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.SECURITY),
-  uploadMiddleware.single("photo"),
-  visitorController.checkIn
-);
-
-// Security: mark visitor as exited
-router.patch(
-  "/:id/check-out",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.SECURITY),
-  visitorController.checkOut
-);
-
-// Resident: cancel a pre-registered visitor
-router.delete(
-  "/:id",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.RESIDENT),
-  visitorController.cancel
 );
 
 export default router;

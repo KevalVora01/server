@@ -21,7 +21,7 @@ const upload = multer({
 
 /*
 |--------------------------------------------------------------------------
-| Admin Only
+| Admin Only — import + update
 |--------------------------------------------------------------------------
 */
 
@@ -32,6 +32,20 @@ router.post(
   upload.single("file"),
   apartmentController.importApartments
 );
+
+router.put(
+  "/:id",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  validateUpdateApartment,
+  apartmentController.updateApartment
+);
+
+/*
+|--------------------------------------------------------------------------
+| Admin + Security + Resident — read only
+|--------------------------------------------------------------------------
+*/
 
 router.get(
   "/",
@@ -46,14 +60,6 @@ router.get(
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN, UserRole.SECURITY, UserRole.RESIDENT),
   apartmentController.getApartment
-);
-
-router.put(
-  "/:id",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN),
-  validateUpdateApartment,
-  apartmentController.updateApartment
 );
 
 export default router;

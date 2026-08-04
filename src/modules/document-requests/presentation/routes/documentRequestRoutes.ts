@@ -36,6 +36,12 @@ const upload = multer({
   },
 });
 
+/*
+|--------------------------------------------------------------------------
+| Resident Only — create + own requests
+|--------------------------------------------------------------------------
+*/
+
 router.post(
   "/",
   jwtMiddleware,
@@ -50,6 +56,12 @@ router.get(
   rbacMiddleware(UserRole.RESIDENT),
   documentRequestController.getMyRequests,
 );
+
+/*
+|--------------------------------------------------------------------------
+| Resident + Admin — received requests + upload/reject/cancel
+|--------------------------------------------------------------------------
+*/
 
 router.get(
   "/received-requests",
@@ -80,6 +92,12 @@ router.delete(
   rbacMiddleware(UserRole.RESIDENT, UserRole.ADMIN),
   documentRequestController.cancelRequest,
 );
+
+/*
+|--------------------------------------------------------------------------
+| Admin Only — detail + vote + finalize
+|--------------------------------------------------------------------------
+*/
 
 router.get(
   "/:id/detail",

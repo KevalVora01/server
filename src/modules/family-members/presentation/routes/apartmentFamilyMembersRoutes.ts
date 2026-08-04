@@ -8,6 +8,12 @@ import { UserRole } from "../../../auth/domain/entities/User";
 const router = Router();
 const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
 
+/*
+|--------------------------------------------------------------------------
+| Resident Only — list all family members in own apartment
+|--------------------------------------------------------------------------
+*/
+
 router.get(
   "/apartment",
   jwtMiddleware,
