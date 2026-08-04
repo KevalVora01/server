@@ -18,6 +18,8 @@ export interface TenantRequestProps {
 }
 
 export class TenantRequest {
+  public owner?: Record<string, unknown> | null;
+  public apartment?: Record<string, unknown> | null;
   private props: TenantRequestProps;
 
   constructor(props: TenantRequestProps) {
@@ -107,8 +109,8 @@ export class TenantRequest {
       status: this.props.status,
       createdAt: this.props.createdAt,
       decidedAt: this.props.decidedAt,
-      owner: (this as any).owner ?? null,
-      apartment: (this as any).apartment ?? null,
+      owner: this.owner ?? null,
+      apartment: this.apartment ?? null,
     };
   }
 }

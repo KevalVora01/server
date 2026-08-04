@@ -8,7 +8,7 @@ import { UserRole } from "../../../auth/domain/entities/User";
 export class ComplaintNotifier implements IComplaintNotifier {
   async notifyStatusChanged(complaint: Complaint, oldStatus: string): Promise<void> {
     try {
-      const resident = (complaint as any).resident;
+      const resident = complaint.resident as { userId?: number } | undefined;
       if (!resident?.userId) return;
 
       await notificationService.notify(
@@ -30,7 +30,8 @@ export class ComplaintNotifier implements IComplaintNotifier {
         include: [{ model: UserModel, as: "user", attributes: ["id", "name"] }],
       });
 
-      const residentName = (resident as any)?.user?.name ?? `Resident #${complaint.residentId}`;
+      const relRes = resident as (ResidentModel & { user?: { name?: string } }) | null;
+      const residentName = relRes?.user?.name ?? `Resident #${complaint.residentId}`;
 
       const admins = await UserModel.findAll({ where: { role: UserRole.ADMIN } });
 
@@ -52,18 +53,19 @@ export class ComplaintNotifier implements IComplaintNotifier {
 
   async notifyCommentAdded(complaint: Complaint, commentContent: string, senderUserId: number): Promise<void> {
     try {
-      const resident = (complaint as any).resident || await ResidentModel.findOne({
+      const resident = complaint.resident || await ResidentModel.findOne({
         where: { id: complaint.residentId },
         include: [{ model: UserModel, as: "user", attributes: ["id", "name"] }],
       });
-      const residentUserId = resident?.userId;
+      const relRes = resident as { userId?: number; user?: { name?: string } } | undefined;
+      const residentUserId = relRes?.userId;
 
       const bodyPreview = commentContent.length > 60
         ? `${commentContent.slice(0, 60)}...`
         : commentContent;
 
       if (senderUserId === residentUserId) {
-        const residentName = (resident as any)?.user?.name ?? `Resident #${complaint.residentId}`;
+        const residentName = relRes?.user?.name ?? `Resident #${complaint.residentId}`;
         const admins = await UserModel.findAll({ where: { role: UserRole.ADMIN } });
 
         await Promise.all(

@@ -12,6 +12,7 @@ import { GetDashboardMetricsUseCase } from "../../application/use-cases/GetDashb
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { IVisitorRepository } from "../../domain/repositories/IVisitorRepository";
 import { CloudinaryService } from "../../../../shared/services/CloudinaryService";
+import { VisitorStatus } from "../../domain/entities/Visitor";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
 import { SearchPreRegisteredVisitorsUseCase } from "../../application/use-cases/SearchPreRegisteredVisitorsUseCase";
@@ -244,7 +245,7 @@ export class VisitorController {
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
       }, {
-        status: req.query.status as any,
+        status: req.query.status ? (req.query.status as unknown as VisitorStatus) : undefined,
         search: req.query.search as string | undefined,
       });
 
@@ -276,7 +277,7 @@ export class VisitorController {
       const result = await this.listVisitorsUseCase.execute({
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
-        status: req.query.status as any,
+        status: req.query.status ? (req.query.status as unknown as VisitorStatus) : undefined,
         apartmentId: req.query.apartmentId ? Number(req.query.apartmentId) : undefined,
         search: req.query.search as string | undefined,
         loggedOnly: req.query.loggedOnly === 'true',

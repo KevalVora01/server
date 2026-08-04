@@ -11,6 +11,7 @@ import { GenerateInvoicePdfUseCase } from "../../application/use-cases/GenerateI
 import { GetDashboardMetricsUseCase } from "../../application/use-cases/GetDashboardMetricsUseCase";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
+import { InvoiceStatus } from "../../domain/entities/Invoice";
 import { UserRole } from "../../../auth/domain/entities/User";
 import { RequestingUser } from "../../../../shared/types/RequestingUser";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
@@ -94,7 +95,7 @@ export class MaintenanceController {
       const result = await this.listInvoicesUseCase.execute({
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
-        status: req.query.status as any,
+        status: req.query.status ? (req.query.status as unknown as InvoiceStatus) : undefined,
         month: req.query.month ? Number(req.query.month) : undefined,
         year: req.query.year ? Number(req.query.year) : undefined,
         search: req.query.search as string | undefined,

@@ -6,6 +6,11 @@ import { ResidentModel } from "../models/ResidentModel";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 
+interface ResidentWithRelations extends ResidentModel {
+  user?: UserModel | null;
+  apartment?: ApartmentModel | null;
+}
+
 export class ResidentRepository implements IResidentRepository {
 
   private toEntity(model: ResidentModel): Resident {
@@ -40,8 +45,7 @@ export class ResidentRepository implements IResidentRepository {
   }
 
   async findById(id: number): Promise<Resident | null> {
-    const model = await ResidentModel.findOne({
-      where: { id },
+    const model = await ResidentModel.findByPk(id, {
       include: [
         {
           model: UserModel,
@@ -58,9 +62,10 @@ export class ResidentRepository implements IResidentRepository {
 
     if (!model) return null;
 
+    const relModel = model as ResidentWithRelations;
     const resident = this.toEntity(model);
-    (resident as any).user = (model as any).user ?? null;
-    (resident as any).apartment = (model as any).apartment ?? null;
+    resident.user = relModel.user ?? null;
+    resident.apartment = relModel.apartment ?? null;
     return resident;
   }
 
@@ -74,9 +79,10 @@ export class ResidentRepository implements IResidentRepository {
     });
 
     if (!model) return null;
+    const relModel = model as ResidentWithRelations;
     const resident = this.toEntity(model);
-    (resident as any).user = (model as any).user ?? null;
-    (resident as any).apartment = (model as any).apartment ?? null;
+    resident.user = relModel.user ?? null;
+    resident.apartment = relModel.apartment ?? null;
     return resident;
   }
 
@@ -126,9 +132,10 @@ export class ResidentRepository implements IResidentRepository {
 
     return buildPaginatedResult(
       rows.map((row) => {
+        const relRow = row as ResidentWithRelations;
         const resident = this.toEntity(row);
-        (resident as any).user = (row as any).user ?? null;
-        (resident as any).apartment = (row as any).apartment ?? null;
+        resident.user = relRow.user ?? null;
+        resident.apartment = relRow.apartment ?? null;
         return resident;
       }),
       count,
@@ -150,8 +157,9 @@ export class ResidentRepository implements IResidentRepository {
     });
 
     return rows.map((row) => {
+      const relRow = row as ResidentWithRelations;
       const resident = this.toEntity(row);
-      (resident as any).user = (row as any).user ?? null;
+      resident.user = relRow.user ?? null;
       return resident;
     });
   }
@@ -170,8 +178,8 @@ export class ResidentRepository implements IResidentRepository {
       },
       { where: { id: resident.id } }
     );
-    const updated = await ResidentModel.findByPk(resident.id);
-    return this.toEntity(updated!);
+    const updated = await this.findById(resident.id!);
+    return updated!;
   }
 
   async deactivate(id: number): Promise<void> {
@@ -217,8 +225,9 @@ export class ResidentRepository implements IResidentRepository {
       ],
     });
     if (!model) return null;
+    const relModel = model as ResidentWithRelations;
     const resident = this.toEntity(model);
-    (resident as any).user = (model as any).user ?? null;
+    resident.user = relModel.user ?? null;
     return resident;
   }
 
@@ -236,8 +245,9 @@ export class ResidentRepository implements IResidentRepository {
     });
 
     return rows.map((row) => {
+      const relRow = row as ResidentWithRelations;
       const resident = this.toEntity(row);
-      (resident as any).user = (row as any).user ?? null;
+      resident.user = relRow.user ?? null;
       return resident;
     });
   }
@@ -255,8 +265,9 @@ export class ResidentRepository implements IResidentRepository {
     });
 
     return rows.map((row) => {
+      const relRow = row as ResidentWithRelations;
       const resident = this.toEntity(row);
-      (resident as any).user = (row as any).user ?? null;
+      resident.user = relRow.user ?? null;
       return resident;
     });
   }
@@ -274,8 +285,9 @@ export class ResidentRepository implements IResidentRepository {
     });
 
     return rows.map((row) => {
+      const relRow = row as ResidentWithRelations;
       const resident = this.toEntity(row);
-      (resident as any).user = (row as any).user ?? null;
+      resident.user = relRow.user ?? null;
       return resident;
     });
   }
@@ -294,11 +306,6 @@ export class ResidentRepository implements IResidentRepository {
   async promoteDueOccupants(): Promise<number> {
     const now = new Date();
 
-    // Find every active tenant whose move-in date has arrived but who is not
-    // yet marked as the occupant. These are the residents the cron must promote.
-    // Only tenants are promoted here — owners must never be auto-promoted, since
-    // an owner with a past move-in date would otherwise be re-promoted every run,
-    // flip-flopping occupancy with their current tenant.
     const due = await ResidentModel.findAll({
       where: {
         isActive: true,
@@ -313,17 +320,12 @@ export class ResidentRepository implements IResidentRepository {
     let changed = 0;
 
     for (const resident of due) {
-      // Promote this resident to occupant.
       const [promoted] = await ResidentModel.update(
         { isOccupant: true },
         { where: { id: resident.id } }
       );
       changed += promoted;
 
-      // The tenant now occupies the unit, so every other active occupant in the
-      // same apartment (typically the owner) must yield occupancy. This runs
-      // independently of the promotion above so the owner is always demoted once
-      // the tenant's move-in date has passed.
       await this.clearApartmentOccupants(resident.apartmentId, resident.id);
     }
 
@@ -331,7 +333,7 @@ export class ResidentRepository implements IResidentRepository {
   }
 
   async clearApartmentOccupants(apartmentId: number, exceptResidentId?: number): Promise<number> {
-    const where: any = {
+    const where: Record<string, unknown> = {
       apartmentId,
       isActive: true,
       isOccupant: true,

@@ -49,19 +49,20 @@ export class NoticeRepository implements INoticeRepository {
 
     if (!model) return null;
 
+    const relModel = model as NoticeModel & { admin?: UserModel | null };
     const notice = this.toEntity(model);
-    (notice as any).admin = (model as any).admin ?? null;
+    notice.admin = relModel.admin ?? null;
     return notice;
   }
 
   async findAll(filters: ListNoticesFilters): Promise<PaginatedResult<Notice>> {
-    const where: Record<string, unknown> = {};
+    const where: Record<string | symbol, unknown> = {};
 
     if (filters.isActive !== undefined) where.isActive = filters.isActive;
     if (filters.isPinned !== undefined) where.isPinned = filters.isPinned;
     if (filters.category) where.category = filters.category;
     if (filters.search) {
-      where[Op.or as any] = [
+      where[Op.or] = [
         { title: { [Op.iLike]: `%${filters.search}%` } },
         { body: { [Op.iLike]: `%${filters.search}%` } },
       ];
@@ -88,8 +89,9 @@ export class NoticeRepository implements INoticeRepository {
 
     return buildPaginatedResult(
       rows.map((row) => {
+        const relRow = row as NoticeModel & { admin?: UserModel | null };
         const notice = this.toEntity(row);
-        (notice as any).admin = (row as any).admin ?? null;
+        notice.admin = relRow.admin ?? null;
         return notice;
       }),
       count,

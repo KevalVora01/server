@@ -1,4 +1,4 @@
-import { Op, literal } from "sequelize";
+import { Op, literal, IncludeOptions } from "sequelize";
 import { IApartmentRepository, ListApartmentsFilters, ApartmentWithOccupancy } from "../../domain/repositories/IApartmentRepository";
 import { Apartment } from "../../domain/entities/Apartment";
 import { PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
@@ -54,10 +54,11 @@ export class ApartmentRepository implements IApartmentRepository {
 
     if (!model) return null;
 
+    const relModel = model as ApartmentModel & { residents?: Array<Record<string, unknown>> };
     const apartment = this.toEntity(model);
-    const isOccupied = (model as any).residents?.length > 0;
-    (apartment as any).resident = (model as any).residents?.[0] ?? null;
-    (apartment as any).isOccupied = isOccupied;
+    const isOccupied = (relModel.residents?.length ?? 0) > 0;
+    apartment.resident = relModel.residents?.[0] ?? null;
+    apartment.isOccupied = isOccupied;
     return apartment;
   }
 
@@ -70,7 +71,7 @@ export class ApartmentRepository implements IApartmentRepository {
   }
 
   async findAll(filters: ListApartmentsFilters): Promise<PaginatedResult<ApartmentWithOccupancy>> {
-    const where: any = {};
+    const where: Record<string | symbol, unknown> = {};
 
     if (filters.search) {
       const searchTerm = filters.search.trim().replace(/[-\s]/g, '');
@@ -82,7 +83,7 @@ export class ApartmentRepository implements IApartmentRepository {
 
     const offset = (filters.pageNumber - 1) * filters.pageSize;
 
-    const residentInclude: any = {
+    const residentInclude: Record<string, unknown> = {
       model: ResidentModel,
       as: "residents",
       where: { isOccupant: true, isActive: true },
@@ -104,7 +105,7 @@ export class ApartmentRepository implements IApartmentRepository {
 
     const { count, rows } = await ApartmentModel.findAndCountAll({
       where,
-      include: [residentInclude],
+      include: [residentInclude as unknown as IncludeOptions],
       limit: filters.pageSize,
       offset,
       order: [["block", "ASC"], ["floor_number", "ASC"], ["unit_number", "ASC"]],
@@ -114,7 +115,8 @@ export class ApartmentRepository implements IApartmentRepository {
 
     return buildPaginatedResult(
       rows.map((row) => {
-        const isOccupied = (row as any).residents?.length > 0;
+        const relRow = row as ApartmentModel & { residents?: Array<Record<string, unknown>> };
+        const isOccupied = (relRow.residents?.length ?? 0) > 0;
         return {
           apartment: this.toEntity(row),
           isOccupied,

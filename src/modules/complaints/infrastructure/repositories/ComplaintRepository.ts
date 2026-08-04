@@ -24,9 +24,10 @@ export class ComplaintRepository implements IComplaintRepository {
       resolvedAt: model.resolvedAt,
     });
 
-    (complaint as any).resident = (model as any).resident ?? null;
-    if ((model as any).images) {
-      (complaint as any).images = (model as any).images.map((img: any) => this.toImageEntity(img));
+    const relModel = model as ComplaintModel & { resident?: Record<string, unknown> | null; images?: ComplaintImageModel[] };
+    complaint.resident = relModel.resident ?? null;
+    if (relModel.images) {
+      complaint.images = relModel.images.map((img) => this.toImageEntity(img));
     }
     return complaint;
   }
@@ -101,13 +102,13 @@ export class ComplaintRepository implements IComplaintRepository {
   }
 
   async findAll(filters: ListComplaintsFilters): Promise<PaginatedResult<Complaint>> {
-    const where: Record<string, unknown> = {};
+    const where: Record<string | symbol, unknown> = {};
 
     if (filters.status) where.status = filters.status;
     if (filters.priority) where.priority = filters.priority;
     if (filters.residentId) where.residentId = filters.residentId;
     if (filters.search) {
-      where[Op.or as any] = [
+      where[Op.or] = [
         { title: { [Op.iLike]: `%${filters.search}%` } },
         { description: { [Op.iLike]: `%${filters.search}%` } },
       ];

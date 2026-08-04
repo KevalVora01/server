@@ -30,8 +30,9 @@ export class VisitorRepository implements IVisitorRepository {
       createdAt: model.createdAt,
     });
 
-    (visitor as any).apartment = (model as any).apartment ?? null;
-    (visitor as any).resident = (model as any).resident ?? null;
+    const relModel = model as VisitorModel & { apartment?: Record<string, unknown> | null; resident?: Record<string, unknown> | null };
+    visitor.apartment = relModel.apartment ?? null;
+    visitor.resident = relModel.resident ?? null;
     return visitor;
   }
 
@@ -89,7 +90,7 @@ export class VisitorRepository implements IVisitorRepository {
   }
 
   async findAll(filters: ListVisitorsFilters): Promise<PaginatedResult<Visitor>> {
-    const where: Record<string, unknown> = {};
+    const where: Record<string | symbol, unknown> = {};
 
     if (filters.status) {
       where.status = filters.status;
@@ -98,7 +99,7 @@ export class VisitorRepository implements IVisitorRepository {
     }
     if (filters.apartmentId) where.apartmentId = filters.apartmentId;
     if (filters.search) {
-      where[Op.or as any] = [
+      where[Op.or] = [
         { name: { [Op.iLike]: `%${filters.search}%` } },
         { phone: { [Op.iLike]: `%${filters.search}%` } },
       ];
@@ -128,10 +129,10 @@ export class VisitorRepository implements IVisitorRepository {
   async findByApartmentId(apartmentId: number, pagination: PaginatedRequest, filters?: { status?: VisitorStatus; search?: string }): Promise<PaginatedResult<Visitor>> {
     const offset = (pagination.pageNumber - 1) * pagination.pageSize;
 
-    const where: Record<string, unknown> = { apartmentId };
+    const where: Record<string | symbol, unknown> = { apartmentId };
     if (filters?.status) where.status = filters.status;
     if (filters?.search) {
-      where[Op.or as any] = [
+      where[Op.or] = [
         { name: { [Op.iLike]: `%${filters.search}%` } },
         { phone: { [Op.iLike]: `%${filters.search}%` } },
       ];
@@ -266,8 +267,8 @@ export class VisitorRepository implements IVisitorRepository {
     const checkedOutVisitors = await VisitorModel.findAll({
       where: {
         status: VisitorStatus.CHECKED_OUT,
-        checkedInAt: { [Op.ne]: null as any },
-        checkedOutAt: { [Op.ne]: null as any },
+        checkedInAt: { [Op.ne]: null as unknown as Date },
+        checkedOutAt: { [Op.ne]: null as unknown as Date },
       },
       attributes: ["checkedInAt", "checkedOutAt"],
     });

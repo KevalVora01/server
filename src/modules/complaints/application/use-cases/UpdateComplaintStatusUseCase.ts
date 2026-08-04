@@ -26,7 +26,7 @@ export class UpdateComplaintStatusUseCase {
 
     const oldStatus = complaint.status;
     // Hold onto resident data before update() strips it
-    const resident = (complaint as any).resident;
+    const resident = complaint.resident;
 
     complaint.updateStatus(dto.status);
 
@@ -34,7 +34,7 @@ export class UpdateComplaintStatusUseCase {
 
     // Re-attach resident so the notifier can read resident.userId
     if (resident) {
-      (updated as any).resident = resident;
+      updated.resident = resident;
     }
 
     await this.notifier.notifyStatusChanged(updated, oldStatus);

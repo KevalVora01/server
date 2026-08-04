@@ -2,8 +2,16 @@ import { Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 
+export interface AuthenticatedSocket extends Socket {
+  user?: {
+    userId: number;
+    role: string;
+  };
+}
+
 export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void) {
-  const token = socket.handshake.auth?.token;
+  const authSocket = socket as AuthenticatedSocket;
+  const token = authSocket.handshake.auth?.token;
   console.log("🔍 Socket auth attempt, token present:", !!token);
 
   if (!token) {
@@ -16,7 +24,7 @@ export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void
       role: string;
     };
     console.log("✅ Token verified:", decoded);
-    (socket as any).user = decoded;
+    authSocket.user = decoded;
     next();
   } catch (err) {
     console.error("❌ Token verification failed:", err);

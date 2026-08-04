@@ -28,9 +28,10 @@ export class DocumentRequestRepository implements IDocumentRequestRepository {
       updatedAt: model.updatedAt,
     });
 
-    (entity as any).apartment = (model as any).apartment ?? null;
-    (entity as any).requester = (model as any).requester ?? null;
-    (entity as any).target = (model as any).target ?? null;
+    const relModel = model as DocumentRequestModel & { apartment?: Record<string, unknown> | null; requester?: Record<string, unknown> | null; target?: Record<string, unknown> | null };
+    entity.apartment = relModel.apartment ?? null;
+    entity.requester = relModel.requester ?? null;
+    entity.target = relModel.target ?? null;
 
     return entity;
   }

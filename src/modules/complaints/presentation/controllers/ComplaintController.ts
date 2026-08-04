@@ -10,6 +10,7 @@ import { ListCommentsUseCase } from "../../application/use-cases/ListCommentsUse
 import { DeleteComplaintUseCase } from "../../application/use-cases/DeleteComplaintUseCase";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
+import { ComplaintStatus, ComplaintPriority } from "../../domain/entities/Complaint";
 import { UserRole } from "../../../auth/domain/entities/User";
 import { RequestingUser } from "../../../../shared/types/RequestingUser";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
@@ -106,8 +107,8 @@ export class ComplaintController {
       const result = await this.listComplaintsUseCase.execute({
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
-        status: req.query.status as any,
-        priority: req.query.priority as any,
+        status: req.query.status ? (req.query.status as unknown as ComplaintStatus) : undefined,
+        priority: req.query.priority ? (req.query.priority as unknown as ComplaintPriority) : undefined,
         search: req.query.search as string | undefined,
       });
 

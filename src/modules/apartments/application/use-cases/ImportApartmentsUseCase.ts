@@ -3,6 +3,14 @@ import { ApartmentModel } from "../../infrastructure/models/ApartmentModel";
 import * as XLSX from "xlsx";
 import { sequelize } from "../../../../shared/config/db";
 
+interface ApartmentExcelRow {
+  Block?: unknown;
+  "Floor Number"?: unknown;
+  "Unit Number"?: unknown;
+  "Area (Sqft)"?: unknown;
+  Type?: unknown;
+}
+
 export interface FailedImportItem {
   row: number;
   identifier: string;
@@ -14,7 +22,7 @@ export class ImportApartmentsUseCase {
     let workbook;
     try {
       workbook = XLSX.read(fileBuffer, { type: "buffer" });
-    } catch (err) {
+    } catch {
       throw new Error("Invalid Excel file format. Please upload a valid .xlsx or .xls file.");
     }
 
@@ -24,7 +32,7 @@ export class ImportApartmentsUseCase {
     }
 
     const worksheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json<any>(worksheet);
+    const rows = XLSX.utils.sheet_to_json<ApartmentExcelRow>(worksheet);
 
     if (rows.length === 0) {
       throw new Error("No data rows found in the uploaded Excel sheet.");
@@ -109,7 +117,7 @@ export class ImportApartmentsUseCase {
       } else {
         const typeStr = String(rawType).trim().toLowerCase();
         const validTypes = Object.values(ApartmentType);
-        if (!validTypes.includes(typeStr as any)) {
+        if (!validTypes.includes(typeStr as ApartmentType)) {
           rowErrors.push(`Type must be one of: ${validTypes.join(", ")}`);
         } else {
           type = typeStr as ApartmentType;
@@ -192,7 +200,7 @@ export class ImportApartmentsUseCase {
         successCount++;
       }
       await transaction.commit();
-    } catch (err: any) {
+    } catch (err) {
       await transaction.rollback();
       throw err;
     }

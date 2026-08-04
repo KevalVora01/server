@@ -61,8 +61,8 @@ export class InvoicePdfService {
       ? new Date(invoice.paidAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
       : "-";
 
-    const residentUser = resident ? (resident as any).user : null;
-    const residentApartment = resident ? (resident as any).apartment : null;
+    const residentUser = resident?.user as { name?: string; email?: string } | undefined;
+    const residentApartment = resident?.apartment as { block?: string; floorNumber?: number; unitNumber?: string } | undefined;
 
     const aptBlock = residentApartment?.block ?? "";
     const aptFloor = residentApartment?.floorNumber ?? "";

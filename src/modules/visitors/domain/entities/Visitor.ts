@@ -28,6 +28,8 @@ export interface VisitorProps {
 }
 
 export class Visitor {
+  public resident?: Record<string, unknown> | null;
+  public apartment?: Record<string, unknown> | null;
   private props: VisitorProps;
 
   constructor(props: VisitorProps) {
@@ -211,8 +213,8 @@ export class Visitor {
       loggedBySecurityId: this.props.loggedBySecurityId,
       photoUploadedAt: this.props.photoUploadedAt,
       createdAt: this.props.createdAt,
-      resident: (this as any).resident ?? null,
-      apartment: (this as any).apartment ?? null,
+      resident: this.resident ?? null,
+      apartment: this.apartment ?? null,
     };
   }
 }

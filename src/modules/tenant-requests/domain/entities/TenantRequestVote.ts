@@ -12,6 +12,7 @@ export interface TenantRequestVoteProps {
 }
 
 export class TenantRequestVote {
+  public committeeMember?: Record<string, unknown> | null;
   private props: TenantRequestVoteProps;
 
   constructor(props: TenantRequestVoteProps) {
@@ -71,7 +72,7 @@ export class TenantRequestVote {
       vote: this.props.vote,
       recordedByAdminId: this.props.recordedByAdminId,
       createdAt: this.props.createdAt,
-      committeeMember: (this as any).committeeMember ?? null,
+      committeeMember: this.committeeMember ?? null,
     };
   }
 }

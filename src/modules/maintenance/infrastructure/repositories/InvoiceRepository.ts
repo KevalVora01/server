@@ -37,7 +37,7 @@ export class InvoiceRepository implements IInvoiceRepository {
         id: model.resident.id,
         userId: model.resident.userId,
         apartmentId: model.resident.apartmentId,
-        name: (model.resident as any).user?.name ?? "",
+        name: (model.resident as (ResidentModel & { user?: { name?: string } }) | undefined)?.user?.name ?? "",
       } : null,
     });
   }
@@ -78,7 +78,7 @@ export class InvoiceRepository implements IInvoiceRepository {
   }
 
   async findAll(filters: ListInvoicesFilters): Promise<PaginatedResult<Invoice>> {
-    const where: Record<string, unknown> = {};
+    const where: Record<string | symbol, unknown> = {};
 
     if (filters.status) where.status = filters.status;
     if (filters.month) where.month = filters.month;
@@ -87,7 +87,7 @@ export class InvoiceRepository implements IInvoiceRepository {
     if (filters.search) {
       const searchVal = filters.search.trim();
       const escapedSearch = sequelize.escape(`%${searchVal}%`);
-      where[Op.or as any] = [
+      where[Op.or] = [
         { "$resident.user.name$": { [Op.iLike]: `%${searchVal}%` } },
         { "$apartment.block$": { [Op.iLike]: `%${searchVal}%` } },
         { "$apartment.unit_number$": { [Op.iLike]: `%${searchVal}%` } },

@@ -22,8 +22,9 @@ export class TenantRequestRepository implements ITenantRequestRepository {
       decidedAt: model.decidedAt,
     });
 
-    (request as any).owner = (model as any).owner ?? null;
-    (request as any).apartment = (model as any).apartment ?? null;
+    const relModel = model as TenantRequestModel & { owner?: Record<string, unknown> | null; apartment?: Record<string, unknown> | null };
+    request.owner = relModel.owner ?? null;
+    request.apartment = relModel.apartment ?? null;
     return request;
   }
 

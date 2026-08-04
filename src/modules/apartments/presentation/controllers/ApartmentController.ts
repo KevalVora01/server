@@ -42,13 +42,14 @@ export class ApartmentController {
   ): Promise<void> => {
     try {
       const apartment = await this.getApartmentUseCase.execute(Number(req.params.id));
+      const aptRel = apartment as typeof apartment & { isOccupied?: boolean; resident?: unknown };
       res.status(200).json(
         ApiResponse.success({
           message: "Apartment fetched successfully",
           data: {
             ...apartment.toResponseObject(),
-            isOccupied: (apartment as any).isOccupied ?? false,
-            resident: (apartment as any).resident ?? null,
+            isOccupied: aptRel.isOccupied ?? false,
+            resident: aptRel.resident ?? null,
           },
         })
       );

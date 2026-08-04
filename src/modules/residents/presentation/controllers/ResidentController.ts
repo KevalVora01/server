@@ -56,8 +56,8 @@ export class ResidentController {
           message: "Resident fetched successfully",
           data: {
             ...resident.toResponseObject(),
-            user: (resident as any).user ?? null,
-            apartment: (resident as any).apartment ?? null,
+            user: resident.user ?? null,
+            apartment: resident.apartment ?? null,
           },
         })
       );

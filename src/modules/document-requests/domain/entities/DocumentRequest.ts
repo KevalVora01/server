@@ -32,6 +32,9 @@ export interface DocumentRequestProps {
 }
 
 export class DocumentRequest {
+  public apartment?: Record<string, unknown> | null;
+  public requester?: Record<string, unknown> | null;
+  public target?: Record<string, unknown> | null;
   private props: DocumentRequestProps;
 
   constructor(props: DocumentRequestProps) {
@@ -114,9 +117,9 @@ export class DocumentRequest {
       rejectionReason: this.props.rejectionReason,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
-      apartment: (this as any).apartment ?? undefined,
-      requester: (this as any).requester ?? undefined,
-      target: (this as any).target ?? undefined,
+      apartment: this.apartment ?? undefined,
+      requester: this.requester ?? undefined,
+      target: this.target ?? undefined,
     };
   }
 

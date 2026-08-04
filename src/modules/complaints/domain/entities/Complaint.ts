@@ -25,6 +25,8 @@ export interface ComplaintProps {
 }
 
 export class Complaint {
+  public resident?: Record<string, unknown> | null;
+  public images?: Array<{ toResponseObject?: () => unknown }>;
   private props: ComplaintProps;
 
   constructor(props: ComplaintProps) {
@@ -122,8 +124,8 @@ export class Complaint {
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
       resolvedAt: this.props.resolvedAt,
-      resident: (this as any).resident ?? null,
-      images: (this as any).images ? (this as any).images.map((img: any) => typeof img.toResponseObject === 'function' ? img.toResponseObject() : img) : undefined,
+      resident: this.resident ?? null,
+      images: this.images ? this.images.map((img) => typeof img.toResponseObject === 'function' ? img.toResponseObject() : img) : undefined,
     };
   }
 }

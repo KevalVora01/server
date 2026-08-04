@@ -14,7 +14,8 @@ export class ComplaintCommentRepository implements IComplaintCommentRepository {
       createdAt: model.createdAt,
     });
 
-    (comment as any).user = (model as any).user ?? null;
+    const relModel = model as ComplaintCommentModel & { user?: Record<string, unknown> | null };
+    comment.user = relModel.user ?? null;
     return comment;
   }
 

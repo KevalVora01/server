@@ -9,6 +9,7 @@ export interface ComplaintCommentProps {
 }
 
 export class ComplaintComment {
+  public user?: Record<string, unknown> | null;
   private props: ComplaintCommentProps;
 
   constructor(props: ComplaintCommentProps) {
@@ -55,7 +56,7 @@ export class ComplaintComment {
       userId: this.props.userId,
       content: this.props.content,
       createdAt: this.props.createdAt,
-      user: (this as any).user ?? null,
+      user: this.user ?? null,
     };
   }
 }

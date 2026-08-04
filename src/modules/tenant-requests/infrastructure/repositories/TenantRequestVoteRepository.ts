@@ -18,7 +18,8 @@ export class TenantRequestVoteRepository implements ITenantRequestVoteRepository
       createdAt: model.createdAt,
     });
 
-    (vote as any).committeeMember = (model as any).committeeMember ?? null;
+    const relModel = model as TenantRequestVoteModel & { committeeMember?: Record<string, unknown> | null };
+    vote.committeeMember = relModel.committeeMember ?? null;
     return vote;
   }
 

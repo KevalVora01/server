@@ -1,12 +1,22 @@
 import { IResidentRepository } from "../../domain/repositories/IResidentRepository";
 import { IUserRepository } from "../../../auth/domain/repositories/IUserRepository";
 import { IPasswordHasher } from "../../../auth/domain/services/IPasswordHasher";
-import { UserRole } from "../../../auth/domain/entities/User";
+import { UserRole, User } from "../../../auth/domain/entities/User";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 import { ResidentModel } from "../../infrastructure/models/ResidentModel";
 import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 import * as XLSX from "xlsx";
 import { sequelize } from "../../../../shared/config/db";
+
+interface ResidentExcelRow {
+  Name?: unknown;
+  Email?: unknown;
+  Phone?: unknown;
+  Password?: unknown;
+  Block?: unknown;
+  "Floor Number"?: unknown;
+  "Unit Number"?: unknown;
+}
 
 export interface FailedImportItem {
   row: number;
@@ -35,7 +45,7 @@ export class ImportResidentsUseCase {
     }
 
     const worksheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json<any>(worksheet);
+    const rows = XLSX.utils.sheet_to_json<ResidentExcelRow>(worksheet);
 
     if (rows.length === 0) {
       throw new Error("No data rows found in the uploaded Excel sheet.");
@@ -222,7 +232,7 @@ export class ImportResidentsUseCase {
         // 1. Check if a user with this email already exists
         const existingUser = await this.userRepository.findByEmail(row.email);
 
-        let createdUser: any;
+        let createdUser: User | UserModel;
 
         if (existingUser && existingUser.isActive) {
           // Active user — cannot import duplicate
@@ -291,7 +301,7 @@ export class ImportResidentsUseCase {
         // 4. Create Resident
         await ResidentModel.create(
           {
-            userId: createdUser.id,
+            userId: createdUser.id!,
             apartmentId: apartment.id,
             isOwner: true,
             isCommitteeMember: false,
@@ -304,7 +314,7 @@ export class ImportResidentsUseCase {
         successCount++;
       }
       await transaction.commit();
-    } catch (err: any) {
+    } catch (err) {
       await transaction.rollback();
       throw err;
     }

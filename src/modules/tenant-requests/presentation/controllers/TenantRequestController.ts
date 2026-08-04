@@ -8,6 +8,7 @@ import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequ
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { SubmitTenantRequestUseCase } from "../../application/use-cases/SubmitTenantRequestUseCase";
 import { BulkRecordVotesUseCase } from "../../application/use-cases/BulkRecordVotesUseCase";
+import { TenantRequestStatus } from "../../domain/entities/TenantRequest";
 import { UserRole } from "../../../auth/domain/entities/User";
 
 export class TenantRequestController {
@@ -58,7 +59,7 @@ export class TenantRequestController {
       const result = await this.tenantRequestRepository.findAll({
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
-        status: req.query.status as any,
+        status: req.query.status ? (req.query.status as unknown as TenantRequestStatus) : undefined,
       });
 
       res.status(200).json(

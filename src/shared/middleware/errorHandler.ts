@@ -28,8 +28,9 @@ export const errorHandler = (
   }
 
   // Handle any domain error that defines a custom statusCode property
-  if (typeof (error as any).statusCode === "number") {
-    res.status((error as any).statusCode).json(ApiResponse.error(error.message));
+  const customError = error as Error & { statusCode?: unknown };
+  if (typeof customError.statusCode === "number") {
+    res.status(customError.statusCode).json(ApiResponse.error(error.message));
     return;
   }
 

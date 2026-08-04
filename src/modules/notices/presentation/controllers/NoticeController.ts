@@ -47,7 +47,7 @@ export class NoticeController {
           message: "Notice fetched successfully",
           data: {
             ...notice.toResponseObject(),
-            admin: (notice as any).admin ?? null,
+            admin: notice.admin ?? null,
           },
         })
       );
@@ -74,7 +74,7 @@ export class NoticeController {
             ...result,
             items: result.items.map((n) => ({
               ...n.toResponseObject(),
-              admin: (n as any).admin ?? null,
+              admin: n.admin ?? null,
             })),
           },
         })

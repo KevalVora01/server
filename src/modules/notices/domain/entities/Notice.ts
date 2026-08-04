@@ -18,6 +18,7 @@ export interface NoticeProps {
 }
 
 export class Notice {
+  public admin?: unknown;
   private props: NoticeProps;
 
   constructor(props: NoticeProps) {
@@ -108,6 +109,7 @@ export class Notice {
       isActive: this.props.isActive,
       publishedAt: this.props.publishedAt,
       updatedAt: this.props.updatedAt,
+      admin: this.admin ?? null,
     };
   }
 }

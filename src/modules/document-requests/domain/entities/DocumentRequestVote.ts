@@ -12,6 +12,7 @@ export interface DocumentRequestVoteProps {
 }
 
 export class DocumentRequestVote {
+  public committeeMember?: Record<string, unknown> | null;
   private props: DocumentRequestVoteProps;
 
   constructor(props: DocumentRequestVoteProps) {
@@ -54,7 +55,7 @@ export class DocumentRequestVote {
       vote: this.props.vote,
       recordedByAdminId: this.props.recordedByAdminId,
       createdAt: this.props.createdAt,
-      committeeMember: (this as any).committeeMember ?? null,
+      committeeMember: this.committeeMember ?? null,
     };
   }
 }

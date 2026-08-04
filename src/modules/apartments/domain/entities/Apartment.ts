@@ -18,6 +18,8 @@ export interface ApartmentProps {
 }
 
 export class Apartment {
+  public isOccupied?: boolean;
+  public resident?: Record<string, unknown> | null;
   private props: ApartmentProps;
 
   constructor(props: ApartmentProps) {

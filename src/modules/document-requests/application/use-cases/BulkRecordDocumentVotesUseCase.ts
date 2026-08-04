@@ -25,11 +25,12 @@ export class BulkRecordDocumentVotesUseCase {
 
     try {
       VotingEngine.validateVoteBatch({
-        votes: dto.votes as any,
-        adminVote: dto.adminVote as any,
+        votes: dto.votes as unknown as Parameters<typeof VotingEngine.validateVoteBatch>[0]['votes'],
+        adminVote: dto.adminVote as unknown as Parameters<typeof VotingEngine.validateVoteBatch>[0]['adminVote'],
       });
-    } catch (err: any) {
-      throw new DocumentRequestVotingError(err.message);
+    } catch (err) {
+      const error = err as Error;
+      throw new DocumentRequestVotingError(error.message);
     }
 
     const voteEntities: DocumentRequestVote[] = [];
