@@ -54,21 +54,16 @@ export class MarkInvoiceSettledUseCase {
       throw new InvoiceAlreadyPaidError();
     }
 
-    if (paymentRef && paymentRef.startsWith("Cheque - ")) {
-      const chequePart = paymentRef.replace("Cheque - #", "").replace("Cheque - ", "").trim();
-      if (!/^\d{6}$/.test(chequePart)) {
-        throw new InvalidChequeNumberError();
-      }
+    if (!paymentRef || !paymentRef.toUpperCase().startsWith("UPI")) {
+      throw new Error("Only instant UPI digital payments are accepted. Cash and Cheque transactions have been disabled.");
     }
 
-    if (paymentRef && paymentRef.toUpperCase().startsWith("UPI")) {
-      const utrPart = paymentRef.replace(/^UPI\s*[-:]?\s*/i, "").trim();
-      if (utrPart && !/^\d{12}$/.test(utrPart)) {
-        throw new InvalidUpiRefError();
-      }
+    const utrPart = paymentRef.replace(/^UPI\s*[-:]?\s*/i, "").trim();
+    if (utrPart && !/^\d{12}$/.test(utrPart)) {
+      throw new InvalidUpiRefError();
     }
 
-    invoice.markPaid(paymentRef || "MANUAL_OFFLINE", new Date());
+    invoice.markPaid(paymentRef, new Date());
 
     const updatedInvoice = await this.invoiceRepository.update(invoice);
 
