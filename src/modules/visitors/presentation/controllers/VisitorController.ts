@@ -79,9 +79,9 @@ export class VisitorController {
         photoUrl,
       });
 
-      // Notify security in real-time
+      // Notify security and all connected clients in real-time
       try {
-        getIO().to(Rooms.role("security")).emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
           visitorId: visitor.id,
           status: "Approved",
           type: "pre_registered",
@@ -115,6 +115,14 @@ export class VisitorController {
         loggedBySecurityId: authReq.user.userId,
       });
 
+      try {
+        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+          visitorId: visitor.id,
+          status: "Pending",
+          type: "walk_in",
+        });
+      } catch { /* socket not initialized */ }
+
       res.status(201).json(
         ApiResponse.success(visitor.toResponseObject(), "Visitor logged successfully")
       );
@@ -134,9 +142,8 @@ export class VisitorController {
         residentId: resident?.id,
       });
 
-      // Notify security in real-time
       try {
-        getIO().to(Rooms.role("security")).emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
           visitorId: visitor.id,
           status: visitor.toResponseObject().status,
         });
@@ -162,6 +169,13 @@ export class VisitorController {
 
       const visitor = await this.checkInVisitorUseCase.execute(Number(req.params.id), authReq.user.userId, photoUrl);
 
+      try {
+        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+          visitorId: visitor.id,
+          status: "Inside",
+        });
+      } catch { /* socket not initialized */ }
+
       res.status(200).json(
         ApiResponse.success(visitor.toResponseObject(), "Visitor checked in successfully")
       );
@@ -173,6 +187,13 @@ export class VisitorController {
   checkOut = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const visitor = await this.checkOutVisitorUseCase.execute(Number(req.params.id));
+
+      try {
+        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+          visitorId: visitor.id,
+          status: "CheckedOut",
+        });
+      } catch { /* socket not initialized */ }
 
       res.status(200).json(
         ApiResponse.success(visitor.toResponseObject(), "Visitor checked out successfully")
@@ -193,6 +214,13 @@ export class VisitorController {
       }
 
       await this.cancelPreRegisteredVisitorUseCase.execute(Number(req.params.id), resident.id!);
+
+      try {
+        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+          visitorId: Number(req.params.id),
+          status: "Cancelled",
+        });
+      } catch { /* socket not initialized */ }
 
       res.status(200).json(
         ApiResponse.success(null, "Visitor registration cancelled")
