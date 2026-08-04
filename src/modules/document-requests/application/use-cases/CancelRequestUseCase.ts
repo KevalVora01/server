@@ -14,10 +14,6 @@ export class CancelRequestUseCase {
       throw new DocumentRequestNotFoundError(id);
     }
 
-    if (this.documentRequestNotifier) {
-      await this.documentRequestNotifier.notifyCancelled(request);
-    }
-
     await this.documentRequestRepository.delete(id);
   }
 }
