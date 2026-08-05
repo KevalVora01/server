@@ -252,8 +252,8 @@ export class ResidentRepository implements IResidentRepository {
     });
   }
 
-  async findActiveOccupantsByApartmentId(apartmentId: number): Promise<Resident[]> {
-    const rows = await ResidentModel.findAll({
+  async findActiveOccupantByApartmentId(apartmentId: number): Promise<Resident | null> {
+    const model = await ResidentModel.findOne({
       where: { apartmentId, isActive: true, isOccupant: true },
       include: [
         {
@@ -264,12 +264,11 @@ export class ResidentRepository implements IResidentRepository {
       ],
     });
 
-    return rows.map((row) => {
-      const relRow = row as ResidentWithRelations;
-      const resident = this.toEntity(row);
-      resident.user = relRow.user ?? null;
-      return resident;
-    });
+    if (!model) return null;
+    const relModel = model as ResidentWithRelations;
+    const resident = this.toEntity(model);
+    resident.user = relModel.user ?? null;
+    return resident;
   }
 
   async findCommitteeMembers(): Promise<Resident[]> {

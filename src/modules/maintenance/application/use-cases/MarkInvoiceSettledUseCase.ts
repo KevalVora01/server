@@ -31,8 +31,8 @@ export class MarkInvoiceSettledUseCase {
     if (requestingUser && requestingUser.role === UserRole.RESIDENT) {
       let invoiceResidentId: number | null = invoice.residentId;
       if (!invoiceResidentId) {
-        const occupants = await this.residentRepository.findActiveOccupantsByApartmentId(invoice.apartmentId);
-        invoiceResidentId = occupants[0]?.id ?? null;
+        const occupant = await this.residentRepository.findActiveOccupantByApartmentId(invoice.apartmentId);
+        invoiceResidentId = occupant?.id ?? null;
       }
 
       const isOwnInvoice = invoiceResidentId === requestingUser.residentId;

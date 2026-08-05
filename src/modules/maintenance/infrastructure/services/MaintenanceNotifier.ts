@@ -79,8 +79,8 @@ export class MaintenanceNotifier implements IMaintenanceNotifier {
       if (resident) return resident.userId;
     }
     // Fallback: find current occupant of the apartment
-    const occupants = await this.residentRepository.findActiveOccupantsByApartmentId(invoice.apartmentId);
-    return occupants[0]?.userId ?? null;
+    const occupant = await this.residentRepository.findActiveOccupantByApartmentId(invoice.apartmentId);
+    return occupant?.userId ?? null;
   }
 
   private formatDate(date: Date): string {
