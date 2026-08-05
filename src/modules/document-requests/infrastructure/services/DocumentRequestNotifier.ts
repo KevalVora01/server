@@ -76,26 +76,8 @@ export class DocumentRequestNotifier implements IDocumentRequestNotifier {
           { documentRequestId: request.id, status: request.status }
         );
       }
-
-      // If targetId exists (e.g. owner) and is not the requester, notify target owner as well
-      if (request.targetId && request.targetId !== request.requesterId) {
-        const targetResident = await ResidentModel.findByPk(request.targetId);
-        if (targetResident?.userId && targetResident.userId !== requesterUserId) {
-          await notificationService.notify(
-            targetResident.userId,
-            type,
-            `Document Request (${docName})`,
-            `Document request for "${docName}" status changed to ${request.status}.`,
-            { documentRequestId: request.id, status: request.status }
-          );
-        }
-      }
     } catch (error) {
       console.error("Failed to send document-request status change notification:", error);
     }
-  }
-
-  async notifyCancelled(_request: DocumentRequest): Promise<void> {
-    // No notification for cancellation — handled via toast message on client
   }
 }
