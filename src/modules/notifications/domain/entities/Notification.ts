@@ -20,7 +20,9 @@ export type NotificationType =
   | "document_request_cancelled"
   | "visitor_approval_needed"
   | "visitor_approval_timed_out"
-  | "visitor_checked_in";
+  | "visitor_checked_in"
+  | "visitor_approved"
+  | "visitor_rejected";
 
 export interface NotificationDataMap {
   complaint_created: { complaintId: number };

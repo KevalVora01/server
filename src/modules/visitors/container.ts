@@ -30,7 +30,7 @@ const visitorNotifier = new VisitorNotifier(residentRepository);
 // Use Cases
 const preRegisterVisitorUseCase = new PreRegisterVisitorUseCase(visitorRepository, residentRepository);
 const logWalkInVisitorUseCase = new LogWalkInVisitorUseCase(visitorRepository, visitorNotifier, residentRepository);
-const respondToApprovalUseCase = new RespondToApprovalUseCase(visitorRepository);
+const respondToApprovalUseCase = new RespondToApprovalUseCase(visitorRepository, visitorNotifier);
 const checkInVisitorUseCase = new CheckInVisitorUseCase(visitorRepository, visitorNotifier);
 const checkOutVisitorUseCase = new CheckOutVisitorUseCase(visitorRepository);
 const cancelPreRegisteredVisitorUseCase = new CancelPreRegisteredVisitorUseCase(visitorRepository);

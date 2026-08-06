@@ -45,6 +45,32 @@ export class VisitorNotifier implements IVisitorNotifier {
     );
   }
 
+  async notifyVisitorApproved(visitor: Visitor): Promise<void> {
+    const userId = await this.resolveUserId(visitor.residentId);
+    if (!userId) return;
+
+    await notificationService.notify(
+      userId,
+      "visitor_approved",
+      "Visitor Entry Approved",
+      `${visitor.name}'s entry request for "${visitor.purpose}" has been approved.`,
+      { visitorId: visitor.id, status: "Approved" }
+    );
+  }
+
+  async notifyVisitorRejected(visitor: Visitor): Promise<void> {
+    const userId = await this.resolveUserId(visitor.residentId);
+    if (!userId) return;
+
+    await notificationService.notify(
+      userId,
+      "visitor_rejected",
+      "Visitor Entry Rejected",
+      `${visitor.name}'s entry request for "${visitor.purpose}" was rejected.`,
+      { visitorId: visitor.id, status: "Rejected" }
+    );
+  }
+
   private async resolveUserId(residentId: number): Promise<number | null> {
     const resident = await this.residentRepository.findById(residentId);
     return resident?.userId ?? null;

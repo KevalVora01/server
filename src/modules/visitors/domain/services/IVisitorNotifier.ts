@@ -4,4 +4,6 @@ export interface IVisitorNotifier {
   notifyApprovalNeeded(visitor: Visitor): Promise<void>;
   notifyApprovalTimedOut(visitor: Visitor): Promise<void>;
   notifyPreRegisteredCheckedIn(visitor: Visitor): Promise<void>;
+  notifyVisitorApproved(visitor: Visitor): Promise<void>;
+  notifyVisitorRejected(visitor: Visitor): Promise<void>;
 }
