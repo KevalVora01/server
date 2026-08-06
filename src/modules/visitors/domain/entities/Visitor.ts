@@ -25,6 +25,7 @@ export interface VisitorProps {
   loggedBySecurityId?: number | null;
   photoUploadedAt?: Date | null;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 export class Visitor {
@@ -51,6 +52,7 @@ export class Visitor {
       loggedBySecurityId: null,
       photoUploadedAt: props.photoUrl ? new Date() : null,
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
   }
 
@@ -67,6 +69,7 @@ export class Visitor {
       checkedOutAt: null,
       photoUploadedAt: props.photoUrl ? new Date() : null,
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
   }
 
@@ -136,6 +139,10 @@ export class Visitor {
 
   get createdAt(): Date {
     return this.props.createdAt;
+  }
+
+  get updatedAt(): Date | undefined {
+    return this.props.updatedAt;
   }
 
   isPending(): boolean {

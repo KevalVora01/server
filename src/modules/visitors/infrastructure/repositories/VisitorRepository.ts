@@ -29,6 +29,7 @@ export class VisitorRepository implements IVisitorRepository {
       loggedBySecurityId: model.loggedBySecurityId,
       photoUploadedAt: model.photoUploadedAt,
       createdAt: model.createdAt,
+      updatedAt: model.updatedAt,
     });
 
     const relModel = model as VisitorModel & { apartment?: Record<string, unknown> | null; resident?: Record<string, unknown> | null };
@@ -124,8 +125,7 @@ export class VisitorRepository implements IVisitorRepository {
       limit: filters.pageSize,
       offset,
       order: [
-        [literal("CASE WHEN \"Visitor\".\"status\" = 'CheckedIn' THEN 0 WHEN \"Visitor\".\"status\" = 'CheckedOut' THEN 1 WHEN \"Visitor\".\"status\" = 'Approved' THEN 2 WHEN \"Visitor\".\"status\" = 'Pending' THEN 3 WHEN \"Visitor\".\"status\" = 'Rejected' THEN 4 WHEN \"Visitor\".\"status\" = 'Cancelled' THEN 5 END"), "ASC"],
-        [literal("COALESCE(\"Visitor\".\"checked_out_at\", \"Visitor\".\"checked_in_at\", \"Visitor\".\"expected_at\", \"Visitor\".\"created_at\")"), "DESC"],
+        [literal("COALESCE(\"Visitor\".\"updated_at\", \"Visitor\".\"checked_out_at\", \"Visitor\".\"checked_in_at\", \"Visitor\".\"created_at\")"), "DESC"],
       ],
     });
 
@@ -159,8 +159,7 @@ export class VisitorRepository implements IVisitorRepository {
       limit: pagination.pageSize,
       offset,
       order: [
-        [literal("CASE WHEN \"Visitor\".\"status\" = 'CheckedIn' THEN 0 WHEN \"Visitor\".\"status\" = 'CheckedOut' THEN 1 WHEN \"Visitor\".\"status\" = 'Approved' THEN 2 WHEN \"Visitor\".\"status\" = 'Pending' THEN 3 WHEN \"Visitor\".\"status\" = 'Rejected' THEN 4 WHEN \"Visitor\".\"status\" = 'Cancelled' THEN 5 END"), "ASC"],
-        [literal("COALESCE(\"Visitor\".\"checked_out_at\", \"Visitor\".\"checked_in_at\", \"Visitor\".\"expected_at\", \"Visitor\".\"created_at\")"), "DESC"],
+        [literal("COALESCE(\"Visitor\".\"updated_at\", \"Visitor\".\"checked_out_at\", \"Visitor\".\"checked_in_at\", \"Visitor\".\"created_at\")"), "DESC"],
       ],
     });
 

@@ -23,10 +23,11 @@ interface VisitorAttributes {
   loggedBySecurityId: number | null;
   photoUploadedAt: Date | null;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 interface VisitorCreationAttributes
-  extends Optional<VisitorAttributes, "id" | "photoUrl" | "vehicleNumber" | "expectedAt" | "status" | "approvalRequestedAt" | "checkedInAt" | "checkedOutAt" | "loggedBySecurityId" | "photoUploadedAt" | "createdAt"> { }
+  extends Optional<VisitorAttributes, "id" | "photoUrl" | "vehicleNumber" | "expectedAt" | "status" | "approvalRequestedAt" | "checkedInAt" | "checkedOutAt" | "loggedBySecurityId" | "photoUploadedAt" | "createdAt" | "updatedAt"> { }
 
 export class VisitorModel
   extends Model<VisitorAttributes, VisitorCreationAttributes>
@@ -48,6 +49,7 @@ export class VisitorModel
   declare loggedBySecurityId: number | null;
   declare photoUploadedAt: Date | null;
   declare createdAt: Date;
+  declare updatedAt: Date;
 }
 
 VisitorModel.init(
@@ -141,7 +143,6 @@ VisitorModel.init(
     tableName: "visitors",
     modelName: "Visitor",
     timestamps: true,
-    updatedAt: false,
     underscored: true,
     indexes: [
       { fields: ["apartment_id"] },
