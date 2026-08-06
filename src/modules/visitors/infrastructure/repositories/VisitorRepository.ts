@@ -1,9 +1,10 @@
-import { Op } from "sequelize";
+import { Op, literal } from "sequelize";
 import { IVisitorRepository, ListVisitorsFilters } from "../../domain/repositories/IVisitorRepository";
 import { Visitor, VisitorStatus } from "../../domain/entities/Visitor";
 import { VisitorModel } from "../models/VisitorModel";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
 import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
+import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 import { PaginatedRequest, PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
 import { VisitorDashboardMetrics } from "../../application/use-cases/GetDashboardMetricsUseCase";
 
@@ -111,11 +112,21 @@ export class VisitorRepository implements IVisitorRepository {
       where,
       include: [
         { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
-        { model: ResidentModel, as: "resident", attributes: ["id", "userId", "apartmentId"] },
+        {
+          model: ResidentModel,
+          as: "resident",
+          attributes: ["id", "userId", "apartmentId"],
+          include: [
+            { model: UserModel, as: "user", attributes: ["id", "name"], required: false },
+          ],
+        },
       ],
       limit: filters.pageSize,
       offset,
-      order: [["createdAt", "DESC"]],
+      order: [
+        [literal("CASE WHEN \"Visitor\".\"status\" = 'CheckedIn' THEN 0 WHEN \"Visitor\".\"status\" = 'CheckedOut' THEN 1 WHEN \"Visitor\".\"status\" = 'Approved' THEN 2 WHEN \"Visitor\".\"status\" = 'Pending' THEN 3 WHEN \"Visitor\".\"status\" = 'Rejected' THEN 4 WHEN \"Visitor\".\"status\" = 'Cancelled' THEN 5 END"), "ASC"],
+        [literal("COALESCE(\"Visitor\".\"checked_out_at\", \"Visitor\".\"checked_in_at\", \"Visitor\".\"expected_at\", \"Visitor\".\"created_at\")"), "DESC"],
+      ],
     });
 
     return buildPaginatedResult(
@@ -126,10 +137,11 @@ export class VisitorRepository implements IVisitorRepository {
     );
   }
 
-  async findByApartmentId(apartmentId: number, pagination: PaginatedRequest, filters?: { status?: VisitorStatus; search?: string }): Promise<PaginatedResult<Visitor>> {
+  async findByApartmentId(apartmentId: number, pagination: PaginatedRequest, filters?: { status?: VisitorStatus; search?: string; residentId?: number }): Promise<PaginatedResult<Visitor>> {
     const offset = (pagination.pageNumber - 1) * pagination.pageSize;
 
     const where: Record<string | symbol, unknown> = { apartmentId };
+    if (filters?.residentId) where.residentId = filters.residentId;
     if (filters?.status) where.status = filters.status;
     if (filters?.search) {
       where[Op.or] = [
@@ -146,7 +158,10 @@ export class VisitorRepository implements IVisitorRepository {
       ],
       limit: pagination.pageSize,
       offset,
-      order: [["createdAt", "DESC"]],
+      order: [
+        [literal("CASE WHEN \"Visitor\".\"status\" = 'CheckedIn' THEN 0 WHEN \"Visitor\".\"status\" = 'CheckedOut' THEN 1 WHEN \"Visitor\".\"status\" = 'Approved' THEN 2 WHEN \"Visitor\".\"status\" = 'Pending' THEN 3 WHEN \"Visitor\".\"status\" = 'Rejected' THEN 4 WHEN \"Visitor\".\"status\" = 'Cancelled' THEN 5 END"), "ASC"],
+        [literal("COALESCE(\"Visitor\".\"checked_out_at\", \"Visitor\".\"checked_in_at\", \"Visitor\".\"expected_at\", \"Visitor\".\"created_at\")"), "DESC"],
+      ],
     });
 
     return buildPaginatedResult(
@@ -248,6 +263,19 @@ export class VisitorRepository implements IVisitorRepository {
 
   async delete(id: number): Promise<void> {
     await VisitorModel.destroy({ where: { id } });
+  }
+
+  async cancelByResidentId(residentId: number): Promise<void> {
+    await VisitorModel.update(
+      { status: VisitorStatus.CANCELLED },
+      {
+        where: {
+          residentId,
+          status: { [Op.in]: [VisitorStatus.PENDING, VisitorStatus.APPROVED] },
+          isPreRegistered: true,
+        },
+      }
+    );
   }
 
   async getDashboardMetrics(): Promise<VisitorDashboardMetrics> {

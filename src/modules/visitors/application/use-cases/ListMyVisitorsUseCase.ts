@@ -20,6 +20,6 @@ export class ListMyVisitorsUseCase {
       throw new Error("Resident not found");
     }
     
-    return this.visitorRepository.findByApartmentId(resident.apartmentId, pagination, filters);
+    return this.visitorRepository.findByApartmentId(resident.apartmentId, pagination, { ...filters, residentId: requestingResidentId });
   }
 }

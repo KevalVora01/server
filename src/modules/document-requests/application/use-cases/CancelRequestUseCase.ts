@@ -1,11 +1,9 @@
 import { IDocumentRequestRepository } from "../../domain/repositories/IDocumentRequestRepository";
-import { IDocumentRequestNotifier } from "../../domain/services/IDocumentRequestNotifier";
 import { DocumentRequestNotFoundError } from "../../domain/errors/DocumentRequestErrors";
 
 export class CancelRequestUseCase {
   constructor(
     private readonly documentRequestRepository: IDocumentRequestRepository,
-    private readonly documentRequestNotifier?: IDocumentRequestNotifier,
   ) {}
 
   async execute(id: number): Promise<void> {

@@ -75,7 +75,7 @@ export class DocumentRequest {
 
   fulfill(url: string, fileName: string): void {
     if (this.props.status !== DocumentRequestStatus.PENDING && this.props.status !== DocumentRequestStatus.APPROVED) {
-      throw new DocumentRequestAlreadyFulfilledError();
+      throw new DocumentRequestInvalidStateError();
     }
     this.props.documentUrl = url;
     this.props.documentFileName = fileName;
@@ -85,7 +85,7 @@ export class DocumentRequest {
 
   reject(reason?: string): void {
     if (this.props.status !== DocumentRequestStatus.PENDING && this.props.status !== DocumentRequestStatus.APPROVED) {
-      throw new DocumentRequestAlreadyFulfilledError();
+      throw new DocumentRequestInvalidStateError();
     }
     this.props.status = DocumentRequestStatus.REJECTED;
     this.props.rejectionReason = reason || "Request declined.";
@@ -94,7 +94,7 @@ export class DocumentRequest {
 
   approve(): void {
     if (this.props.status !== DocumentRequestStatus.PENDING) {
-      throw new DocumentRequestAlreadyFulfilledError();
+      throw new DocumentRequestInvalidStateError();
     }
     this.props.status = DocumentRequestStatus.APPROVED;
     this.props.updatedAt = new Date();
@@ -128,9 +128,9 @@ export class DocumentRequest {
   }
 }
 
-export class DocumentRequestAlreadyFulfilledError extends Error {
+export class DocumentRequestInvalidStateError extends Error {
   constructor() {
     super("Document request has already been fulfilled or rejected.");
-    this.name = "DocumentRequestAlreadyFulfilledError";
+    this.name = "DocumentRequestInvalidStateError";
   }
 }

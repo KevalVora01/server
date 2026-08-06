@@ -1,12 +1,10 @@
-import { Op } from "sequelize";
 import { IDocumentRequestVoteRepository } from "../../domain/repositories/IDocumentRequestVoteRepository";
 import { DocumentRequestVote, VoteChoice } from "../../domain/entities/DocumentRequestVote";
 import { DocumentRequestVoteModel } from "../models/DocumentRequestVoteModel";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 
-export class SequelizeDocumentRequestVoteRepository
-  implements IDocumentRequestVoteRepository
+export class DocumentRequestVoteRepository implements IDocumentRequestVoteRepository
 {
   async bulkCreate(votes: DocumentRequestVote[]): Promise<DocumentRequestVote[]> {
     const rows = await DocumentRequestVoteModel.bulkCreate(
@@ -57,7 +55,7 @@ export class SequelizeDocumentRequestVoteRepository
         committeeMemberId: r.committeeMemberId ?? undefined,
         vote: r.vote as VoteChoice,
         recordedByAdminId: r.recordedByAdminId ?? undefined,
-        createdAt: r.createdAt,
+         createdAt: r.createdAt,
       });
       (vote as unknown as Record<string, unknown>).committeeMember = row.committeeMember;
       return vote;

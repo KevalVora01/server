@@ -12,11 +12,13 @@ import { RevokeTenancyUseCase } from "./application/use-cases/RevokeTenancyUseCa
 
 import { TenantRequestController } from "./presentation/controllers/TenantRequestController";
 import { ResidentRepository } from "../residents/infrastructure/repositories/ResidentRepository";
+import { VisitorRepository } from "../visitors/infrastructure/repositories/VisitorRepository";
 
 const tenantRequestRepository = new TenantRequestRepository();
 const tenantRequestVoteRepository = new TenantRequestVoteRepository();
 const residentRepository = new ResidentRepository();
 const userRepository = new UserRepository();
+const visitorRepository = new VisitorRepository();
 const passwordResetTokenRepository = new PasswordResetTokenRepository();
 const passwordHasher = new BcryptPasswordHasher();
 const emailService = new NodemailerEmailService();
@@ -32,7 +34,7 @@ const finalizeTenantRequestUseCase = new FinalizeTenantRequestUseCase(
   passwordHasher,
   emailService,
 );
-const revokeTenancyUseCase = new RevokeTenancyUseCase(residentRepository, userRepository);
+const revokeTenancyUseCase = new RevokeTenancyUseCase(residentRepository, userRepository, visitorRepository);
 
 export const tenantRequestController = new TenantRequestController(
   submitTenantRequestUseCase,

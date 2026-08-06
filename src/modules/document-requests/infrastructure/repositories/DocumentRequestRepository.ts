@@ -1,4 +1,3 @@
-import { Op } from "sequelize";
 import { IDocumentRequestRepository, IDocumentRequestDetail } from "../../domain/repositories/IDocumentRequestRepository";
 import { DocumentRequest, DocumentRequestStatus, RequestRole } from "../../domain/entities/DocumentRequest";
 import { DocumentRequestVote, VoteChoice } from "../../domain/entities/DocumentRequestVote";

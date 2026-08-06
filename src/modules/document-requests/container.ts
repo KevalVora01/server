@@ -1,6 +1,6 @@
 import { CloudinaryService } from "../../shared/services/CloudinaryService";
 import { DocumentRequestRepository } from "./infrastructure/repositories/DocumentRequestRepository";
-import { SequelizeDocumentRequestVoteRepository } from "./infrastructure/repositories/SequelizeDocumentRequestVoteRepository";
+import { DocumentRequestVoteRepository } from "./infrastructure/repositories/DocumentRequestVoteRepository";
 import { ResidentRepository } from "../residents/infrastructure/repositories/ResidentRepository";
 import { DocumentRequestNotifier } from "./infrastructure/services/DocumentRequestNotifier";
 import { CreateDocumentRequestUseCase } from "./application/use-cases/CreateDocumentRequestUseCase";
@@ -15,7 +15,7 @@ import { GetDocumentRequestDetailUseCase } from "./application/use-cases/GetDocu
 import { DocumentRequestController } from "./presentation/controllers/DocumentRequestController";
 
 const documentRequestRepository = new DocumentRequestRepository();
-const documentRequestVoteRepository = new SequelizeDocumentRequestVoteRepository();
+const documentRequestVoteRepository = new DocumentRequestVoteRepository();
 const residentRepository = new ResidentRepository();
 const cloudinaryService = new CloudinaryService();
 const documentRequestNotifier = new DocumentRequestNotifier();
@@ -29,7 +29,7 @@ const getMyRequestsUseCase = new GetMyRequestsUseCase(documentRequestRepository)
 const getReceivedRequestsUseCase = new GetReceivedRequestsUseCase(documentRequestRepository);
 const uploadDocumentUseCase = new UploadDocumentUseCase(documentRequestRepository, cloudinaryService, documentRequestNotifier);
 const rejectRequestUseCase = new RejectRequestUseCase(documentRequestRepository, documentRequestNotifier);
-const cancelRequestUseCase = new CancelRequestUseCase(documentRequestRepository, documentRequestNotifier);
+const cancelRequestUseCase = new CancelRequestUseCase(documentRequestRepository);
 const bulkRecordDocumentVotesUseCase = new BulkRecordDocumentVotesUseCase(
   documentRequestRepository,
   documentRequestVoteRepository,
