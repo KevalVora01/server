@@ -33,9 +33,6 @@ export const createJwtMiddleware = (tokenService: ITokenService) => {
         mustResetPassword: payload.mustResetPassword,
       };
 
-      // Tenants created via an approved Owner request must reset their password
-      // before any protected resource is reachable. The reset-password route is
-      // public and bypasses this middleware.
       if (payload.mustResetPassword) {
         res.status(403).json(
           ApiResponse.error("Password reset required before accessing this resource.")

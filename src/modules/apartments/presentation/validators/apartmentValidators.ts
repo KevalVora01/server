@@ -4,7 +4,7 @@ import { ApartmentType } from '../../domain/entities/Apartment';
 
 // ─── Schemas ──────────────────────────────────────────────────────
 
-const createApartmentSchema = Joi.object({
+export const createApartmentSchema = Joi.object({
   block: Joi.string().trim().uppercase().length(1).required().messages({
     'string.empty': 'Block is required',
     'string.length': 'Block must be exactly 1 character',
@@ -21,7 +21,7 @@ const createApartmentSchema = Joi.object({
     if (Number(value) === 0) {
       return helpers.error('unitNumber.zero');
     }
-    return value;
+    return value.padStart(2, '0');
   }).required().messages({
     'string.empty': 'Unit number is required',
     'string.pattern.base': 'Unit number must be 1 or 2 digits (e.g. 01, 12)',
