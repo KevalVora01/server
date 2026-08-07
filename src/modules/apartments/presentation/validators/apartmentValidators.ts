@@ -40,40 +40,6 @@ export const createApartmentSchema = Joi.object({
   }),
 });
 
-const updateApartmentSchema = Joi.object({
-  block: Joi.string().trim().uppercase().length(1).optional().messages({
-    'string.length': 'Block must be a single character',
-  }),
-
-  floorNumber: Joi.number().integer().min(0).max(100).optional().messages({
-    'number.base': 'Floor number must be a number',
-    'number.min': 'Floor number must be at least 0',
-    'number.max': 'Floor number must be at most 100',
-  }),
-
-  unitNumber: Joi.string().trim().pattern(/^\d{1,2}$/).custom((value, helpers) => {
-    if (Number(value) === 0) {
-      return helpers.error('unitNumber.zero');
-    }
-    return value;
-  }).required().messages({
-    'string.empty': 'Unit number is required',
-    'string.pattern.base': 'Unit number must be 1 or 2 digits (e.g. 01, 12)',
-    'unitNumber.zero': 'Unit number cannot be 0',
-  }),
-
-  areaSqft: Joi.number().positive().optional().messages({
-    'number.base': 'Area must be a number',
-    'number.positive': 'Area must be a positive number',
-  }),
-
-  type: Joi.string().valid(...Object.values(ApartmentType)).optional().messages({
-    'any.only': `Type must be one of: ${Object.values(ApartmentType).join(', ')}`,
-  }),
-}).min(1).messages({
-  'object.min': 'At least one field is required to update',
-});
-
 const listApartmentsSchema = Joi.object({
   pageNumber: Joi.number().integer().positive().default(1),
   pageSize: Joi.number().integer().positive().max(100).default(10),
@@ -87,5 +53,4 @@ const listApartmentsSchema = Joi.object({
 // ─── Exported validators ──────────────────────────────────────────
 
 export const validateCreateApartment = [handleValidationError(createApartmentSchema, 'body')];
-export const validateUpdateApartment = [handleValidationError(updateApartmentSchema, 'body')];
 export const validateListApartments = [handleValidationError(listApartmentsSchema, 'query')];

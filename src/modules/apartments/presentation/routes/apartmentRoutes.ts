@@ -6,7 +6,6 @@ import { rbacMiddleware } from "../../../../shared/middleware/rbacMiddleware";
 import { UserRole } from "../../../auth/domain/entities/User";
 import {
   validateCreateApartment,
-  validateUpdateApartment,
   validateListApartments,
 } from "../validators/apartmentValidators";
 
@@ -21,7 +20,7 @@ const upload = multer({
 
 /*
 |--------------------------------------------------------------------------
-| Admin Only — import + update
+| Admin Only — import
 |--------------------------------------------------------------------------
 */
 
@@ -31,14 +30,6 @@ router.post(
   rbacMiddleware(UserRole.ADMIN),
   upload.single("file"),
   apartmentController.importApartments
-);
-
-router.put(
-  "/:id",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN),
-  validateUpdateApartment,
-  apartmentController.updateApartment
 );
 
 /*

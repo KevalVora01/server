@@ -2,7 +2,6 @@ import type { Request, Response, NextFunction } from "express";
 import { CreateApartmentUseCase } from "../../application/use-cases/CreateApartmentUseCase";
 import { GetApartmentUseCase } from "../../application/use-cases/GetApartmentUseCase";
 import { ListApartmentsUseCase } from "../../application/use-cases/ListApartmentsUseCase";
-import { UpdateApartmentUseCase } from "../../application/use-cases/UpdateApartmentUseCase";
 import { ImportApartmentsUseCase } from "../../application/use-cases/ImportApartmentsUseCase";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 
@@ -12,7 +11,6 @@ export class ApartmentController {
     private readonly createApartmentUseCase: CreateApartmentUseCase,
     private readonly getApartmentUseCase: GetApartmentUseCase,
     private readonly listApartmentsUseCase: ListApartmentsUseCase,
-    private readonly updateApartmentUseCase: UpdateApartmentUseCase,
     private readonly importApartmentsUseCase: ImportApartmentsUseCase,
   ) { }
 
@@ -92,28 +90,6 @@ export class ApartmentController {
                 : 0,
             },
           },
-        })
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  updateApartment = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const apartment = await this.updateApartmentUseCase.execute(
-        Number(req.params.id),
-        req.body
-      );
-
-      res.status(200).json(
-        ApiResponse.success({
-          message: "Apartment updated successfully",
-          data: apartment.toResponseObject(),
         })
       );
     } catch (error) {
