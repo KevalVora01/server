@@ -3,7 +3,6 @@ import { CreateVehicleUseCase } from "../../application/use-cases/CreateVehicleU
 import { GetVehiclesUseCase } from "../../application/use-cases/GetVehiclesUseCase";
 import { UpdateVehicleUseCase } from "../../application/use-cases/UpdateVehicleUseCase";
 import { DeleteVehicleUseCase } from "../../application/use-cases/DeleteVehicleUseCase";
-import { ListApartmentVehiclesUseCase } from "../../application/use-cases/ListApartmentVehiclesUseCase";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
@@ -15,7 +14,6 @@ export class VehicleController {
     private readonly getVehiclesUseCase: GetVehiclesUseCase,
     private readonly updateVehicleUseCase: UpdateVehicleUseCase,
     private readonly deleteVehicleUseCase: DeleteVehicleUseCase,
-    private readonly listApartmentVehiclesUseCase: ListApartmentVehiclesUseCase,
     private readonly residentRepository: IResidentRepository,
   ) { }
 
@@ -71,30 +69,6 @@ export class VehicleController {
 
       res.status(200).json(
         ApiResponse.success(vehicles.map((v) => v.toResponseObject()), "Vehicles fetched successfully")
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  listApartmentVehicles = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const authReq = req as AuthenticatedRequest;
-      const requester = await this.residentRepository.findByUserId(authReq.user.userId);
-
-      if (!requester) {
-        res.status(404).json(ApiResponse.error("Resident profile not found"));
-        return;
-      }
-
-      const vehicles = await this.listApartmentVehiclesUseCase.execute(requester.id!);
-
-      res.status(200).json(
-        ApiResponse.success(vehicles.map((v) => v.toResponseObject()), "Apartment vehicles fetched successfully")
       );
     } catch (error) {
       next(error);
