@@ -1,7 +1,6 @@
 import { IVehicleRepository } from "../../domain/repositories/IVehicleRepository";
 import { Vehicle, VehicleType, FuelType } from "../../domain/entities/Vehicle";
 import { VehicleModel } from "../models/VehicleModel";
-import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
 
 export class VehicleRepository implements IVehicleRepository {
 
@@ -51,22 +50,6 @@ export class VehicleRepository implements IVehicleRepository {
   async findByResidentId(residentId: number): Promise<Vehicle[]> {
     const models = await VehicleModel.findAll({
       where: { residentId },
-      order: [["createdAt", "ASC"]],
-    });
-    return models.map((model) => this.toEntity(model));
-  }
-
-  async findByApartmentId(apartmentId: number): Promise<Vehicle[]> {
-    const models = await VehicleModel.findAll({
-      include: [
-        {
-          model: ResidentModel,
-          as: "resident",
-          attributes: [],
-          where: { apartmentId },
-          required: true,
-        },
-      ],
       order: [["createdAt", "ASC"]],
     });
     return models.map((model) => this.toEntity(model));
