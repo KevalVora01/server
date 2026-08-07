@@ -3,7 +3,6 @@ import { CreateFamilyMemberUseCase } from "../../application/use-cases/CreateFam
 import { GetFamilyMembersUseCase } from "../../application/use-cases/GetFamilyMembersUseCase";
 import { UpdateFamilyMemberUseCase } from "../../application/use-cases/UpdateFamilyMemberUseCase";
 import { DeleteFamilyMemberUseCase } from "../../application/use-cases/DeleteFamilyMemberUseCase";
-import { ListApartmentFamilyMembersUseCase } from "../../application/use-cases/ListApartmentFamilyMembersUseCase";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
@@ -15,7 +14,6 @@ export class FamilyMemberController {
     private readonly getFamilyMembersUseCase: GetFamilyMembersUseCase,
     private readonly updateFamilyMemberUseCase: UpdateFamilyMemberUseCase,
     private readonly deleteFamilyMemberUseCase: DeleteFamilyMemberUseCase,
-    private readonly listApartmentFamilyMembersUseCase: ListApartmentFamilyMembersUseCase,
     private readonly residentRepository: IResidentRepository,
   ) { }
 
@@ -74,30 +72,6 @@ export class FamilyMemberController {
 
       res.status(200).json(
         ApiResponse.success(familyMembers.map((fm) => fm.toResponseObject()), "Family members fetched successfully")
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  listApartmentFamilyMembers = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const authReq = req as AuthenticatedRequest;
-      const requester = await this.residentRepository.findByUserId(authReq.user.userId);
-
-      if (!requester) {
-        res.status(404).json(ApiResponse.error("Resident profile not found"));
-        return;
-      }
-
-      const familyMembers = await this.listApartmentFamilyMembersUseCase.execute(requester.id!);
-
-      res.status(200).json(
-        ApiResponse.success(familyMembers.map((fm) => fm.toResponseObject()), "Apartment family members fetched successfully")
       );
     } catch (error) {
       next(error);

@@ -8,7 +8,6 @@ import noticeRoutes from './modules/notices/presentation/routes/noticeRoutes';
 import complaintRoutes from './modules/complaints/presentation/routes/complaintRoutes';
 import notificationRoutes from './modules/notifications/presentation/routes/notificationRoutes';
 import maintenanceRoutes from './modules/maintenance/presentation/routes/maintenanceRoutes';
-import apartmentFamilyMembersRoutes from './modules/family-members/presentation/routes/apartmentFamilyMembersRoutes';
 import tenantRequestRoutes from './modules/tenant-requests/presentation/routes/tenantRequestRoutes';
 import documentRequestRoutes from './modules/document-requests/presentation/routes/documentRequestRoutes';
 import visitorRoutes from './modules/visitors/presentation/routes/visitorRoutes';
@@ -23,8 +22,6 @@ router.use('/residents', residentRoutes);
 router.use('/apartments', apartmentRoutes);
 
 router.use('/residents/:residentId/family-members', familyMemberRoutes);
-
-router.use("/family-members", apartmentFamilyMembersRoutes);
 
 router.use('/residents/:residentId/vehicles', vehicleRoutes);
 
