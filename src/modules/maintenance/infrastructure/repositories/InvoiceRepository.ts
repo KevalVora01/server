@@ -87,12 +87,16 @@ export class InvoiceRepository implements IInvoiceRepository {
     if (filters.search) {
       const searchVal = filters.search.trim();
       const escapedSearch = sequelize.escape(`%${searchVal}%`);
+      const cleanSearchVal = searchVal.replace(/[- ]/g, "");
+      const escapedCleanSearch = sequelize.escape(`%${cleanSearchVal}%`);
       where[Op.or] = [
-        { "$resident.user.name$": { [Op.iLike]: `%${searchVal}%` } },
-        { "$apartment.block$": { [Op.iLike]: `%${searchVal}%` } },
-        { "$apartment.unit_number$": { [Op.iLike]: `%${searchVal}%` } },
+        sequelize.literal(`"resident->user"."name" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."unit_number" ILIKE ${escapedSearch}`),
         sequelize.literal(`"apartment"."block" || '-' || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
         sequelize.literal(`"apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
+        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
       ];
     }
 
@@ -123,11 +127,32 @@ export class InvoiceRepository implements IInvoiceRepository {
     );
   }
 
-  async findByResidentId(residentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Invoice>> {
-    const offset = (pagination.pageNumber - 1) * pagination.pageSize;
+  async findByResidentId(residentId: number, filters: ListInvoicesFilters): Promise<PaginatedResult<Invoice>> {
+    const where: Record<string | symbol, unknown> = { residentId };
+
+    if (filters.status) where.status = filters.status;
+    if (filters.month) where.month = filters.month;
+    if (filters.year) where.year = filters.year;
+    if (filters.search) {
+      const searchVal = filters.search.trim();
+      const escapedSearch = sequelize.escape(`%${searchVal}%`);
+      const cleanSearchVal = searchVal.replace(/[- ]/g, "");
+      const escapedCleanSearch = sequelize.escape(`%${cleanSearchVal}%`);
+      where[Op.or] = [
+        sequelize.literal(`"resident->user"."name" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" || '-' || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
+        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
+      ];
+    }
+
+    const offset = (filters.pageNumber - 1) * filters.pageSize;
 
     const { count, rows } = await InvoiceModel.findAndCountAll({
-      where: { residentId },
+      where,
       include: [
         {
           model: ResidentModel,
@@ -137,24 +162,46 @@ export class InvoiceRepository implements IInvoiceRepository {
         },
         { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
       ],
-      limit: pagination.pageSize,
+      limit: filters.pageSize,
       offset,
+      subQuery: false,
       order: [["createdAt", "DESC"]],
     });
 
     return buildPaginatedResult(
       rows.map((row) => this.toEntity(row)),
       count,
-      pagination.pageNumber,
-      pagination.pageSize
+      filters.pageNumber,
+      filters.pageSize
     );
   }
 
-  async findByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Invoice>> {
-    const offset = (pagination.pageNumber - 1) * pagination.pageSize;
+  async findByApartmentId(apartmentId: number, filters: ListInvoicesFilters): Promise<PaginatedResult<Invoice>> {
+    const where: Record<string | symbol, unknown> = { apartmentId };
+
+    if (filters.status) where.status = filters.status;
+    if (filters.month) where.month = filters.month;
+    if (filters.year) where.year = filters.year;
+    if (filters.search) {
+      const searchVal = filters.search.trim();
+      const escapedSearch = sequelize.escape(`%${searchVal}%`);
+      const cleanSearchVal = searchVal.replace(/[- ]/g, "");
+      const escapedCleanSearch = sequelize.escape(`%${cleanSearchVal}%`);
+      where[Op.or] = [
+        sequelize.literal(`"resident->user"."name" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" || '-' || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
+        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
+      ];
+    }
+
+    const offset = (filters.pageNumber - 1) * filters.pageSize;
 
     const { count, rows } = await InvoiceModel.findAndCountAll({
-      where: { apartmentId },
+      where,
       include: [
         {
           model: ResidentModel,
@@ -162,22 +209,24 @@ export class InvoiceRepository implements IInvoiceRepository {
           attributes: ["id", "userId", "apartmentId"],
           include: [{ model: UserModel, as: "user", attributes: ["name"] }],
         },
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
       ],
-      limit: pagination.pageSize,
+      limit: filters.pageSize,
       offset,
+      subQuery: false,
       order: [["createdAt", "DESC"]],
     });
 
     return buildPaginatedResult(
       rows.map((row) => this.toEntity(row)),
       count,
-      pagination.pageNumber,
-      pagination.pageSize
+      filters.pageNumber,
+      filters.pageSize
     );
   }
 
-  async findByApartmentForOccupant(residentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Invoice>> {
-    const offset = (pagination.pageNumber - 1) * pagination.pageSize;
+  async findByApartmentForOccupant(residentId: number, filters: ListInvoicesFilters): Promise<PaginatedResult<Invoice>> {
+    const offset = (filters.pageNumber - 1) * filters.pageSize;
 
     // Find apartments where this resident is the current occupant
     const residentApartmentSubquery = `
@@ -185,10 +234,31 @@ export class InvoiceRepository implements IInvoiceRepository {
       WHERE "id" = ${residentId} AND "is_active" = true AND "is_occupant" = true
     `;
 
+    const where: Record<string | symbol, unknown> = {
+      apartmentId: { [Op.in]: sequelize.literal(`(${residentApartmentSubquery})`) },
+    };
+
+    if (filters.status) where.status = filters.status;
+    if (filters.month) where.month = filters.month;
+    if (filters.year) where.year = filters.year;
+    if (filters.search) {
+      const searchVal = filters.search.trim();
+      const escapedSearch = sequelize.escape(`%${searchVal}%`);
+      const cleanSearchVal = searchVal.replace(/[- ]/g, "");
+      const escapedCleanSearch = sequelize.escape(`%${cleanSearchVal}%`);
+      where[Op.or] = [
+        sequelize.literal(`"resident->user"."name" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" || '-' || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`"apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
+        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
+        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
+      ];
+    }
+
     const { count, rows } = await InvoiceModel.findAndCountAll({
-      where: {
-        apartmentId: { [Op.in]: sequelize.literal(`(${residentApartmentSubquery})`) },
-      },
+      where,
       include: [
         {
           model: ResidentModel,
@@ -198,16 +268,17 @@ export class InvoiceRepository implements IInvoiceRepository {
         },
         { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
       ],
-      limit: pagination.pageSize,
+      limit: filters.pageSize,
       offset,
+      subQuery: false,
       order: [["createdAt", "DESC"]],
     });
 
     return buildPaginatedResult(
       rows.map((row) => this.toEntity(row)),
       count,
-      pagination.pageNumber,
-      pagination.pageSize
+      filters.pageNumber,
+      filters.pageSize
     );
   }
 

@@ -1,6 +1,6 @@
-import { PaginatedRequest, PaginatedResult } from "../../../../shared/types/Pagination";
+import { PaginatedResult } from "../../../../shared/types/Pagination";
 import { Complaint } from "../../domain/entities/Complaint";
-import { IComplaintRepository } from "../../domain/repositories/IComplaintRepository";
+import { IComplaintRepository, ListComplaintsFilters } from "../../domain/repositories/IComplaintRepository";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { UnauthorizedComplaintAccessError } from "../../domain/errors/ComplaintErrors";
 
@@ -10,7 +10,7 @@ export class ListApartmentComplaintsUseCase {
     private readonly residentRepository: IResidentRepository,
   ) { }
 
-  async execute(requestingResidentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Complaint>> {
+  async execute(requestingResidentId: number, filters: ListComplaintsFilters): Promise<PaginatedResult<Complaint>> {
     const resident = await this.residentRepository.findById(requestingResidentId);
 
     if (!resident || !resident.isActive) {
@@ -21,6 +21,6 @@ export class ListApartmentComplaintsUseCase {
     // to review the tenant's complaints only. Occupants use their own list
     // (GET /complaints/my), so here we return complaints raised by non-owner
     // residents (tenants) of the apartment.
-    return this.complaintRepository.findTenantComplaintsByApartmentId(resident.apartmentId, pagination);
+    return this.complaintRepository.findTenantComplaintsByApartmentId(resident.apartmentId, filters);
   }
 }

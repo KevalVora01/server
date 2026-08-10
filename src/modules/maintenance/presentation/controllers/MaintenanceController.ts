@@ -125,6 +125,10 @@ export class MaintenanceController {
       const result = await this.listMyInvoicesUseCase.execute(resident.id!, {
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
+        status: req.query.status ? (req.query.status as unknown as InvoiceStatus) : undefined,
+        month: req.query.month ? Number(req.query.month) : undefined,
+        year: req.query.year ? Number(req.query.year) : undefined,
+        search: req.query.search as string | undefined,
       });
 
       res.status(200).json(
@@ -151,6 +155,10 @@ export class MaintenanceController {
       const result = await this.listApartmentInvoicesUseCase.execute(resident.id!, {
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
+        status: req.query.status ? (req.query.status as unknown as InvoiceStatus) : undefined,
+        month: req.query.month ? Number(req.query.month) : undefined,
+        year: req.query.year ? Number(req.query.year) : undefined,
+        search: req.query.search as string | undefined,
       });
 
       res.status(200).json(

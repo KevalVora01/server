@@ -144,11 +144,22 @@ export class ComplaintRepository implements IComplaintRepository {
     );
   }
 
-  async findByResidentId(residentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Complaint>> {
-    const offset = (pagination.pageNumber - 1) * pagination.pageSize;
+  async findByResidentId(residentId: number, filters: ListComplaintsFilters): Promise<PaginatedResult<Complaint>> {
+    const where: Record<string | symbol, unknown> = { residentId };
+
+    if (filters.status) where.status = filters.status;
+    if (filters.priority) where.priority = filters.priority;
+    if (filters.search) {
+      where[Op.or] = [
+        { title: { [Op.iLike]: `%${filters.search}%` } },
+        { description: { [Op.iLike]: `%${filters.search}%` } },
+      ];
+    }
+
+    const offset = (filters.pageNumber - 1) * filters.pageSize;
 
     const { count, rows } = await ComplaintModel.findAndCountAll({
-      where: { residentId },
+      where,
       include: [
         {
           model: ComplaintImageModel,
@@ -167,7 +178,7 @@ export class ComplaintRepository implements IComplaintRepository {
           ],
         },
       ],
-      limit: pagination.pageSize,
+      limit: filters.pageSize,
       offset,
       order: [["createdAt", "DESC"], [{ model: ComplaintImageModel, as: "images" }, "id", "ASC"]],
     });
@@ -175,15 +186,27 @@ export class ComplaintRepository implements IComplaintRepository {
     return buildPaginatedResult(
       rows.map((row) => this.toEntity(row)),
       count,
-      pagination.pageNumber,
-      pagination.pageSize
+      filters.pageNumber,
+      filters.pageSize
     );
   }
 
-  async findTenantComplaintsByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Complaint>> {
-    const offset = (pagination.pageNumber - 1) * pagination.pageSize;
+  async findTenantComplaintsByApartmentId(apartmentId: number, filters: ListComplaintsFilters): Promise<PaginatedResult<Complaint>> {
+    const where: Record<string | symbol, unknown> = {};
+
+    if (filters.status) where.status = filters.status;
+    if (filters.priority) where.priority = filters.priority;
+    if (filters.search) {
+      where[Op.or] = [
+        { title: { [Op.iLike]: `%${filters.search}%` } },
+        { description: { [Op.iLike]: `%${filters.search}%` } },
+      ];
+    }
+
+    const offset = (filters.pageNumber - 1) * filters.pageSize;
 
     const { count, rows } = await ComplaintModel.findAndCountAll({
+      where,
       include: [
         {
           model: ComplaintImageModel,
@@ -204,7 +227,7 @@ export class ComplaintRepository implements IComplaintRepository {
           ],
         },
       ],
-      limit: pagination.pageSize,
+      limit: filters.pageSize,
       offset,
       order: [["createdAt", "DESC"]],
       distinct: true,
@@ -213,8 +236,8 @@ export class ComplaintRepository implements IComplaintRepository {
     return buildPaginatedResult(
       rows.map((row) => this.toEntity(row)),
       count,
-      pagination.pageNumber,
-      pagination.pageSize
+      filters.pageNumber,
+      filters.pageSize
     );
   }
 

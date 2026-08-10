@@ -135,6 +135,9 @@ export class ComplaintController {
       const result = await this.listMyComplaintsUseCase.execute(resident.id!, {
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
+        status: req.query.status ? (req.query.status as unknown as ComplaintStatus) : undefined,
+        priority: req.query.priority ? (req.query.priority as unknown as ComplaintPriority) : undefined,
+        search: req.query.search as string | undefined,
       });
 
       res.status(200).json(
@@ -163,6 +166,9 @@ export class ComplaintController {
       const result = await this.listApartmentComplaintsUseCase.execute(resident.id!, {
         pageNumber: Number(req.query.pageNumber) || 1,
         pageSize: Number(req.query.pageSize) || 10,
+        status: req.query.status ? (req.query.status as unknown as ComplaintStatus) : undefined,
+        priority: req.query.priority ? (req.query.priority as unknown as ComplaintPriority) : undefined,
+        search: req.query.search as string | undefined,
       });
 
       res.status(200).json(
