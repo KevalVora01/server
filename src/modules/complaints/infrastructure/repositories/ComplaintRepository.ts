@@ -96,11 +96,6 @@ export class ComplaintRepository implements IComplaintRepository {
     return this.toEntity(model);
   }
 
-  async findImagesByComplaintId(complaintId: number): Promise<ComplaintImage[]> {
-    const models = await ComplaintImageModel.findAll({ where: { complaintId }, order: [["id", "ASC"]] });
-    return models.map((m) => this.toImageEntity(m));
-  }
-
   async findAll(filters: ListComplaintsFilters): Promise<PaginatedResult<Complaint>> {
     const where: Record<string | symbol, unknown> = {};
 
@@ -175,44 +170,6 @@ export class ComplaintRepository implements IComplaintRepository {
       limit: pagination.pageSize,
       offset,
       order: [["createdAt", "DESC"], [{ model: ComplaintImageModel, as: "images" }, "id", "ASC"]],
-    });
-
-    return buildPaginatedResult(
-      rows.map((row) => this.toEntity(row)),
-      count,
-      pagination.pageNumber,
-      pagination.pageSize
-    );
-  }
-
-  async findByApartmentId(apartmentId: number, pagination: PaginatedRequest): Promise<PaginatedResult<Complaint>> {
-    const offset = (pagination.pageNumber - 1) * pagination.pageSize;
-
-    const { count, rows } = await ComplaintModel.findAndCountAll({
-      include: [
-        {
-          model: ComplaintImageModel,
-          as: "images",
-        },
-        {
-          model: ResidentModel,
-          as: "resident",
-          attributes: ["id", "userId", "apartmentId"],
-          where: { apartmentId },
-          required: true,
-          include: [
-            {
-              model: UserModel,
-              as: "user",
-              attributes: ["id", "name"],
-            },
-          ],
-        },
-      ],
-      limit: pagination.pageSize,
-      offset,
-      order: [["createdAt", "DESC"], [{ model: ComplaintImageModel, as: "images" }, "id", "ASC"]],
-      distinct: true, // required when using include + limit, otherwise count() double-counts joined rows
     });
 
     return buildPaginatedResult(

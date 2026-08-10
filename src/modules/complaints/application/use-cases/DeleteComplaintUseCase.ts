@@ -1,6 +1,5 @@
 import { IComplaintRepository } from "../../domain/repositories/IComplaintRepository";
 import { RequestingUser } from "../../../../shared/types/RequestingUser";
-import { UserRole } from "../../../auth/domain/entities/User";
 import { ComplaintStatus } from "../../domain/entities/Complaint";
 import {
   ComplaintNotFoundError,
@@ -18,10 +17,7 @@ export class DeleteComplaintUseCase {
       throw new ComplaintNotFoundError(id);
     }
 
-    if (
-      requestingUser.role === UserRole.RESIDENT &&
-      complaint.residentId !== requestingUser.residentId
-    ) {
+    if (complaint.residentId !== requestingUser.residentId) {
       throw new UnauthorizedComplaintAccessError();
     }
 

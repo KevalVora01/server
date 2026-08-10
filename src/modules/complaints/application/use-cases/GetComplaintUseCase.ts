@@ -1,5 +1,4 @@
 import { Complaint } from "../../domain/entities/Complaint";
-import { ComplaintImage } from "../../domain/entities/ComplaintImage";
 import { IComplaintRepository } from "../../domain/repositories/IComplaintRepository";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import {
@@ -9,18 +8,13 @@ import {
 import { RequestingUser } from "../../../../shared/types/RequestingUser";
 import { UserRole } from "../../../auth/domain/entities/User";
 
-export interface ComplaintWithImages {
-  complaint: Complaint;
-  images: ComplaintImage[];
-}
-
 export class GetComplaintUseCase {
   constructor(
     private readonly complaintRepository: IComplaintRepository,
     private readonly residentRepository: IResidentRepository,
   ) { }
 
-  async execute(id: number, requestingUser: RequestingUser): Promise<ComplaintWithImages> {
+  async execute(id: number, requestingUser: RequestingUser): Promise<Complaint> {
     const complaint = await this.complaintRepository.findById(id);
 
     if (!complaint) {
@@ -42,9 +36,7 @@ export class GetComplaintUseCase {
       }
     }
 
-    const images = await this.complaintRepository.findImagesByComplaintId(id);
-
-    return { complaint, images };
+    return complaint;
   }
 
   private async isOwnerOfComplaintsApartment(

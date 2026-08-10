@@ -16,7 +16,7 @@ const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
 
 /*
 |--------------------------------------------------------------------------
-| Resident Only — Create + own list
+| Resident Only — Create + own list + delete 
 |--------------------------------------------------------------------------
 */
 router.post(
@@ -33,6 +33,13 @@ router.get(
   jwtMiddleware,
   rbacMiddleware(UserRole.RESIDENT),
   complaintController.listMyComplaints
+);
+
+router.delete(
+  "/:id",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  complaintController.deleteComplaint
 );
 
 /*
@@ -95,13 +102,6 @@ router.get(
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
   complaintController.listComments
-);
-
-router.delete(
-  "/:id",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
-  complaintController.deleteComplaint
 );
 
 export default router;

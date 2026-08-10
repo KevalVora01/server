@@ -83,17 +83,14 @@ export class ComplaintController {
       const authReq = req as AuthenticatedRequest;
       const requestingUser = await this.buildRequestingUser(authReq);
 
-      const { complaint, images } = await this.getComplaintUseCase.execute(
+      const complaint = await this.getComplaintUseCase.execute(
         Number(req.params.id),
         requestingUser
       );
 
       res.status(200).json(
         ApiResponse.success(
-          {
-            ...complaint.toResponseObject(),
-            images: images.map((img) => img.toResponseObject()),
-          },
+          complaint.toResponseObject(),
           "Complaint fetched successfully"
         )
       );
