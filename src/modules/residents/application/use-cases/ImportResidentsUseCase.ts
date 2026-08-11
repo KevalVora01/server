@@ -115,6 +115,7 @@ export class ImportResidentsUseCase {
       block: string;
       floorNumber: number;
       unitNumber: string;
+      isCommitteeMember: boolean;
     }[] = [];
 
     // 1. Validation & parsing phase using Joi schema
@@ -128,6 +129,7 @@ export class ImportResidentsUseCase {
       const rawBlock = getCellValue(row, ["Block", "block", "Block Name"]);
       const rawFloor = getCellValue(row, ["Floor Number", "Floor", "floorNumber", "floor"]);
       const rawUnit = getCellValue(row, ["Unit Number", "Unit", "unitNumber", "Flat Number", "unit"]);
+      const rawCommittee = getCellValue(row, ["Is Committee Member", "Committee Member", "isCommitteeMember", "Committee"]);
 
       // Skip completely blank rows
       if (rawName === undefined && rawEmail === undefined && rawPhone === undefined && rawBlock === undefined && rawFloor === undefined && rawUnit === undefined) {
@@ -141,6 +143,14 @@ export class ImportResidentsUseCase {
         if (uInt > 0) rawUnitStr = String(uInt).padStart(2, "0");
       }
 
+      let isCommitteeMember = false;
+      if (rawCommittee !== undefined && rawCommittee !== null) {
+        const str = String(rawCommittee).trim().toLowerCase();
+        if (["yes", "y", "true", "1"].includes(str)) {
+          isCommitteeMember = true;
+        }
+      }
+
       const candidate = {
         name: rawName !== undefined && rawName !== null ? String(rawName).trim() : undefined,
         email: rawEmail !== undefined && rawEmail !== null ? String(rawEmail).trim().toLowerCase() : undefined,
@@ -148,6 +158,7 @@ export class ImportResidentsUseCase {
         block: rawBlock !== undefined && rawBlock !== null ? String(rawBlock).trim().toUpperCase() : undefined,
         floorNumber: rawFloor !== undefined && rawFloor !== null && String(rawFloor).trim() !== "" ? Number(String(rawFloor).trim()) : undefined,
         unitNumber: rawUnitStr,
+        isCommitteeMember,
       };
 
       // Validate row via Joi schema
@@ -170,6 +181,7 @@ export class ImportResidentsUseCase {
           block: value.block,
           floorNumber: value.floorNumber,
           unitNumber: value.unitNumber,
+          isCommitteeMember: value.isCommitteeMember ?? isCommitteeMember,
         });
       }
     }
@@ -316,7 +328,7 @@ export class ImportResidentsUseCase {
             userId: createdUser.id!,
             apartmentId: apartment.id,
             isOwner: true,
-            isCommitteeMember: false,
+            isCommitteeMember: item.isCommitteeMember,
             isOccupant: true,
             moveInDate: new Date(),
             isActive: true,
@@ -353,24 +365,14 @@ export class ImportResidentsUseCase {
 
     // 6. Send welcome credentials emails directly inside Use Case (Background dispatch)
     if (this.emailService && createdResidents.length > 0) {
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-
       for (const item of createdResidents) {
         (async () => {
           try {
-            const rawToken = crypto.randomBytes(32).toString("hex");
-            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-            await PasswordResetTokenModel.destroy({ where: { userId: item.userId } });
-            await PasswordResetTokenModel.create({ userId: item.userId, token: rawToken, expiresAt });
-
-            const resetLink = `${clientUrl}/reset-password?token=${rawToken}`;
             const { subject, html } = buildWelcomeEmailTemplate({
               name: item.name,
               email: item.email,
               unitName: item.unit,
               temporaryPassword: item.temporaryPassword || "",
-              resetLink,
             });
 
             await this.emailService!.sendEmail({

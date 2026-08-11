@@ -58,9 +58,6 @@ export class ForgotPasswordUseCase {
           <p style="color: #9ca3af; font-size: 0.85rem;">
             If you didn't request this, you can safely ignore this email.
           </p>
-          <p style="color: #9ca3af; font-size: 0.85rem;">
-            Or copy this link: <a href="${resetLink}">${resetLink}</a>
-          </p>
         </div>
       `,
     });

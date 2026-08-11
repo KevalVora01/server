@@ -17,9 +17,9 @@ export class NodemailerEmailService implements IEmailService {
       tls: {
         rejectUnauthorized: false,
       },
-      connectionTimeout: 4000,
-      greetingTimeout: 4000,
-      socketTimeout: 4000,
+      connectionTimeout: 20000, // 20 seconds
+      greetingTimeout: 20000,   // 20 seconds
+      socketTimeout: 30000,     // 30 seconds
     });
   }
 
@@ -37,18 +37,12 @@ export class NodemailerEmailService implements IEmailService {
     console.log("---------------------------------\n");
 
     try {
-      const sendPromise = this.transporter.sendMail({
+      await this.transporter.sendMail({
         from: `"${process.env.SMTP_FROM_NAME || 'Society Management'}" <${process.env.SMTP_FROM_EMAIL || env.SMTP_USER}>`,
         to: options.to,
         subject: options.subject,
         html: options.html,
       });
-
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("SMTP Connection Timeout (4s limit reached)")), 4000)
-      );
-
-      await Promise.race([sendPromise, timeoutPromise]);
     } catch (err) {
       console.error("[EmailService] Failed to deliver email (SMTP error):", err);
     }

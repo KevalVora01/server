@@ -76,6 +76,8 @@ export const importResidentRowSchema = Joi.object({
     'string.pattern.base': 'Unit number must be 1 or 2 digits (e.g. 01, 12)',
     'unitNumber.zero': 'Unit number cannot be 0',
   }),
+
+  isCommitteeMember: Joi.boolean().optional().default(false),
 });
 
 const updateResidentSchema = Joi.object({

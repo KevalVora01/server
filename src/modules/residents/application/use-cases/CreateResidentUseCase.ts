@@ -108,28 +108,11 @@ export class CreateResidentUseCase {
     }
 
     if (this.emailService && savedUser.id) {
-      const rawToken = crypto.randomBytes(32).toString("hex");
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-      await PasswordResetTokenModel.destroy({
-        where: { userId: savedUser.id },
-      });
-
-      await PasswordResetTokenModel.create({
-        userId: savedUser.id,
-        token: rawToken,
-        expiresAt,
-      });
-
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-      const resetLink = `${clientUrl}/reset-password?token=${rawToken}`;
-
       const { subject, html } = buildWelcomeEmailTemplate({
         name: dto.name,
         email: dto.email,
         unitName,
         temporaryPassword: rawPassword,
-        resetLink,
       });
 
       this.emailService.sendEmail({

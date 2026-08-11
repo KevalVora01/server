@@ -3,7 +3,6 @@ export interface WelcomeEmailTemplateOptions {
   email: string;
   unitName: string;
   temporaryPassword: string;
-  resetLink: string;
   societyName?: string;
   clientUrl?: string;
 }
@@ -16,7 +15,7 @@ export function buildWelcomeEmailTemplate(options: WelcomeEmailTemplateOptions):
   const clientUrl = options.clientUrl || process.env.CLIENT_URL || "http://localhost:5173";
 
   return {
-    subject: `Welcome to ${societyName} - Your Account Credentials & Reset Password`,
+    subject: `Welcome to ${societyName} - Your Account Credentials`,
     html: `
       <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 30px; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
@@ -36,17 +35,14 @@ export function buildWelcomeEmailTemplate(options: WelcomeEmailTemplateOptions):
             </div>
 
             <p style="font-size: 14px; color: #666;">
-              You can set your own password directly by clicking the button below, or log in with your temporary password.
+              Please log in to your account using your temporary password. You will be prompted to reset your password upon your first login.
             </p>
 
             <div style="text-align: center; margin: 25px 0 10px 0;">
-              <a href="${options.resetLink}" style="background-color: #1a1f36; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 15px;">
-                Set Your Password Directly
+              <a href="${clientUrl}/login" style="background-color: #1a1f36; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 15px;">
+                Log In to Your Account
               </a>
             </div>
-            <p style="text-align: center; font-size: 13px; color: #777; margin-top: 10px;">
-              Or <a href="${clientUrl}/login" style="color: #1a1f36; text-decoration: underline;">log in to your account</a>
-            </p>
           </div>
           <div style="background-color: #f1f3f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
             <p style="margin: 0;">© ${new Date().getFullYear()} ${societyName}. All rights reserved.</p>
