@@ -148,13 +148,19 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      await this.resetPasswordUseCase.execute(req.body);
+      const result = await this.resetPasswordUseCase.execute(req.body);
+
+      res.cookie(
+        "refreshToken",
+        result.refreshToken,
+        refreshTokenCookieOptions
+      );
 
       res.status(200).json(
         ApiResponse.success({
-          message: "Password reset successfully. You can now log in with your new password.",
-          data: null,
-        })
+          accessToken: result.accessToken,
+          user: result.user,
+        }, "Password reset successfully.")
       );
     } catch (error) {
       next(error);

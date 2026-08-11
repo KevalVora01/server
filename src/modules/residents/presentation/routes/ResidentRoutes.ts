@@ -48,14 +48,6 @@ router.post(
   residentController.importResidents
 );
 
-// Send welcome email to a created resident individually
-router.post(
-  "/send-welcome-email",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN),
-  residentController.sendWelcomeEmail
-);
-
 // List all residents (with filters)
 router.get(
   "/",

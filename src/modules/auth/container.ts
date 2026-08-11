@@ -32,7 +32,7 @@ const refreshTokenUseCase = new RefreshTokenUseCase(userRepository, refreshToken
 const logoutUseCase = new LogoutUseCase(refreshTokenRepository);
 const getCurrentUserUseCase = new GetCurrentUserUseCase(userRepository, residentRepository);
 const forgotPasswordUseCase = new ForgotPasswordUseCase(userRepository, passwordResetTokenRepository, emailService);
-const resetPasswordUseCase = new ResetPasswordUseCase(userRepository, passwordResetTokenRepository, passwordHasher);
+const resetPasswordUseCase = new ResetPasswordUseCase(userRepository, passwordResetTokenRepository, passwordHasher, refreshTokenRepository, tokenService, residentRepository);
 const updateProfileUseCase = new UpdateProfileUseCase(userRepository);
 const changePasswordUseCase = new ChangePasswordUseCase(userRepository, passwordHasher);
 

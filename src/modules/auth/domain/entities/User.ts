@@ -25,12 +25,12 @@ export class User {
   }
 
   public static create(
-    props: Omit<UserProps, 'id' | 'isActive' | 'mustResetPassword' | 'createdAt' | 'updatedAt'>
+    props: Omit<UserProps, 'id' | 'isActive' | 'mustResetPassword' | 'createdAt' | 'updatedAt'> & { mustResetPassword?: boolean }
   ): User {
     return new User({
       ...props,
       isActive: true,
-      mustResetPassword: false,
+      mustResetPassword: props.mustResetPassword ?? false,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

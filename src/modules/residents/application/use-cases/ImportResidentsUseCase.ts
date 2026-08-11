@@ -29,7 +29,6 @@ export interface ImportResidentsResult {
   successCount: number;
   failedCount: number;
   failedItems: FailedImportItem[];
-  createdResidents: CreatedResidentEmailItem[];
 }
 
 function generateRandomPassword(length = 11): string {
@@ -158,16 +157,16 @@ export class ImportResidentsUseCase {
       // Phone Validation
       let phone = "";
       if (rawPhone === undefined || rawPhone === null) {
-        rowErrors.push("Phone is required");
+        rowErrors.push("Phone number is required");
       } else {
-        phone = String(rawPhone).trim();
-        if (phone.length !== 10 || !/^[0-9]+$/.test(phone)) {
-          rowErrors.push("Phone must be exactly 10 digits");
+        const rawPhoneStr = String(rawPhone).trim();
+        const cleanedPhone = rawPhoneStr.replace(/[^0-9+]/g, "");
+        if (cleanedPhone.length < 7 || cleanedPhone.length > 15) {
+          rowErrors.push("Phone number must contain between 7 and 15 digits");
+        } else {
+          phone = cleanedPhone;
         }
       }
-
-      // Auto-generate completely unique, random, secure password for resident
-      const password = generateRandomPassword(11);
 
       // Block Validation
       let block = "";
@@ -175,95 +174,78 @@ export class ImportResidentsUseCase {
         rowErrors.push("Block is required");
       } else {
         block = String(rawBlock).trim().toUpperCase();
-        if (block.length !== 1 || !/^[A-Z0-9]$/.test(block)) {
-          rowErrors.push("Block must be a single character (e.g. A, B)");
-        }
       }
 
       // Floor Number Validation
       let floorNumber = 0;
-      if (rawFloor === undefined || rawFloor === null) {
+      if (rawFloor === undefined || rawFloor === null || String(rawFloor).trim() === "") {
         rowErrors.push("Floor Number is required");
       } else {
-        const parsedFloor = Number(String(rawFloor).trim());
-        if (isNaN(parsedFloor) || !Number.isInteger(parsedFloor) || parsedFloor < 1 || parsedFloor > 100) {
-          rowErrors.push("Floor Number must be an integer (1-100)");
-        } else {
-          floorNumber = parsedFloor;
+        floorNumber = Number(rawFloor);
+        if (isNaN(floorNumber) || floorNumber < 0 || floorNumber > 200 || !Number.isInteger(floorNumber)) {
+          rowErrors.push("Floor Number must be a valid integer between 0 and 200");
         }
       }
 
       // Unit Number Validation
       let unitNumber = "";
-      if (rawUnit === undefined || rawUnit === null) {
+      if (rawUnit === undefined || rawUnit === null || String(rawUnit).trim() === "") {
         rowErrors.push("Unit Number is required");
       } else {
-        let uStr = String(rawUnit).trim();
-        if (uStr.endsWith(".0")) uStr = uStr.slice(0, -2);
-        if (/^\d+$/.test(uStr)) {
-          const uInt = parseInt(uStr, 10);
-          if (uInt === 0) {
-            rowErrors.push("Unit Number cannot be 0");
-          } else if (uInt > 99) {
-            rowErrors.push("Unit Number must be 1 or 2 digits (e.g. 01, 12)");
-          } else {
-            unitNumber = String(uInt).padStart(2, "0");
-          }
-        } else if (/^\d{1,2}$/.test(uStr)) {
-          unitNumber = uStr.padStart(2, "0");
+        const rawUnitStr = String(rawUnit).trim();
+        const unitNum = Number(rawUnitStr);
+        if (!isNaN(unitNum) && Number.isInteger(unitNum) && unitNum > 0) {
+          unitNumber = String(unitNum).padStart(2, "0");
         } else {
-          rowErrors.push("Unit Number must be 1 or 2 digits (e.g. 01, 12)");
+          unitNumber = rawUnitStr;
         }
       }
-
-      const identifier = rawEmail ? String(rawEmail) : (block && floorNumber && unitNumber ? `${block}-${floorNumber}${unitNumber}` : `Row ${rowNum}`);
 
       if (rowErrors.length > 0) {
         failedItems.push({
           row: rowNum,
-          identifier,
+          identifier: email || name || `Row #${rowNum}`,
           reason: rowErrors.join("; "),
         });
-        continue;
+      } else {
+        const generatedPassword = generateRandomPassword(11);
+        validRows.push({
+          rowNum,
+          name,
+          email,
+          password: generatedPassword,
+          phone,
+          block,
+          floorNumber,
+          unitNumber,
+        });
       }
-
-      validRows.push({
-        rowNum,
-        name,
-        email,
-        password,
-        phone,
-        block,
-        floorNumber,
-        unitNumber,
-      });
     }
 
-    // Check for duplicate emails and apartments within the Excel file itself
-    const emailsInFile = new Map<string, number>();
+    // Deduplication check within Excel file
+    const emailsInFile = new Set<string>();
     const unitsInFile = new Map<string, number>();
+
     const fileDuplicateRows = new Set<number>();
 
     for (const row of validRows) {
       if (emailsInFile.has(row.email)) {
-        const firstSeenRow = emailsInFile.get(row.email)!;
         failedItems.push({
           row: row.rowNum,
           identifier: row.email,
-          reason: `Duplicate email of row ${firstSeenRow} in same file`,
+          reason: "Duplicate email address found in the uploaded Excel file",
         });
         fileDuplicateRows.add(row.rowNum);
       } else {
-        emailsInFile.set(row.email, row.rowNum);
+        emailsInFile.add(row.email);
       }
 
-      const unitKey = `${row.block}-${row.floorNumber}-${row.unitNumber}`;
+      const unitKey = `${row.block}-${row.floorNumber}${row.unitNumber}`;
       if (unitsInFile.has(unitKey)) {
-        const firstSeenRow = unitsInFile.get(unitKey)!;
         failedItems.push({
           row: row.rowNum,
-          identifier: `${row.block}-${row.floorNumber}${row.unitNumber}`,
-          reason: `Duplicate assignment of apartment in row ${firstSeenRow} in same file`,
+          identifier: unitKey,
+          reason: `Duplicate unit (${unitKey}) assignment found in the uploaded Excel file (First seen on Row #${unitsInFile.get(unitKey)})`,
         });
         fileDuplicateRows.add(row.rowNum);
       } else {
@@ -378,11 +360,75 @@ export class ImportResidentsUseCase {
       throw err;
     }
 
+    // 6. Send welcome credentials emails directly inside Use Case (Background dispatch)
+    if (this.emailService && createdResidents.length > 0) {
+      const societyName = process.env.SOCIETY_NAME || "Civic Horizon";
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+
+      for (const item of createdResidents) {
+        (async () => {
+          try {
+            const rawToken = crypto.randomBytes(32).toString("hex");
+            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+            await PasswordResetTokenModel.destroy({ where: { userId: item.userId } });
+            await PasswordResetTokenModel.create({ userId: item.userId, token: rawToken, expiresAt });
+
+            const resetLink = `${clientUrl}/reset-password?token=${rawToken}`;
+            const htmlContent = `
+              <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 30px; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                  <div style="background-color: #1a1f36; padding: 24px; text-align: center;">
+                    <h2 style="color: #ffffff; margin: 0; font-size: 22px;">Welcome to ${societyName}!</h2>
+                  </div>
+                  <div style="padding: 30px;">
+                    <p style="font-size: 16px; margin-top: 0;">Hello <strong>${item.name}</strong>,</p>
+                    <p style="font-size: 15px; color: #555;">
+                      An account has been created for you as a resident of unit <strong>${item.unit}</strong> at ${societyName}.
+                    </p>
+                    
+                    <div style="background-color: #f8f9fa; border-left: 4px solid #1a1f36; padding: 16px; margin: 24px 0; border-radius: 4px;">
+                      <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;"><strong>Your Login Credentials:</strong></p>
+                      <p style="margin: 0 0 6px 0; font-size: 15px;"><strong>Email:</strong> ${item.email}</p>
+                      <p style="margin: 0; font-size: 15px;"><strong>Temporary Password:</strong> <span style="font-family: monospace; background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #1a1f36;">${item.temporaryPassword}</span></p>
+                    </div>
+
+                    <p style="font-size: 14px; color: #666;">
+                      You can set your own password directly by clicking the button below, or log in with your temporary password.
+                    </p>
+
+                    <div style="text-align: center; margin: 25px 0 10px 0;">
+                      <a href="${resetLink}" style="background-color: #1a1f36; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 15px;">
+                        Set Your Password Directly
+                      </a>
+                    </div>
+                    <p style="text-align: center; font-size: 13px; color: #777; margin-top: 10px;">
+                      Or <a href="${clientUrl}/login" style="color: #1a1f36; text-decoration: underline;">log in to your account</a>
+                    </p>
+                  </div>
+                  <div style="background-color: #f1f3f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
+                    <p style="margin: 0;">© ${new Date().getFullYear()} ${societyName}. All rights reserved.</p>
+                  </div>
+                </div>
+              </div>
+            `;
+
+            await this.emailService!.sendEmail({
+              to: item.email,
+              subject: `Welcome to ${societyName} - Your Account Credentials & Reset Password`,
+              html: htmlContent,
+            });
+          } catch (err) {
+            console.error(`[ImportResidentsUseCase] Failed to send welcome email to ${item.email}:`, err);
+          }
+        })();
+      }
+    }
+
     return {
       successCount,
       failedCount: failedItems.length,
       failedItems,
-      createdResidents,
     };
   }
 }

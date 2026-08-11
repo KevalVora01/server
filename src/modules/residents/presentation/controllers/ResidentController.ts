@@ -35,15 +35,12 @@ export class ResidentController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { resident, emailItem } = await this.createResidentUseCase.execute(req.body);
+      const resident = await this.createResidentUseCase.execute(req.body);
 
       res.status(201).json(
         ApiResponse.success({
           message: "Resident created successfully",
-          data: {
-            ...resident.toResponseObject(),
-            emailItem,
-          },
+          data: resident.toResponseObject(),
         })
       );
     } catch (error) {
@@ -134,17 +131,12 @@ export class ResidentController {
         ApiResponse.success({
           message: "Residents list retrieved successfully",
           data: {
+            ...list,
             items: list.items.map((resItem: Resident) => ({
               ...resItem.toResponseObject(),
               user: resItem.user ?? null,
               apartment: resItem.apartment ?? null,
             })),
-            pagination: {
-              totalItems: list.totalCount,
-              totalPages: list.totalPages,
-              currentPage: list.pageNumber,
-              pageSize: list.pageSize,
-            },
             stats,
           },
         })
@@ -252,96 +244,6 @@ export class ResidentController {
           result,
           `Successfully imported ${result.successCount} residents.`
         )
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  sendWelcomeEmail = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { userId, email, name, unit, temporaryPassword } = req.body;
-
-      if (!userId || !email || !name) {
-        res.status(400).json(ApiResponse.error("Missing required parameters (userId, email, name)"));
-        return;
-      }
-
-      // Generate Password Reset Token for direct password reset button in welcome email
-      const rawToken = crypto.randomBytes(32).toString("hex");
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-      await PasswordResetTokenModel.destroy({
-        where: { userId },
-      });
-
-      await PasswordResetTokenModel.create({
-        userId,
-        token: rawToken,
-        expiresAt,
-      });
-
-      const societyName = process.env.SOCIETY_NAME || "Civic Horizon";
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-      const resetLink = `${clientUrl}/reset-password?token=${rawToken}`;
-      const unitName = unit || "Your Apartment";
-      const passwordToDisplay = temporaryPassword || "••••••••";
-
-      const htmlContent = `
-        <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 30px; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-            <div style="background-color: #1a1f36; padding: 24px; text-align: center;">
-              <h2 style="color: #ffffff; margin: 0; font-size: 22px;">Welcome to ${societyName}!</h2>
-            </div>
-            <div style="padding: 30px;">
-              <p style="font-size: 16px; margin-top: 0;">Hello <strong>${name}</strong>,</p>
-              <p style="font-size: 15px; color: #555;">
-                An account has been created for you as a resident of unit <strong>${unitName}</strong> at ${societyName}.
-              </p>
-              
-              <div style="background-color: #f8f9fa; border-left: 4px solid #1a1f36; padding: 16px; margin: 24px 0; border-radius: 4px;">
-                <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;"><strong>Your Login Credentials:</strong></p>
-                <p style="margin: 0 0 6px 0; font-size: 15px;"><strong>Email:</strong> ${email}</p>
-                <p style="margin: 0; font-size: 15px;"><strong>Temporary Password:</strong> <span style="font-family: monospace; background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #1a1f36;">${passwordToDisplay}</span></p>
-              </div>
-
-              <p style="font-size: 14px; color: #666;">
-                You can set your own password directly by clicking the button below, or log in with your temporary password.
-              </p>
-
-              <div style="text-align: center; margin: 25px 0 10px 0;">
-                <a href="${resetLink}" style="background-color: #1a1f36; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 15px;">
-                  Set Your Password Directly
-                </a>
-              </div>
-              <p style="text-align: center; font-size: 13px; color: #777; margin-top: 10px;">
-                Or <a href="${clientUrl}/login" style="color: #1a1f36; text-decoration: underline;">log in to your account</a>
-              </p>
-            </div>
-            <div style="background-color: #f1f3f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
-              <p style="margin: 0;">© ${new Date().getFullYear()} ${societyName}. All rights reserved.</p>
-            </div>
-          </div>
-        </div>
-      `;
-
-      if (this.emailService) {
-        await this.emailService.sendEmail({
-          to: email,
-          subject: `Welcome to ${societyName} - Your Account Credentials & Reset Password`,
-          html: htmlContent,
-        }).catch((err) => console.error("[sendWelcomeEmail] Delivery error:", err));
-      }
-
-      res.status(200).json(
-        ApiResponse.success({
-          message: "Welcome email delivered successfully",
-          data: { userId, email },
-        })
       );
     } catch (error) {
       next(error);
