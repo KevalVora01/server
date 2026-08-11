@@ -10,7 +10,8 @@ const generateInvoicesSchema = Joi.object({
   year: Joi.number().integer().min(2020).max(2100).required().messages({
     'any.required': 'Year is required',
   }),
-  dueDate: Joi.date().required().messages({
+  dueDate: Joi.date().greater('now').required().messages({
+    'date.greater': 'Due date must be in the future',
     'any.required': 'Due date is required',
   }),
   extraCharges: Joi.array().items(

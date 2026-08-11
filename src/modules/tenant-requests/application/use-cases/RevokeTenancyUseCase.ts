@@ -2,6 +2,7 @@ import { Op } from "sequelize";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { IUserRepository } from "../../../auth/domain/repositories/IUserRepository";
 import { IVisitorRepository } from "../../../visitors/domain/repositories/IVisitorRepository";
+import { IEmailService } from "../../../auth/domain/services/IEmailService";
 import { notificationService } from "../../../notifications/container";
 import { getIO } from "../../../../shared/socket/socket.server";
 import { SOCKET_EVENTS } from "../../../../shared/socket/socket.events";
@@ -13,12 +14,14 @@ import { VisitorStatus } from "../../../visitors/domain/entities/Visitor";
 import { DocumentRequestModel, DocumentRequestStatus } from "../../../document-requests/infrastructure/models/DocumentRequestModel";
 import { ComplaintModel } from "../../../complaints/infrastructure/models/ComplaintModel";
 import { ComplaintStatus } from "../../../complaints/domain/entities/Complaint";
+import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 
 export class RevokeTenancyUseCase {
   constructor(
     private readonly residentRepository: IResidentRepository,
     private readonly userRepository: IUserRepository,
     private readonly visitorRepository: IVisitorRepository,
+    private readonly emailService?: IEmailService,
   ) { }
 
   async execute(apartmentId: number): Promise<void> {
@@ -43,7 +46,12 @@ export class RevokeTenancyUseCase {
       throw new PendingMaintenanceDuesError();
     }
 
-    // 2. Deactivate tenant resident & user account
+    // 2. Fetch tenant user details for email notification
+    const tenantUser = await this.userRepository.findById(tenantUserId);
+    const tenantEmail = tenantUser?.email;
+    const tenantName = tenantUser?.name || "Resident";
+
+    // 3. Deactivate tenant resident & user account
     occupant.deactivate();
     occupant.markAsNonOccupant();
     occupant.updateMoveOutDate(new Date());
@@ -51,7 +59,7 @@ export class RevokeTenancyUseCase {
 
     await this.userRepository.deactivate(tenantUserId);
 
-    // 3. Reject all pending/approved visitors pre-registered by this tenant
+    // 4. Reject all pending/approved visitors pre-registered by this tenant
     await VisitorModel.update(
       { status: VisitorStatus.REJECTED },
       {
@@ -64,7 +72,7 @@ export class RevokeTenancyUseCase {
 
     getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, { apartmentId });
 
-    // 4. Reject all pending/approved document requests for this tenant resident
+    // 5. Reject all pending/approved document requests for this tenant resident
     await DocumentRequestModel.update(
       {
         status: DocumentRequestStatus.REJECTED,
@@ -81,7 +89,7 @@ export class RevokeTenancyUseCase {
       }
     );
 
-    // 5. Delete all open / in-progress complaints submitted by this tenant resident
+    // 6. Delete all open / in-progress complaints submitted by this tenant resident
     await ComplaintModel.destroy({
       where: {
         residentId: tenantResidentId,
@@ -89,15 +97,53 @@ export class RevokeTenancyUseCase {
       },
     });
 
-    // 6. Reinstate owner as active occupant
+    // 7. Reinstate owner as active occupant
     const owner = await this.residentRepository.findActiveByApartmentId(apartmentId);
     if (owner) {
       owner.markAsOccupant();
       await this.residentRepository.update(owner);
     }
 
-    // 7. Send revocation notification to tenant
+    // 8. Send revocation push notification
     await this.notifyTenant(tenantUserId, apartmentId);
+
+    // 9. Send email notification to tenant
+    if (this.emailService && tenantEmail) {
+      let unitName = "Your Apartment";
+      if (apartmentId) {
+        const apartment = await ApartmentModel.findByPk(apartmentId);
+        if (apartment) {
+          unitName = `${apartment.block}-${apartment.floorNumber}${apartment.unitNumber}`;
+        }
+      }
+
+      const societyName = process.env.SOCIETY_NAME || "Civic Horizon";
+      this.emailService.sendEmail({
+        to: tenantEmail,
+        subject: `Tenancy Revoked — ${societyName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 30px; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+              <div style="background-color: #1a1f36; padding: 24px; text-align: center;">
+                <h2 style="color: #ffffff; margin: 0; font-size: 22px;">Tenancy Revoked</h2>
+              </div>
+              <div style="padding: 30px;">
+                <p style="font-size: 16px; margin-top: 0;">Hello <strong>${tenantName}</strong>,</p>
+                <p style="font-size: 15px; color: #555;">
+                  This is to inform you that your tenancy for unit <strong>${unitName}</strong> at ${societyName} has been ended by the apartment owner.
+                </p>
+                <p style="font-size: 14px; color: #666; margin-top: 15px;">
+                  Your account access and active credentials for ${societyName} have been deactivated.
+                </p>
+              </div>
+              <div style="background-color: #f1f3f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
+                <p style="margin: 0;">© ${new Date().getFullYear()} ${societyName}. All rights reserved.</p>
+              </div>
+            </div>
+          </div>
+        `,
+      }).catch((err) => console.error("[RevokeTenancyUseCase] Failed to send revocation email:", err));
+    }
   }
 
   private async notifyTenant(userId: number, apartmentId: number): Promise<void> {

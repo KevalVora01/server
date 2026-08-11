@@ -34,7 +34,7 @@ const finalizeTenantRequestUseCase = new FinalizeTenantRequestUseCase(
   passwordHasher,
   emailService,
 );
-const revokeTenancyUseCase = new RevokeTenancyUseCase(residentRepository, userRepository, visitorRepository);
+const revokeTenancyUseCase = new RevokeTenancyUseCase(residentRepository, userRepository, visitorRepository, emailService);
 
 export const tenantRequestController = new TenantRequestController(
   submitTenantRequestUseCase,

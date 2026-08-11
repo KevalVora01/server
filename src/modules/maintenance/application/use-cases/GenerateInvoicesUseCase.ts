@@ -15,6 +15,15 @@ export class GenerateInvoicesUseCase {
   ) {}
 
   async execute(dto: GenerateInvoicesDto): Promise<Invoice[]> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const invoiceDueDate = new Date(dto.dueDate);
+    invoiceDueDate.setHours(0, 0, 0, 0);
+
+    if (invoiceDueDate <= today) {
+      throw new Error("Due date must be in the future");
+    }
+
     const setting = await this.settingRepository.get();
 
     if (!setting) {
