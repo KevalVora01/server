@@ -1,7 +1,7 @@
 import { ApartmentType } from "../../domain/entities/Apartment";
 import { ApartmentModel } from "../../infrastructure/models/ApartmentModel";
 import * as XLSX from "xlsx";
-import { sequelize } from "../../../../shared/config/sequelize";
+import { createApartmentSchema } from "../../presentation/validators/apartmentValidators";
 
 export interface FailedImportItem {
   row: number;
@@ -104,73 +104,17 @@ export class ImportApartmentsUseCase {
         continue;
       }
 
-      const errors: string[] = [];
-
-      // 1. Validate Block
-      let block = "";
-      if (rawBlock === undefined || rawBlock === null) {
-        errors.push("Block is required");
-      } else {
-        block = String(rawBlock).trim().toUpperCase();
-        if (block.length !== 1 || !/^[A-Z0-9]$/.test(block)) {
-          errors.push("Block must be a single character (e.g. A, B)");
-        }
+      // Format unit string
+      let rawUnitStr = rawUnit !== undefined && rawUnit !== null ? String(rawUnit).trim() : undefined;
+      if (rawUnitStr?.endsWith(".0")) rawUnitStr = rawUnitStr.slice(0, -2);
+      if (rawUnitStr && /^\d+$/.test(rawUnitStr)) {
+        const uInt = parseInt(rawUnitStr, 10);
+        if (uInt > 0) rawUnitStr = String(uInt).padStart(2, "0");
       }
 
-      // 2. Validate Floor Number
-      let floorNumber = 0;
-      if (rawFloor === undefined || rawFloor === null) {
-        errors.push("Floor number is required");
-      } else {
-        const parsedFloor = Number(String(rawFloor).trim());
-        if (isNaN(parsedFloor) || !Number.isInteger(parsedFloor) || parsedFloor < 1 || parsedFloor > 100) {
-          errors.push("Floor number must be a valid integer between 1 and 100");
-        } else {
-          floorNumber = parsedFloor;
-        }
-      }
-
-      // 3. Validate Unit Number
-      let unitNumber = "";
-      if (rawUnit === undefined || rawUnit === null) {
-        errors.push("Unit number is required");
-      } else {
-        let uStr = String(rawUnit).trim();
-        if (uStr.endsWith(".0")) uStr = uStr.slice(0, -2);
-        if (/^\d+$/.test(uStr)) {
-          const uInt = parseInt(uStr, 10);
-          if (uInt === 0) {
-            errors.push("Unit number cannot be 0");
-          } else if (uInt > 99) {
-            errors.push("Unit number must be 1 or 2 digits (e.g. 01, 12)");
-          } else {
-            unitNumber = String(uInt).padStart(2, "0");
-          }
-        } else if (/^\d{1,2}$/.test(uStr)) {
-          unitNumber = uStr.padStart(2, "0");
-        } else {
-          errors.push("Unit number must be 1 or 2 digits (e.g. 01, 12)");
-        }
-      }
-
-      // 4. Validate Area
-      let areaSqft = 0;
-      if (rawArea === undefined || rawArea === null) {
-        errors.push("Area (Sqft) is required");
-      } else {
-        const parsedArea = Number(String(rawArea).trim());
-        if (isNaN(parsedArea) || parsedArea <= 0) {
-          errors.push("Area must be a positive number");
-        } else {
-          areaSqft = parsedArea;
-        }
-      }
-
-      // 5. Validate & Normalize Type
-      let type: ApartmentType | null = null;
-      if (rawType === undefined || rawType === null) {
-        errors.push("Type (BHK) is required");
-      } else {
+      // Normalize apartment type
+      let type: ApartmentType | undefined = undefined;
+      if (rawType !== undefined && rawType !== null) {
         const cleanType = String(rawType).trim().toLowerCase().replace(/[^a-z0-9]/g, "");
         if (cleanType.includes("1bhk") || cleanType === "1") type = ApartmentType.ONE_BHK;
         else if (cleanType.includes("2bhk") || cleanType === "2") type = ApartmentType.TWO_BHK;
@@ -180,43 +124,54 @@ export class ImportApartmentsUseCase {
           const directMatch = validTypes.find((t) => t.toLowerCase() === cleanType);
           if (directMatch) type = directMatch;
         }
-
-        if (!type) {
-          errors.push(`Type (BHK) must be 1, 2, 3, or 4`);
-        }
       }
 
-      const identifier = block && floorNumber && unitNumber ? `${block}-${floorNumber}${unitNumber}` : `Row ${rowNum}`;
+      const candidate = {
+        block: rawBlock !== undefined && rawBlock !== null ? String(rawBlock).trim().toUpperCase() : undefined,
+        floorNumber: rawFloor !== undefined && rawFloor !== null && String(rawFloor).trim() !== "" ? Number(String(rawFloor).trim()) : undefined,
+        unitNumber: rawUnitStr,
+        areaSqft: rawArea !== undefined && rawArea !== null && String(rawArea).trim() !== "" ? Number(String(rawArea).trim()) : undefined,
+        type,
+      };
 
-      if (errors.length > 0) {
+      // ─── Validate with Joi schema ───
+      const { error, value } = createApartmentSchema.validate(candidate, { abortEarly: false });
+
+      if (error) {
         failedItems.push({
           row: rowNum,
-          identifier,
-          reason: errors.join("; "),
+          identifier: candidate.block && candidate.unitNumber ? `${candidate.block}-${candidate.unitNumber}` : `Row ${rowNum}`,
+          reason: error.details.map((d) => d.message).join("; "),
         });
         continue;
       }
+
+      const block = value.block;
+      const floorNumber = value.floorNumber;
+      const unitNumber = value.unitNumber;
+      const areaSqft = value.areaSqft;
+      const validatedType = value.type as ApartmentType;
 
       // Build Unique Key
       const key = `${block}-${floorNumber}-${unitNumber}`;
 
-      // Check Database Existence (Apartment created only once when no apartment exists)
+      // Check DB duplication
       if (existingDbKeys.has(key)) {
         failedItems.push({
           row: rowNum,
-          identifier,
-          reason: "Apartment unit already exists in database",
+          identifier: `${block}-${floorNumber}${unitNumber}`,
+          reason: `Apartment ${block}-${floorNumber}${unitNumber} already exists in database`,
         });
         continue;
       }
 
-      // Check Excel In-File Duplicate
+      // Check File duplication
       if (seenFileKeys.has(key)) {
-        const firstRow = seenFileKeys.get(key)!;
+        const prevRow = seenFileKeys.get(key);
         failedItems.push({
           row: rowNum,
-          identifier,
-          reason: `Duplicate unit entry of row ${firstRow} in Excel sheet`,
+          identifier: `${block}-${floorNumber}${unitNumber}`,
+          reason: `Duplicate row in Excel file (same unit as Row ${prevRow})`,
         });
         continue;
       }
@@ -228,59 +183,32 @@ export class ImportApartmentsUseCase {
         floorNumber,
         unitNumber,
         areaSqft,
-        type: type!,
+        type: validatedType,
         key,
       });
     }
 
-    // Insert valid unique rows inside a database transaction
-    let successCount = 0;
-    if (validRowsToInsert.length > 0) {
-      const transaction = await sequelize.transaction();
-      try {
-        for (const row of validRowsToInsert) {
-          const existing = await ApartmentModel.findOne({
-            where: {
-              block: row.block,
-              floorNumber: row.floorNumber,
-              unitNumber: row.unitNumber,
-            },
-            transaction,
-          });
-
-          if (existing) {
-            failedItems.push({
-              row: row.rowNum,
-              identifier: `${row.block}-${row.floorNumber}${row.unitNumber}`,
-              reason: "Apartment unit already exists in database",
-            });
-            continue;
-          }
-
-          await ApartmentModel.create(
-            {
-              block: row.block,
-              floorNumber: row.floorNumber,
-              unitNumber: row.unitNumber,
-              areaSqft: row.areaSqft,
-              type: row.type,
-            },
-            { transaction }
-          );
-
-          existingDbKeys.add(row.key);
-          successCount++;
-        }
-
-        await transaction.commit();
-      } catch (err) {
-        await transaction.rollback();
-        throw err;
-      }
+    if (validRowsToInsert.length === 0) {
+      return {
+        successCount: 0,
+        failedCount: failedItems.length,
+        failedItems,
+      };
     }
 
+    // Bulk insertion
+    await ApartmentModel.bulkCreate(
+      validRowsToInsert.map((item) => ({
+        block: item.block,
+        floorNumber: item.floorNumber,
+        unitNumber: item.unitNumber,
+        areaSqft: item.areaSqft,
+        type: item.type,
+      }))
+    );
+
     return {
-      successCount,
+      successCount: validRowsToInsert.length,
       failedCount: failedItems.length,
       failedItems,
     };

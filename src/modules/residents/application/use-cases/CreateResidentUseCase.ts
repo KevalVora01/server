@@ -10,6 +10,7 @@ import { Resident } from "../../domain/entities/Resident";
 import { User, UserRole } from "../../../auth/domain/entities/User";
 import { UserAlreadyExistsError } from "../../../auth/domain/errors/AuthErrors";
 import { ApartmentAlreadyOccupiedError } from "../../domain/errors/ResidentErrors";
+import { buildWelcomeEmailTemplate } from "../templates/welcomeEmailTemplate";
 
 function generateRandomPassword(length = 11): string {
   const uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -120,52 +121,21 @@ export class CreateResidentUseCase {
         expiresAt,
       });
 
-      const societyName = process.env.SOCIETY_NAME || "Civic Horizon";
       const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
       const resetLink = `${clientUrl}/reset-password?token=${rawToken}`;
 
-      const htmlContent = `
-        <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 30px; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-            <div style="background-color: #1a1f36; padding: 24px; text-align: center;">
-              <h2 style="color: #ffffff; margin: 0; font-size: 22px;">Welcome to ${societyName}!</h2>
-            </div>
-            <div style="padding: 30px;">
-              <p style="font-size: 16px; margin-top: 0;">Hello <strong>${dto.name}</strong>,</p>
-              <p style="font-size: 15px; color: #555;">
-                An account has been created for you as a resident of unit <strong>${unitName}</strong> at ${societyName}.
-              </p>
-              
-              <div style="background-color: #f8f9fa; border-left: 4px solid #1a1f36; padding: 16px; margin: 24px 0; border-radius: 4px;">
-                <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;"><strong>Your Login Credentials:</strong></p>
-                <p style="margin: 0 0 6px 0; font-size: 15px;"><strong>Email:</strong> ${dto.email}</p>
-                <p style="margin: 0; font-size: 15px;"><strong>Temporary Password:</strong> <span style="font-family: monospace; background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #1a1f36;">${rawPassword}</span></p>
-              </div>
-
-              <p style="font-size: 14px; color: #666;">
-                You can set your own password directly by clicking the button below, or log in with your temporary password.
-              </p>
-
-              <div style="text-align: center; margin: 25px 0 10px 0;">
-                <a href="${resetLink}" style="background-color: #1a1f36; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 15px;">
-                  Set Your Password Directly
-                </a>
-              </div>
-              <p style="text-align: center; font-size: 13px; color: #777; margin-top: 10px;">
-                Or <a href="${clientUrl}/login" style="color: #1a1f36; text-decoration: underline;">log in to your account</a>
-              </p>
-            </div>
-            <div style="background-color: #f1f3f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
-              <p style="margin: 0;">© ${new Date().getFullYear()} ${societyName}. All rights reserved.</p>
-            </div>
-          </div>
-        </div>
-      `;
+      const { subject, html } = buildWelcomeEmailTemplate({
+        name: dto.name,
+        email: dto.email,
+        unitName,
+        temporaryPassword: rawPassword,
+        resetLink,
+      });
 
       this.emailService.sendEmail({
         to: dto.email,
-        subject: `Welcome to ${societyName} - Your Account Credentials & Reset Password`,
-        html: htmlContent,
+        subject,
+        html,
       }).catch((err) => console.error("[CreateResidentUseCase] Welcome email delivery error:", err));
     }
 

@@ -2,7 +2,7 @@ import Joi from 'joi';
 import { handleValidationError } from '../../../../shared/utils/validateRequest';
 
 // ─── Schemas ──────────────────────────────────────────────────────
-const createResidentSchema = Joi.object({
+export const createResidentSchema = Joi.object({
   name: Joi.string().trim().min(2).max(100).required().messages({
     'string.empty': 'Name is required',
     'string.min': 'Name must be at least 2 characters',
@@ -37,6 +37,47 @@ const createResidentSchema = Joi.object({
   }),
 });
 
+export const importResidentRowSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(100).required().messages({
+    'string.empty': 'Name is required',
+    'string.min': 'Name must be at least 2 characters',
+    'string.max': 'Name must be at most 100 characters',
+  }),
+
+  email: Joi.string().trim().email().required().messages({
+    'string.empty': 'Email is required',
+    'string.email': 'Please provide a valid email',
+  }),
+
+  phone: Joi.string().trim().pattern(/^[0-9+]{7,15}$/).required().messages({
+    'string.empty': 'Phone number is required',
+    'string.pattern.base': 'Phone number must contain between 7 and 15 digits',
+  }),
+
+  block: Joi.string().trim().uppercase().length(1).required().messages({
+    'string.empty': 'Block is required',
+    'string.length': 'Block must be a single character (e.g. A, B)',
+  }),
+
+  floorNumber: Joi.number().integer().min(1).max(100).required().messages({
+    'number.base': 'Floor number must be a number',
+    'number.min': 'Floor number must be at least 1',
+    'number.max': 'Floor number must be at most 100',
+    'any.required': 'Floor number is required',
+  }),
+
+  unitNumber: Joi.string().trim().pattern(/^\d{1,2}$/).custom((value, helpers) => {
+    if (Number(value) === 0) {
+      return helpers.error('unitNumber.zero');
+    }
+    return value.padStart(2, '0');
+  }).required().messages({
+    'string.empty': 'Unit number is required',
+    'string.pattern.base': 'Unit number must be 1 or 2 digits (e.g. 01, 12)',
+    'unitNumber.zero': 'Unit number cannot be 0',
+  }),
+});
+
 const updateResidentSchema = Joi.object({
   apartmentId: Joi.number().integer().required().messages({
     'number.base': 'Apartment ID must be a number',
@@ -68,32 +109,12 @@ const updateResidentSchema = Joi.object({
 });
 
 const listResidentsSchema = Joi.object({
-  pageNumber: Joi.number().integer().positive().default(1).messages({
-    'number.base': 'Page number must be a number',
-    'number.positive': 'Page number must be a positive number',
-  }),
-
-  pageSize: Joi.number().integer().positive().max(100).default(10).messages({
-    'number.base': 'Page size must be a number',
-    'number.positive': 'Page size must be a positive number',
-    'number.max': 'Page size must be at most 100',
-  }),
-
-  apartmentId: Joi.number().integer().positive().optional().messages({
-    'number.base': 'Apartment ID must be a number',
-  }),
-
-  isActive: Joi.boolean().optional().messages({
-    'boolean.base': 'isActive must be a boolean',
-  }),
-
-  isOwner: Joi.boolean().optional().messages({
-    'boolean.base': 'isOwner must be a boolean',
-  }),
-
-  search: Joi.string().trim().max(100).optional().messages({
-    'string.max': 'Search must be at most 100 characters',
-  }),
+  pageNumber: Joi.number().integer().positive().default(1),
+  pageSize: Joi.number().integer().positive().max(100).default(10),
+  apartmentId: Joi.number().integer().positive().optional(),
+  isOwner: Joi.boolean().optional(),
+  isActive: Joi.boolean().optional(),
+  search: Joi.string().trim().allow('').optional(),
 });
 
 // ─── Exported validators ──────────────────────────────────────────

@@ -10,6 +10,8 @@ import { ResidentModel } from "../../infrastructure/models/ResidentModel";
 import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 import * as XLSX from "xlsx";
 import { sequelize } from "../../../../shared/config/db";
+import { buildWelcomeEmailTemplate } from "../templates/welcomeEmailTemplate";
+import { importResidentRowSchema } from "../../presentation/validators/residentValidators";
 
 export interface FailedImportItem {
   row: number;
@@ -19,16 +21,19 @@ export interface FailedImportItem {
 
 export interface CreatedResidentEmailItem {
   userId: number;
-  name: string;
   email: string;
+  name: string;
   unit: string;
   temporaryPassword?: string;
+  status: "pending" | "sending" | "sent" | "failed";
+  error?: string;
 }
 
 export interface ImportResidentsResult {
   successCount: number;
   failedCount: number;
   failedItems: FailedImportItem[];
+  createdResidents?: CreatedResidentEmailItem[];
 }
 
 function generateRandomPassword(length = 11): string {
@@ -84,7 +89,6 @@ export class ImportResidentsUseCase {
     }
 
     const failedItems: FailedImportItem[] = [];
-    const createdResidents: CreatedResidentEmailItem[] = [];
 
     // Helper to extract cell values case-insensitively with header variations
     const getCellValue = (row: Record<string, unknown>, candidateKeys: string[]): unknown => {
@@ -113,7 +117,7 @@ export class ImportResidentsUseCase {
       unitNumber: string;
     }[] = [];
 
-    // 1. Validation & parsing phase
+    // 1. Validation & parsing phase using Joi schema
     for (let index = 0; index < rows.length; index++) {
       const row = rows[index];
       const rowNum = index + 2; // Data starts at Row 2
@@ -130,207 +134,183 @@ export class ImportResidentsUseCase {
         continue;
       }
 
-      const rowErrors: string[] = [];
-
-      // Name Validation
-      let name = "";
-      if (rawName === undefined || rawName === null) {
-        rowErrors.push("Name is required");
-      } else {
-        name = String(rawName).trim();
-        if (name.length < 2 || name.length > 100) {
-          rowErrors.push("Name must be between 2 and 100 characters");
-        }
+      let rawUnitStr = rawUnit !== undefined && rawUnit !== null ? String(rawUnit).trim() : undefined;
+      if (rawUnitStr?.endsWith(".0")) rawUnitStr = rawUnitStr.slice(0, -2);
+      if (rawUnitStr && /^\d+$/.test(rawUnitStr)) {
+        const uInt = parseInt(rawUnitStr, 10);
+        if (uInt > 0) rawUnitStr = String(uInt).padStart(2, "0");
       }
 
-      // Email Validation
-      let email = "";
-      if (rawEmail === undefined || rawEmail === null) {
-        rowErrors.push("Email is required");
-      } else {
-        email = String(rawEmail).trim().toLowerCase();
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          rowErrors.push("Please provide a valid email");
-        }
-      }
+      const candidate = {
+        name: rawName !== undefined && rawName !== null ? String(rawName).trim() : undefined,
+        email: rawEmail !== undefined && rawEmail !== null ? String(rawEmail).trim().toLowerCase() : undefined,
+        phone: rawPhone !== undefined && rawPhone !== null ? String(rawPhone).trim().replace(/[^0-9+]/g, "") : undefined,
+        block: rawBlock !== undefined && rawBlock !== null ? String(rawBlock).trim().toUpperCase() : undefined,
+        floorNumber: rawFloor !== undefined && rawFloor !== null && String(rawFloor).trim() !== "" ? Number(String(rawFloor).trim()) : undefined,
+        unitNumber: rawUnitStr,
+      };
 
-      // Phone Validation
-      let phone = "";
-      if (rawPhone === undefined || rawPhone === null) {
-        rowErrors.push("Phone number is required");
-      } else {
-        const rawPhoneStr = String(rawPhone).trim();
-        const cleanedPhone = rawPhoneStr.replace(/[^0-9+]/g, "");
-        if (cleanedPhone.length < 7 || cleanedPhone.length > 15) {
-          rowErrors.push("Phone number must contain between 7 and 15 digits");
-        } else {
-          phone = cleanedPhone;
-        }
-      }
+      // Validate row via Joi schema
+      const { error, value } = importResidentRowSchema.validate(candidate, { abortEarly: false });
 
-      // Block Validation
-      let block = "";
-      if (rawBlock === undefined || rawBlock === null) {
-        rowErrors.push("Block is required");
-      } else {
-        block = String(rawBlock).trim().toUpperCase();
-      }
-
-      // Floor Number Validation
-      let floorNumber = 0;
-      if (rawFloor === undefined || rawFloor === null || String(rawFloor).trim() === "") {
-        rowErrors.push("Floor Number is required");
-      } else {
-        floorNumber = Number(rawFloor);
-        if (isNaN(floorNumber) || floorNumber < 0 || floorNumber > 200 || !Number.isInteger(floorNumber)) {
-          rowErrors.push("Floor Number must be a valid integer between 0 and 200");
-        }
-      }
-
-      // Unit Number Validation
-      let unitNumber = "";
-      if (rawUnit === undefined || rawUnit === null || String(rawUnit).trim() === "") {
-        rowErrors.push("Unit Number is required");
-      } else {
-        const rawUnitStr = String(rawUnit).trim();
-        const unitNum = Number(rawUnitStr);
-        if (!isNaN(unitNum) && Number.isInteger(unitNum) && unitNum > 0) {
-          unitNumber = String(unitNum).padStart(2, "0");
-        } else {
-          unitNumber = rawUnitStr;
-        }
-      }
-
-      if (rowErrors.length > 0) {
+      if (error) {
         failedItems.push({
           row: rowNum,
-          identifier: email || name || `Row #${rowNum}`,
-          reason: rowErrors.join("; "),
+          identifier: candidate.email || candidate.name || `Row #${rowNum}`,
+          reason: error.details.map((d) => d.message).join("; "),
         });
       } else {
         const generatedPassword = generateRandomPassword(11);
         validRows.push({
           rowNum,
-          name,
-          email,
+          name: value.name,
+          email: value.email,
           password: generatedPassword,
-          phone,
-          block,
-          floorNumber,
-          unitNumber,
+          phone: value.phone,
+          block: value.block,
+          floorNumber: value.floorNumber,
+          unitNumber: value.unitNumber,
         });
       }
     }
 
-    // Deduplication check within Excel file
-    const emailsInFile = new Set<string>();
-    const unitsInFile = new Map<string, number>();
+    if (validRows.length === 0) {
+      return {
+        successCount: 0,
+        failedCount: failedItems.length,
+        failedItems,
+      };
+    }
 
-    const fileDuplicateRows = new Set<number>();
-
-    for (const row of validRows) {
-      if (emailsInFile.has(row.email)) {
+    // 2. Check for duplicate emails within the uploaded file itself
+    const seenEmails = new Map<string, number>();
+    const uniqueRows: typeof validRows = [];
+    for (const item of validRows) {
+      if (seenEmails.has(item.email)) {
+        const firstRow = seenEmails.get(item.email)!;
         failedItems.push({
-          row: row.rowNum,
-          identifier: row.email,
-          reason: "Duplicate email address found in the uploaded Excel file",
+          row: item.rowNum,
+          identifier: item.email,
+          reason: `Duplicate email '${item.email}' in Excel sheet (first seen at Row #${firstRow})`,
         });
-        fileDuplicateRows.add(row.rowNum);
       } else {
-        emailsInFile.add(row.email);
-      }
-
-      const unitKey = `${row.block}-${row.floorNumber}${row.unitNumber}`;
-      if (unitsInFile.has(unitKey)) {
-        failedItems.push({
-          row: row.rowNum,
-          identifier: unitKey,
-          reason: `Duplicate unit (${unitKey}) assignment found in the uploaded Excel file (First seen on Row #${unitsInFile.get(unitKey)})`,
-        });
-        fileDuplicateRows.add(row.rowNum);
-      } else {
-        unitsInFile.set(unitKey, row.rowNum);
+        seenEmails.set(item.email, item.rowNum);
+        uniqueRows.push(item);
       }
     }
 
-    // Filter out duplicates within the file
-    const uniqueValidRows = validRows.filter(r => !fileDuplicateRows.has(r.rowNum));
+    if (uniqueRows.length === 0) {
+      return {
+        successCount: 0,
+        failedCount: failedItems.length,
+        failedItems,
+      };
+    }
 
+    // 3. Batch query database for existing Users and Apartments
+    const emailsToQuery = uniqueRows.map((r) => r.email);
+
+    const existingUserModels = await UserModel.findAll({
+      where: { email: emailsToQuery },
+    });
+
+    const userMapByEmail = new Map<string, UserModel>();
+    for (const u of existingUserModels) {
+      userMapByEmail.set(u.email.toLowerCase(), u);
+    }
+
+    // Fetch all apartments to match block, floorNumber, unitNumber
+    const allApartments = await ApartmentModel.findAll();
+
+    const apartmentMap = new Map<string, ApartmentModel>();
+    for (const apt of allApartments) {
+      const key = `${apt.block.toUpperCase()}-${apt.floorNumber}-${apt.unitNumber.padStart(2, "0")}`;
+      apartmentMap.set(key, apt);
+    }
+
+    // Fetch all active residents to ensure apartment is not occupied
+    const activeResidents = await ResidentModel.findAll({
+      where: { isActive: true },
+    });
+
+    const occupiedApartmentIds = new Set<number>();
+    for (const res of activeResidents) {
+      occupiedApartmentIds.add(res.apartmentId);
+    }
+
+    // 4. Process each row against database business logic
+    const createdResidents: CreatedResidentEmailItem[] = [];
     let successCount = 0;
-    const transaction = await sequelize.transaction();
-    try {
-      for (const row of uniqueValidRows) {
-        // 1. Resolve Apartment FIRST — ensure unit exists in database
-        const apartment = await ApartmentModel.findOne({
-          where: {
-            block: row.block,
-            floorNumber: row.floorNumber,
-            unitNumber: row.unitNumber,
-          },
-          transaction,
+
+    for (const item of uniqueRows) {
+      const aptKey = `${item.block}-${item.floorNumber}-${item.unitNumber}`;
+      const apartment = apartmentMap.get(aptKey);
+
+      // Check 1: Apartment exists
+      if (!apartment) {
+        failedItems.push({
+          row: item.rowNum,
+          identifier: item.email,
+          reason: `Apartment unit '${item.block}-${item.floorNumber}${item.unitNumber}' does not exist in society`,
         });
+        continue;
+      }
 
-        if (!apartment) {
-          failedItems.push({
-            row: row.rowNum,
-            identifier: `${row.block}-${row.floorNumber}${row.unitNumber}`,
-            reason: `Apartment unit does not exist in database`,
-          });
-          continue;
-        }
+      // Check 2: Apartment occupied
+      if (occupiedApartmentIds.has(apartment.id)) {
+        failedItems.push({
+          row: item.rowNum,
+          identifier: item.email,
+          reason: `Apartment unit '${item.block}-${item.floorNumber}${item.unitNumber}' is already occupied by an active resident`,
+        });
+        continue;
+      }
 
-        // 2. Verify Apartment is not occupied
-        const existingActiveResident = await this.residentRepository.findActiveByApartmentId(apartment.id);
-        if (existingActiveResident) {
-          failedItems.push({
-            row: row.rowNum,
-            identifier: `${row.block}-${row.floorNumber}${row.unitNumber}`,
-            reason: `Apartment unit is already occupied by an active resident`,
-          });
-          continue;
-        }
+      // Check 3: Active user with same email exists
+      const existingUser = userMapByEmail.get(item.email);
+      if (existingUser && existingUser.isActive) {
+        failedItems.push({
+          row: item.rowNum,
+          identifier: item.email,
+          reason: `An active user with email '${item.email}' already exists in society`,
+        });
+        continue;
+      }
 
-        // 3. Check if a user with this email already exists
-        const existingUser = await this.userRepository.findByEmail(row.email);
+      const passwordHash = await this.passwordHasher.hash(item.password);
 
-        if (existingUser && existingUser.isActive) {
-          failedItems.push({
-            row: row.rowNum,
-            identifier: row.email,
-            reason: `User with this email already exists and is active`,
-          });
-          continue;
-        }
+      // Database Transaction for per-row consistency
+      const transaction = await sequelize.transaction();
 
-        // 4. Create or Reactivate User ONLY AFTER Apartment existence and vacancy are confirmed
-        let createdUser: User | UserModel;
+      try {
+        let createdUser: UserModel;
 
         if (existingUser && !existingUser.isActive) {
-          // Dormant user — reactivate and reuse their account with auto-generated password
-          const passwordHash = await this.passwordHasher.hash(row.password);
-          existingUser.updatePassword(passwordHash);
-          existingUser.updateName(row.name);
-          existingUser.updatePhone(row.phone);
-          existingUser.reactivate();
-          existingUser.requirePasswordReset();
-          createdUser = await this.userRepository.update(existingUser);
+          // Reactivate dormant user
+          existingUser.passwordHash = passwordHash;
+          existingUser.name = item.name;
+          existingUser.phone = item.phone;
+          existingUser.isActive = true;
+          existingUser.mustResetPassword = true;
+          await existingUser.save({ transaction });
+          createdUser = existingUser;
         } else {
-          // No existing user — create new with auto-generated password
-          const passwordHash = await this.passwordHasher.hash(row.password);
+          // Create new user
           createdUser = await UserModel.create(
             {
-              name: row.name,
-              email: row.email,
-              phone: row.phone,
+              name: item.name,
+              email: item.email,
+              phone: item.phone,
               passwordHash,
               role: UserRole.RESIDENT,
+              isActive: true,
               mustResetPassword: true,
             },
             { transaction }
           );
         }
 
-        // 5. Create Resident
+        // Create Resident link
         await ResidentModel.create(
           {
             userId: createdUser.id!,
@@ -343,26 +323,36 @@ export class ImportResidentsUseCase {
           },
           { transaction }
         );
+
+        await transaction.commit();
+
+        // Mark apartment as occupied in local memory set
+        occupiedApartmentIds.add(apartment.id);
         successCount++;
 
-        const unitName = `${row.block}-${row.floorNumber}${row.unitNumber}`;
+        const unitLabel = `${apartment.block}-${apartment.floorNumber}${apartment.unitNumber}`;
+
         createdResidents.push({
           userId: createdUser.id!,
-          name: row.name,
-          email: row.email,
-          unit: unitName,
-          temporaryPassword: row.password,
+          email: item.email,
+          name: item.name,
+          unit: unitLabel,
+          temporaryPassword: item.password,
+          status: "pending",
+        });
+      } catch (err: unknown) {
+        await transaction.rollback();
+        const msg = err instanceof Error ? err.message : "Database error during creation";
+        failedItems.push({
+          row: item.rowNum,
+          identifier: item.email,
+          reason: `Failed to create resident: ${msg}`,
         });
       }
-      await transaction.commit();
-    } catch (err) {
-      await transaction.rollback();
-      throw err;
     }
 
     // 6. Send welcome credentials emails directly inside Use Case (Background dispatch)
     if (this.emailService && createdResidents.length > 0) {
-      const societyName = process.env.SOCIETY_NAME || "Civic Horizon";
       const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
 
       for (const item of createdResidents) {
@@ -375,48 +365,18 @@ export class ImportResidentsUseCase {
             await PasswordResetTokenModel.create({ userId: item.userId, token: rawToken, expiresAt });
 
             const resetLink = `${clientUrl}/reset-password?token=${rawToken}`;
-            const htmlContent = `
-              <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 30px; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                  <div style="background-color: #1a1f36; padding: 24px; text-align: center;">
-                    <h2 style="color: #ffffff; margin: 0; font-size: 22px;">Welcome to ${societyName}!</h2>
-                  </div>
-                  <div style="padding: 30px;">
-                    <p style="font-size: 16px; margin-top: 0;">Hello <strong>${item.name}</strong>,</p>
-                    <p style="font-size: 15px; color: #555;">
-                      An account has been created for you as a resident of unit <strong>${item.unit}</strong> at ${societyName}.
-                    </p>
-                    
-                    <div style="background-color: #f8f9fa; border-left: 4px solid #1a1f36; padding: 16px; margin: 24px 0; border-radius: 4px;">
-                      <p style="margin: 0 0 8px 0; font-size: 14px; color: #666;"><strong>Your Login Credentials:</strong></p>
-                      <p style="margin: 0 0 6px 0; font-size: 15px;"><strong>Email:</strong> ${item.email}</p>
-                      <p style="margin: 0; font-size: 15px;"><strong>Temporary Password:</strong> <span style="font-family: monospace; background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #1a1f36;">${item.temporaryPassword}</span></p>
-                    </div>
-
-                    <p style="font-size: 14px; color: #666;">
-                      You can set your own password directly by clicking the button below, or log in with your temporary password.
-                    </p>
-
-                    <div style="text-align: center; margin: 25px 0 10px 0;">
-                      <a href="${resetLink}" style="background-color: #1a1f36; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 15px;">
-                        Set Your Password Directly
-                      </a>
-                    </div>
-                    <p style="text-align: center; font-size: 13px; color: #777; margin-top: 10px;">
-                      Or <a href="${clientUrl}/login" style="color: #1a1f36; text-decoration: underline;">log in to your account</a>
-                    </p>
-                  </div>
-                  <div style="background-color: #f1f3f5; padding: 16px; text-align: center; font-size: 12px; color: #888;">
-                    <p style="margin: 0;">© ${new Date().getFullYear()} ${societyName}. All rights reserved.</p>
-                  </div>
-                </div>
-              </div>
-            `;
+            const { subject, html } = buildWelcomeEmailTemplate({
+              name: item.name,
+              email: item.email,
+              unitName: item.unit,
+              temporaryPassword: item.temporaryPassword || "",
+              resetLink,
+            });
 
             await this.emailService!.sendEmail({
               to: item.email,
-              subject: `Welcome to ${societyName} - Your Account Credentials & Reset Password`,
-              html: htmlContent,
+              subject,
+              html,
             });
           } catch (err) {
             console.error(`[ImportResidentsUseCase] Failed to send welcome email to ${item.email}:`, err);
