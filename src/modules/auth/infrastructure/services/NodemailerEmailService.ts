@@ -7,8 +7,8 @@ export class NodemailerEmailService implements IEmailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: Number(process.env.SMTP_PORT) || 587,
       secure: false, // true for 465, false for 587
       auth: {
         user: env.SMTP_USER,
@@ -17,6 +17,9 @@ export class NodemailerEmailService implements IEmailService {
       tls: {
         rejectUnauthorized: false,
       },
+      connectionTimeout: 4000,
+      greetingTimeout: 4000,
+      socketTimeout: 4000,
     });
   }
 
@@ -34,16 +37,19 @@ export class NodemailerEmailService implements IEmailService {
     console.log("---------------------------------\n");
 
     try {
-      await this.transporter.sendMail({
-        from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
+      const sendPromise = this.transporter.sendMail({
+        from: `"${process.env.SMTP_FROM_NAME || 'Society Management'}" <${process.env.SMTP_FROM_EMAIL || env.SMTP_USER}>`,
         to: options.to,
         subject: options.subject,
         html: options.html,
       });
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("SMTP Connection Timeout (4s limit reached)")), 4000)
+      );
+
+      await Promise.race([sendPromise, timeoutPromise]);
     } catch (err) {
-      // Don't break the calling flow (e.g. finalizing a tenant request) just
-      // because SMTP isn't configured in the dev environment — the link above
-      // is still valid and was logged.
       console.error("[EmailService] Failed to deliver email (SMTP error):", err);
     }
   }

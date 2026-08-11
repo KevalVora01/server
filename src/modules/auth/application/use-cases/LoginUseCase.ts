@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { LoginDto } from "../dtos/LoginDto";
 import { AuthResponseDto } from "../dtos/AuthResponseDto";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
@@ -6,6 +7,7 @@ import { IPasswordHasher } from "../../domain/services/IPasswordHasher";
 import { ITokenService, TokenPayload } from "../../domain/services/ITokenService";
 import { RefreshToken } from "../../domain/entities/RefreshToken";
 import { UserRole } from "../../domain/entities/User";
+import { PasswordResetTokenModel } from "../../infrastructure/models/PasswordResetTokenModel";
 import {
   InvalidCredentialsError,
   InactiveUserError,
@@ -58,6 +60,25 @@ export class LoginUseCase {
       throw new InvalidCredentialsError();
     }
 
+    // If user must reset password (temporary password), generate password reset token for redirect link
+    let resetToken: string | undefined = undefined;
+    if (user.mustResetPassword && user.id) {
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      await PasswordResetTokenModel.destroy({
+        where: { userId: user.id },
+      });
+
+      await PasswordResetTokenModel.create({
+        userId: user.id,
+        token: rawToken,
+        expiresAt,
+      });
+
+      resetToken = rawToken;
+    }
+
     // 5. Token Provisioning — role comes exclusively from the database record
     const payload: TokenPayload = {
       userId: user.id!,
@@ -83,7 +104,10 @@ export class LoginUseCase {
       refreshToken: refreshTokenString,
       authResponse: {
         accessToken,
-        user: user.toResponseObject(),
+        user: {
+          ...user.toResponseObject(),
+          resetToken,
+        },
       },
     };
   }

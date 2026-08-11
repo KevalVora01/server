@@ -23,7 +23,7 @@ const apartments = [
   { block: "A", floorNumber: 1, unitNumber: "02", areaSqft: 1100, type: ApartmentType.TWO_BHK },
   { block: "A", floorNumber: 2, unitNumber: "01", areaSqft: 1250, type: ApartmentType.TWO_BHK },
   { block: "A", floorNumber: 2, unitNumber: "02", areaSqft: 1500, type: ApartmentType.THREE_BHK },
-  { block: "B", floorNumber: 1, unitNumber: "01", areaSqft: 600, type: ApartmentType.STUDIO },
+  { block: "B", floorNumber: 1, unitNumber: "01", areaSqft: 600, type: ApartmentType.ONE_BHK },
   { block: "B", floorNumber: 1, unitNumber: "02", areaSqft: 850, type: ApartmentType.ONE_BHK },
   { block: "B", floorNumber: 2, unitNumber: "01", areaSqft: 1100, type: ApartmentType.TWO_BHK },
   { block: "B", floorNumber: 3, unitNumber: "01", areaSqft: 1800, type: ApartmentType.FOUR_BHK },

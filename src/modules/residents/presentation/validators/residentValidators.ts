@@ -19,9 +19,8 @@ const createResidentSchema = Joi.object({
     .pattern(/[A-Z]/)
     .pattern(/[0-9]/)
     .pattern(/[\W_]/)
-    .required()
+    .optional()
     .messages({
-      'string.empty': 'Password is required',
       'string.min': 'Password must be at least 8 characters',
       'string.pattern.base': 'Password must contain at least one uppercase letter, one number, and one special character',
     }),

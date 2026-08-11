@@ -113,10 +113,10 @@ export class ApartmentController {
       const result = await this.importApartmentsUseCase.execute(req.file.buffer);
 
       res.status(201).json(
-        ApiResponse.success({
-          message: `Successfully imported ${result.successCount} apartments.`,
-          data: result,
-        })
+        ApiResponse.success(
+          result,
+          `Successfully processed import. ${result.successCount} imported, ${result.failedCount} skipped.`
+        )
       );
     } catch (error) {
       next(error);

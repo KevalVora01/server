@@ -117,7 +117,6 @@ export class AuthController {
       const user = await this.getCurrentUserUseCase.execute(
         authReq.user.userId
       );
-      console.log('me response:', user);
       res.status(200).json(ApiResponse.success(user));
     } catch (error) {
       next(error);
@@ -132,7 +131,6 @@ export class AuthController {
     try {
       await this.forgotPasswordUseCase.execute(req.body);
 
-      // always return success — never reveal if email exists
       res.status(200).json(
         ApiResponse.success({
           message: "If an account exists with this email, a reset link has been sent.",

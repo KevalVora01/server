@@ -1,5 +1,4 @@
 export enum ApartmentType {
-  STUDIO = "studio",
   ONE_BHK = "1bhk",
   TWO_BHK = "2bhk",
   THREE_BHK = "3bhk",
