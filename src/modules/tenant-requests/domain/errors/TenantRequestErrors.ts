@@ -46,6 +46,14 @@ export class NoActiveTenantToRevokeError extends Error {
   }
 }
 
+export class PendingMaintenanceDuesError extends Error {
+  public readonly statusCode = 400;
+  constructor() {
+    super("Cannot revoke tenancy. There are pending/unpaid maintenance dues for this tenant.");
+    this.name = "PendingMaintenanceDuesError";
+  }
+}
+
 export class VotingNotCompleteError extends Error {
   public readonly statusCode = 400;
   constructor() {

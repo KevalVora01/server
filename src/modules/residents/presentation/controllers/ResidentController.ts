@@ -195,14 +195,21 @@ export class ResidentController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const apartmentId = Number(req.params.apartmentId);
-      const history = await this.listApartmentTenantsUseCase.execute(apartmentId);
+      const authReq = req as AuthenticatedRequest;
+      const resident = await this.residentRepository.findByUserId(authReq.user.userId);
+
+      if (!resident) {
+        res.status(404).json(ApiResponse.error("Resident profile not found"));
+        return;
+      }
+
+      const history = await this.listApartmentTenantsUseCase.execute(resident.apartmentId);
 
       res.status(200).json(
-        ApiResponse.success({
-          message: "Apartment tenant history retrieved successfully",
-          data: history.map((item) => item.toResponseObject()),
-        })
+        ApiResponse.success(
+          history.map((item) => item.toResponseObject()),
+          "Apartment tenant history retrieved successfully"
+        )
       );
     } catch (error) {
       next(error);

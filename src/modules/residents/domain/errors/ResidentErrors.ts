@@ -47,3 +47,12 @@ export class OwnerHasActiveTenantError extends Error {
     this.name = "OwnerHasActiveTenantError";
   }
 }
+
+export class PendingMaintenanceDuesForDeactivationError extends Error {
+  public readonly statusCode = 400;
+
+  constructor() {
+    super("Cannot deactivate resident. There are pending/unpaid maintenance dues for this resident.");
+    this.name = "PendingMaintenanceDuesForDeactivationError";
+  }
+}
