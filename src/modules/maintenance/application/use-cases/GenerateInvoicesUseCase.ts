@@ -34,10 +34,7 @@ export class GenerateInvoicesUseCase {
 
     const invoicesOrNull = await Promise.all(
       apartments.items.map(async ({ apartment }) => {
-        // The invoice belongs to whoever is the current occupant of the
-        // apartment at generation time. That resident is the one liable to pay.
-        // Apartments without a current occupant are skipped — there is no one
-        // to bill and resident_id cannot be null.
+        // Bill current occupant; skip unoccupied apartments.
         const occupant = await this.residentRepository.findOccupantByApartmentId(apartment.id!);
         if (!occupant?.id) return null;
 

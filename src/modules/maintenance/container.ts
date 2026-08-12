@@ -52,7 +52,6 @@ const markInvoiceSettledUseCase = new MarkInvoiceSettledUseCase(
   invoiceRepository,
   generateInvoicePdfUseCase,
   maintenanceNotifier,
-  residentRepository,
 );
 const getDashboardMetricsUseCase = new GetDashboardMetricsUseCase(invoiceRepository);
 

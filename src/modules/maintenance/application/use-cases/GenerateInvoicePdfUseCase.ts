@@ -17,14 +17,9 @@ export class GenerateInvoicePdfUseCase {
       throw new InvoiceNotFoundError(invoiceId);
     }
 
-    // Find the current occupant for this apartment
-    let resident = null;
-    if (invoice.residentId) {
-      resident = await this.residentRepository.findById(invoice.residentId);
-    } else {
-      // Find current occupant of the apartment
-      resident = await this.residentRepository.findActiveOccupantByApartmentId(invoice.apartmentId);
-    }
+    const resident = invoice.residentId
+      ? await this.residentRepository.findById(invoice.residentId)
+      : null;
 
     const pdfUrl = await this.invoicePdfService.generateAndUpload(invoice, resident);
 

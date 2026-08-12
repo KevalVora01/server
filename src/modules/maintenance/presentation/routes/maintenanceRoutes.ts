@@ -48,12 +48,6 @@ router.get(
   maintenanceController.listInvoices
 );
 
-router.patch(
-  "/invoices/:id/settle",
-  jwtMiddleware,
-  maintenanceController.markInvoiceSettled
-);
-
 router.post(
   "/invoices/:id/regenerate-receipt",
   jwtMiddleware,
@@ -81,7 +75,7 @@ router.post(
 
 /*
 |--------------------------------------------------------------------------
-| Resident Only — own invoices, apartment-wide (Owner), pay
+| Resident Only — own invoices, apartment-wide (Owner)
 |--------------------------------------------------------------------------
 */
 
@@ -99,11 +93,9 @@ router.get(
   maintenanceController.listApartmentInvoices
 );
 
-
-
 /*
 |--------------------------------------------------------------------------
-| Admin + Resident — detail view, dashboard (ownership enforced in use-case)
+| Admin + Resident — detail view, dashboard, settle payment
 |--------------------------------------------------------------------------
 */
 
@@ -112,6 +104,13 @@ router.get(
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
   maintenanceController.getDashboardMetrics
+);
+
+router.patch(
+  "/invoices/:id/settle",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  maintenanceController.markInvoiceSettled
 );
 
 router.get(

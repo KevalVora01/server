@@ -206,8 +206,6 @@ export class MaintenanceController {
     }
   };
 
-
-
   regenerateReceipt = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const pdfUrl = await this.generateInvoicePdfUseCase.execute(Number(req.params.id));

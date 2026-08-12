@@ -59,7 +59,8 @@ export const errorHandler = (
     error.name === "InvoiceAlreadyPaidError" ||
     error.name === "InvalidPaymentAmountError" ||
     error.name === "InvalidChequeNumberError" ||
-    error.name === "InvalidUpiRefError"
+    error.name === "InvalidUpiRefError" ||
+    error.name === "OnlyUpiPaymentAllowedError"
   ) {
     res.status(400).json(ApiResponse.error(error.message));
     return;

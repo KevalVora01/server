@@ -33,17 +33,17 @@ export class InvalidPaymentAmountError extends Error {
   }
 }
 
-export class InvalidChequeNumberError extends Error {
-  constructor() {
-    super("Cheque number must be exactly 6 digits");
-    this.name = "InvalidChequeNumberError";
-  }
-}
-
 export class InvalidUpiRefError extends Error {
   constructor() {
     super("UPI UTR / Reference number must be a valid 12-digit transaction number");
     this.name = "InvalidUpiRefError";
+  }
+}
+
+export class OnlyUpiPaymentAllowedError extends Error {
+  constructor() {
+    super("Only instant UPI digital payments are accepted. Cash and Cheque transactions have been disabled.");
+    this.name = "OnlyUpiPaymentAllowedError";
   }
 }
 

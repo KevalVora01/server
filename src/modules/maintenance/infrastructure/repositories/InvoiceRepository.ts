@@ -96,7 +96,6 @@ export class InvoiceRepository implements IInvoiceRepository {
         sequelize.literal(`"apartment"."block" || '-' || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
         sequelize.literal(`"apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
         sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
-        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
       ];
     }
 
@@ -145,7 +144,6 @@ export class InvoiceRepository implements IInvoiceRepository {
         sequelize.literal(`"apartment"."block" || '-' || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
         sequelize.literal(`"apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
         sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
-        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
       ];
     }
 
@@ -194,7 +192,6 @@ export class InvoiceRepository implements IInvoiceRepository {
         sequelize.literal(`"apartment"."block" || '-' || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
         sequelize.literal(`"apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
         sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
-        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
       ];
     }
 
@@ -253,7 +250,6 @@ export class InvoiceRepository implements IInvoiceRepository {
         sequelize.literal(`"apartment"."block" || '-' || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
         sequelize.literal(`"apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number" ILIKE ${escapedSearch}`),
         sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."floor_number" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
-        sequelize.literal(`REPLACE(REPLACE("apartment"."block" || "apartment"."unit_number", '-', ''), ' ', '') ILIKE ${escapedCleanSearch}`),
       ];
     }
 

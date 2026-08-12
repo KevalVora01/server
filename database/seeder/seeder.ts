@@ -429,7 +429,7 @@ const seedNotices = async (): Promise<void> => {
 
 const complaints = [
   {
-    residentEmail: "rahul@yopmail.com",
+    residentEmail: "rahul.sharma@yopmail.com",
     title: "Water leakage from bathroom ceiling",
     description: "There is a persistent water leak from the bathroom ceiling since last 3 days. The upstairs neighbor's plumbing may be damaged. The drip has worsened and tiles are starting to stain.",
     priority: ComplaintPriority.HIGH,
@@ -443,7 +443,7 @@ const complaints = [
     ]
   },
   {
-    residentEmail: "priya@yopmail.com",
+    residentEmail: "priya.patel@yopmail.com",
     title: "Broken street light near Block B entrance",
     description: "The street light near the Block B main entrance has been broken for over a week. It gets very dark at night and is a safety concern for residents walking their dogs or returning late.",
     priority: ComplaintPriority.LOW,
@@ -455,7 +455,7 @@ const complaints = [
     ]
   },
   {
-    residentEmail: "amit@yopmail.com",
+    residentEmail: "amit.joshi@yopmail.com",
     title: "Noise complaint — late night parties in Block A",
     description: "Residents on the 3rd floor of Block A have been hosting loud parties until 2 AM regularly. This is disturbing the peace, especially for elderly residents and young children. Request strict action.",
     priority: ComplaintPriority.MEDIUM,
@@ -465,7 +465,7 @@ const complaints = [
     imageUrls: []
   },
   {
-    residentEmail: "neha@yopmail.com",
+    residentEmail: "neha.singh@yopmail.com",
     title: "Improper garbage disposal in common area",
     description: "Some residents are leaving garbage bags near the Block C staircase instead of the designated disposal area. This is attracting stray animals and creating unhygienic conditions.",
     priority: ComplaintPriority.LOW,
@@ -477,7 +477,7 @@ const complaints = [
     ]
   },
   {
-    residentEmail: "ravi@yopmail.com",
+    residentEmail: "ravi.kumar@yopmail.com",
     title: "Lift not working properly — gets stuck between floors",
     description: "The passenger lift in Block A has been malfunctioning for the past 2 days. It jerks suddenly and got stuck between the 1st and 2nd floor yesterday with my family inside. Needs urgent servicing.",
     priority: ComplaintPriority.HIGH,
@@ -489,7 +489,7 @@ const complaints = [
     ]
   },
   {
-    residentEmail: "sunita@yopmail.com",
+    residentEmail: "sunita.mehta@yopmail.com",
     title: "Security gate remote not functioning",
     description: "The remote for the main security gate has stopped working. The battery was replaced but it still does not respond. Request a replacement or repair at the earliest.",
     priority: ComplaintPriority.MEDIUM,
@@ -499,7 +499,7 @@ const complaints = [
     imageUrls: []
   },
   {
-    residentEmail: "vikram@yopmail.com",
+    residentEmail: "anand.deshmukh@yopmail.com",
     title: "Parking space occupied by unauthorized vehicle",
     description: "A white Honda City with plate number GJ05IJ7890 has been parked in my allotted parking space (A-201) for the last 3 days. The vehicle does not belong to any resident in Block A.",
     priority: ComplaintPriority.MEDIUM,
@@ -511,7 +511,7 @@ const complaints = [
     ]
   },
   {
-    residentEmail: "anjali@yopmail.com",
+    residentEmail: "anjali.agarwal@yopmail.com",
     title: "Pest control required in Block C basement",
     description: "There is a severe cockroach and rodent infestation in the Block C basement area near the storage units. Regular pest control has not been conducted this month. Please schedule fumigation urgently.",
     priority: ComplaintPriority.LOW,

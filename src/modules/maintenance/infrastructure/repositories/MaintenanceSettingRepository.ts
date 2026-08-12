@@ -13,7 +13,7 @@ export class MaintenanceSettingRepository implements IMaintenanceSettingReposito
   }
 
   async get(): Promise<MaintenanceSetting | null> {
-    const model = await MaintenanceSettingModel.findOne({ order: [["id", "ASC"]] });
+    const model = await MaintenanceSettingModel.findOne();
 
     if (!model) return null;
 

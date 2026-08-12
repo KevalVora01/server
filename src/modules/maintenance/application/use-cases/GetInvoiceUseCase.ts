@@ -22,20 +22,12 @@ export class GetInvoiceUseCase {
     }
 
     if (requestingUser.role === UserRole.RESIDENT) {
-      // Invoices are always stamped with the resident liable to pay them.
-      let invoiceResidentId: number | null = invoice.residentId;
-      if (!invoiceResidentId) {
-        const occupant = await this.residentRepository.findActiveOccupantByApartmentId(invoice.apartmentId);
-        invoiceResidentId = occupant?.id ?? null;
-      }
-
-      const isOwnInvoice = invoiceResidentId === requestingUser.residentId;
+      const isOwnInvoice = invoice.residentId === requestingUser.residentId;
 
       if (!isOwnInvoice) {
         const isApartmentOwner = await this.isOwnerOfInvoicesApartment(
           requestingUser.residentId,
-          invoiceResidentId,
-          invoice.apartmentId
+          invoice.residentId
         );
 
         if (!isApartmentOwner) {
@@ -49,25 +41,16 @@ export class GetInvoiceUseCase {
 
   private async isOwnerOfInvoicesApartment(
     requestingResidentId: number | undefined,
-    invoiceResidentId: number | null,
-    invoiceApartmentId: number
+    invoiceResidentId: number | null
   ): Promise<boolean> {
-    if (!requestingResidentId) return false;
+    if (!requestingResidentId || !invoiceResidentId) return false;
 
     const requestingResident = await this.residentRepository.findById(requestingResidentId);
-    if (!requestingResident) return false;
-
-    // If invoice has no residentId, check if requester is owner of the apartment
-    if (!invoiceResidentId) {
-      return requestingResident.isOwner && requestingResident.apartmentId === invoiceApartmentId;
-    }
+    if (!requestingResident || !requestingResident.isOwner) return false;
 
     const invoiceResident = await this.residentRepository.findById(invoiceResidentId);
     if (!invoiceResident) return false;
 
-    return (
-      requestingResident.isOwner &&
-      requestingResident.apartmentId === invoiceResident.apartmentId
-    );
+    return requestingResident.apartmentId === invoiceResident.apartmentId;
   }
 }

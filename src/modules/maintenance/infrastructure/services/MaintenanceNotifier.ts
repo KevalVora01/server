@@ -72,15 +72,11 @@ export class MaintenanceNotifier implements IMaintenanceNotifier {
   }
 
   private async resolveUserId(invoice: Invoice): Promise<number | null> {
-    // First try the residentId on the invoice
-    const residentId = invoice.residentId;
-    if (residentId) {
-      const resident = await this.residentRepository.findById(residentId);
+    if (invoice.residentId) {
+      const resident = await this.residentRepository.findById(invoice.residentId);
       if (resident) return resident.userId;
     }
-    // Fallback: find current occupant of the apartment
-    const occupant = await this.residentRepository.findActiveOccupantByApartmentId(invoice.apartmentId);
-    return occupant?.userId ?? null;
+    return null;
   }
 
   private formatDate(date: Date): string {
