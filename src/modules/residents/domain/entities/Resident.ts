@@ -5,8 +5,8 @@ export interface ResidentProps {
   isOwner: boolean;
   isCommitteeMember: boolean;
   isOccupant: boolean;
-  moveInDate: Date;
-  moveOutDate?: Date | null;
+  moveInDate: Date | string;
+  moveOutDate?: Date | string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -24,10 +24,11 @@ export class Resident {
   public static create(
     props: Omit<ResidentProps, "id" | "isCommitteeMember" | "isOccupant" | "isActive" | "createdAt" | "updatedAt">
   ): Resident {
+    const moveInDateObj = typeof props.moveInDate === "string" ? new Date(props.moveInDate) : props.moveInDate;
     return new Resident({
       ...props,
       isCommitteeMember: false,
-      isOccupant: props.moveInDate <= new Date(),
+      isOccupant: moveInDateObj <= new Date(),
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -58,11 +59,11 @@ export class Resident {
     return this.props.isOccupant;
   }
 
-  get moveInDate(): Date {
+  get moveInDate(): Date | string {
     return this.props.moveInDate;
   }
 
-  get moveOutDate(): Date | null | undefined {
+  get moveOutDate(): Date | string | null | undefined {
     return this.props.moveOutDate;
   }
 

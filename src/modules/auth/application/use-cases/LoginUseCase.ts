@@ -64,7 +64,7 @@ export class LoginUseCase {
     let resetToken: string | undefined = undefined;
     if (user.mustResetPassword && user.id) {
       const rawToken = crypto.randomBytes(32).toString("hex");
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
       await PasswordResetTokenModel.destroy({
         where: { userId: user.id },

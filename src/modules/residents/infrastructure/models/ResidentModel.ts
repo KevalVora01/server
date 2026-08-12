@@ -10,8 +10,8 @@ interface ResidentAttributes {
   isOwner: boolean;
   isCommitteeMember: boolean;
   isOccupant: boolean;
-  moveInDate: Date;
-  moveOutDate: Date | null;
+  moveInDate: Date | string;
+  moveOutDate: Date | string | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -29,8 +29,8 @@ export class ResidentModel
   declare isOwner: boolean;
   declare isCommitteeMember: boolean;
   declare isOccupant: boolean;
-  declare moveInDate: Date;
-  declare moveOutDate: Date | null;
+  declare moveInDate: Date | string;
+  declare moveOutDate: Date | string | null;
   declare isActive: boolean;
   declare createdAt: Date;
   declare updatedAt: Date;
@@ -75,11 +75,11 @@ ResidentModel.init(
       defaultValue: true,
     },
     moveInDate: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
     moveOutDate: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: true,
       defaultValue: null,
     },

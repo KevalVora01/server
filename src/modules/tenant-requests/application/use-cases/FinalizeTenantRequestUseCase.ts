@@ -132,7 +132,8 @@ export class FinalizeTenantRequestUseCase {
       existingResident.updateApartment(request.apartmentId);
       existingResident.updateIsOwner(false);
       existingResident.updateMoveOutDate(null);
-      if (request.moveInDate <= new Date()) {
+      const moveInDateObj = new Date(request.moveInDate);
+      if (moveInDateObj <= new Date()) {
         existingResident.markAsOccupant();
       } else {
         existingResident.markAsNonOccupant();
@@ -148,7 +149,8 @@ export class FinalizeTenantRequestUseCase {
       savedTenantResident = await this.residentRepository.create(tenantResident);
     }
 
-    if (request.moveInDate <= new Date() && savedTenantResident.id != null) {
+    const moveInDateObj = new Date(request.moveInDate);
+    if (moveInDateObj <= new Date() && savedTenantResident.id != null) {
       await this.residentRepository.clearApartmentOccupants(
         request.apartmentId,
         savedTenantResident.id

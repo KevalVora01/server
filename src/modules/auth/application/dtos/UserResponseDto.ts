@@ -4,7 +4,7 @@ export interface ResidentSummaryDto {
   id: number;
   isOwner: boolean;
   isOccupant: boolean;
-  moveInDate: Date | null;
+  moveInDate: Date | string | null;
   apartmentId: number;
 }
 
