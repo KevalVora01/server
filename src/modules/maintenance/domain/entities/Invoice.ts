@@ -1,3 +1,5 @@
+import { consolidateLateFeesForDisplay } from "../services/PenaltyCalculator";
+
 export enum InvoiceStatus {
   PENDING = "Pending",
   PAID = "Paid",
@@ -155,7 +157,7 @@ export class Invoice {
       month: this.props.month,
       year: this.props.year,
       baseAmount: this.props.baseAmount,
-      extraCharges: this.props.extraCharges,
+      extraCharges: consolidateLateFeesForDisplay(this.props.extraCharges),
       totalAmount: this.props.totalAmount,
       status: this.props.status,
       dueDate: this.props.dueDate,

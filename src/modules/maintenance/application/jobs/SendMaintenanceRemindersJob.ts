@@ -1,8 +1,7 @@
 import { IInvoiceRepository } from "../../domain/repositories/IInvoiceRepository";
 import { IMaintenanceNotifier } from "../../domain/services/IMaintenanceNotifier";
 import {
-  calculateFirstOverduePenalty,
-  calculateAdditionalMonthlyPenalty,
+  consolidateLateFees,
   recalculateTotal,
 } from "../../domain/services/PenaltyCalculator";
 
@@ -44,14 +43,13 @@ export class SendMaintenanceRemindersJob {
 
   /**
    * Invoices whose due date has just passed and are still Pending.
-   * Applies the first 5% penalty and flips status to Overdue.
+   * Applies the first 5% penalty (1 Month) in a single consolidated line and flips status to Overdue.
    */
   private async processNewlyOverdue(today: Date): Promise<number> {
     const invoices = await this.invoiceRepository.findAllNewlyOverdue(today);
 
     for (const invoice of invoices) {
-      const penalty = calculateFirstOverduePenalty(invoice.baseAmount);
-      const updatedCharges = [...invoice.extraCharges, penalty];
+      const updatedCharges = consolidateLateFees(invoice.extraCharges, invoice.baseAmount, 1);
 
       invoice.setExtraCharges(updatedCharges);
       invoice.setTotalAmount(recalculateTotal(invoice.baseAmount, updatedCharges));
@@ -64,7 +62,7 @@ export class SendMaintenanceRemindersJob {
   }
 
   /**
-   * Invoices already Overdue — applies additional monthly penalties as time passes,
+   * Invoices already Overdue — updates the single late fee line item to represent N months overdue as time passes,
    * and sends a repeat reminder every 7 days since becoming overdue.
    */
   private async processOngoingOverdue(today: Date): Promise<number> {
@@ -73,12 +71,20 @@ export class SendMaintenanceRemindersJob {
 
     for (const invoice of invoices) {
       const daysSinceOverdue = this.daysBetween(invoice.dueDate, today);
-      const monthsSinceOverdue = Math.floor(daysSinceOverdue / 30);
-      const penaltyCount = invoice.extraCharges.filter((c) => c.label.startsWith("Late fee")).length;
+      const totalMonthsOverdue = Math.floor(daysSinceOverdue / 30) + 1;
 
-      if (monthsSinceOverdue + 1 > penaltyCount) {
-        const penalty = calculateAdditionalMonthlyPenalty(invoice.baseAmount, penaltyCount);
-        const updatedCharges = [...invoice.extraCharges, penalty];
+      // Extract currently applied late fee months count
+      let currentAppliedMonths = 0;
+      const existingLateFee = invoice.extraCharges.find((c) =>
+        c.label.toLowerCase().startsWith("late fee")
+      );
+      if (existingLateFee) {
+        const match = existingLateFee.label.match(/(\d+)\s*Months?/i);
+        currentAppliedMonths = match ? parseInt(match[1], 10) : 1;
+      }
+
+      if (totalMonthsOverdue > currentAppliedMonths) {
+        const updatedCharges = consolidateLateFees(invoice.extraCharges, invoice.baseAmount, totalMonthsOverdue);
 
         invoice.setExtraCharges(updatedCharges);
         invoice.setTotalAmount(recalculateTotal(invoice.baseAmount, updatedCharges));

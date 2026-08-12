@@ -2,6 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { Invoice } from "../../domain/entities/Invoice";
 import { Resident } from "../../../residents/domain/entities/Resident";
 import { env } from "../../../../shared/config/env";
+import { consolidateLateFeesForDisplay } from "../../domain/services/PenaltyCalculator";
 
 export class InvoicePdfService {
 
@@ -89,7 +90,8 @@ export class InvoicePdfService {
           ? `UPI Ref / UTR: ${invoice.paymentRef?.replace(/^UPI\s*[-:]?\s*/i, "")}`
           : invoice.paymentRef || "—";
 
-    const extraChargesRows = invoice.extraCharges
+    const displayCharges = consolidateLateFeesForDisplay(invoice.extraCharges);
+    const extraChargesRows = displayCharges
       .map(
         (c) => `
           <tr>
