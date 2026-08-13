@@ -41,10 +41,7 @@ export class SendMaintenanceRemindersJob {
     return invoices.length;
   }
 
-  /**
-   * Invoices whose due date has just passed and are still Pending.
-   * Applies the first 5% penalty (1 Month) in a single consolidated line and flips status to Overdue.
-   */
+  // Apply 1st month 5% penalty to newly overdue invoices
   private async processNewlyOverdue(today: Date): Promise<number> {
     const invoices = await this.invoiceRepository.findAllNewlyOverdue(today);
 
@@ -61,10 +58,7 @@ export class SendMaintenanceRemindersJob {
     return invoices.length;
   }
 
-  /**
-   * Invoices already Overdue — updates the single late fee line item to represent N months overdue as time passes,
-   * and sends a repeat reminder every 7 days since becoming overdue.
-   */
+  // Update N-month late fee for ongoing overdue invoices and send weekly reminders
   private async processOngoingOverdue(today: Date): Promise<number> {
     const invoices = await this.invoiceRepository.findAllOverdueUnpaid();
     let count = 0;
@@ -73,7 +67,7 @@ export class SendMaintenanceRemindersJob {
       const daysSinceOverdue = this.daysBetween(invoice.dueDate, today);
       const totalMonthsOverdue = Math.floor(daysSinceOverdue / 30) + 1;
 
-      // Extract currently applied late fee months count
+      // Extract applied late fee months
       let currentAppliedMonths = 0;
       const existingLateFee = invoice.extraCharges.find((c) =>
         c.label.toLowerCase().startsWith("late fee")

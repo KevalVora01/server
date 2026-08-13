@@ -4,42 +4,50 @@ import { promoteOccupantsJob } from "../../modules/residents/container";
 import { autoRejectExpiredApprovalsJob, deleteExpiredVisitorPhotosJob } from "../../modules/visitors/container";
 
 export function initScheduledJobs(): void {
-  // Job 1: Sends daily maintenance payment reminders to residents (Daily at 3:00 AM)
-  cron.schedule("0 3 * * *", async () => {
-    console.log("Running daily maintenance reminder job...");
-    try {
-      await sendMaintenanceRemindersJob.execute();
-    } catch (err) {
-      console.error("Maintenance reminder job failed:", err);
-    }
-  });
+  // --------------------------------------------------------------------------
+  // 1. High Frequency Jobs (Every 1 Minute: * * * * *)
+  // --------------------------------------------------------------------------
 
-  // Job 2: Promotes approved tenants to occupants once move-in date arrives (Hourly)
-  cron.schedule("0 * * * *", async () => {
-    console.log("Running occupant promotion job...");
-    try {
-      await promoteOccupantsJob.execute();
-    } catch (err) {
-      console.error("Occupant promotion job failed:", err);
-    }
-  });
-
-  // Job 3: Auto-rejects pending walk-ins (>10m) and visitors past expected date (Every 2 minutes)
-  cron.schedule("*/2 * * * *", async () => {
+  // Auto-reject pending walk-in requests (>10m) and visitors past expected date
+  cron.schedule("* * * * *", async () => {
     try {
       await autoRejectExpiredApprovalsJob.execute();
     } catch (err) {
-      console.error("Visitor auto-reject job failed:", err);
+      console.error("[Scheduler] Visitor auto-reject job failed:", err);
     }
   });
 
-  // Job 4: Deletes visitor photos older than 30 days from Cloudinary (Daily at 3:00 AM)
-  cron.schedule("0 3 * * *", async () => {
-    console.log("Running expired visitor photos cleanup job...");
+  // --------------------------------------------------------------------------
+  // 2. Daily Jobs (At 12:00 AM Midnight: 0 0 * * *)
+  // --------------------------------------------------------------------------
+
+  // Promote approved tenants to active occupants once move-in date arrives
+  cron.schedule("0 0 * * *", async () => {
+    console.log("[Scheduler] Running occupant promotion job...");
+    try {
+      await promoteOccupantsJob.execute();
+    } catch (err) {
+      console.error("[Scheduler] Occupant promotion job failed:", err);
+    }
+  });
+
+  // Send daily maintenance reminders & apply overdue penalties
+  cron.schedule("0 0 * * *", async () => {
+    console.log("[Scheduler] Running daily maintenance reminder & penalty job...");
+    try {
+      await sendMaintenanceRemindersJob.execute();
+    } catch (err) {
+      console.error("[Scheduler] Maintenance reminder job failed:", err);
+    }
+  });
+
+  // Cleanup visitor photos older than 30 days from Cloudinary
+  cron.schedule("0 0 * * *", async () => {
+    console.log("[Scheduler] Running expired visitor photos cleanup job...");
     try {
       await deleteExpiredVisitorPhotosJob.execute();
     } catch (err) {
-      console.error("Visitor photo cleanup job failed:", err);
+      console.error("[Scheduler] Visitor photo cleanup job failed:", err);
     }
   });
 }
