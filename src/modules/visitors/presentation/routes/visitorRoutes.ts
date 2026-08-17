@@ -15,10 +15,10 @@ const router = Router();
 const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
 
 /*
-|--------------------------------------------------------------------------
-| Resident Only — pre-register + cancel + own visitors
-|--------------------------------------------------------------------------
-*/
+ |--------------------------------------------------------------------------
+ | Resident Only — pre-register, view own, cancel
+ |--------------------------------------------------------------------------
+ */
 
 router.post(
   "/pre-register",
@@ -29,6 +29,13 @@ router.post(
   visitorController.preRegister
 );
 
+router.get(
+  "/my",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.RESIDENT),
+  visitorController.listMyVisitors
+);
+
 router.delete(
   "/:id",
   jwtMiddleware,
@@ -37,10 +44,10 @@ router.delete(
 );
 
 /*
-|--------------------------------------------------------------------------
-| Security Only — walk-in + check-in + check-out
-|--------------------------------------------------------------------------
-*/
+ |--------------------------------------------------------------------------
+ | Security Only — walk-in + check-in + check-out
+ |--------------------------------------------------------------------------
+ */
 
 router.post(
   "/walk-in",
@@ -67,10 +74,10 @@ router.patch(
 );
 
 /*
-|--------------------------------------------------------------------------
-| Resident + Security — approve/reject pending visitors
-|--------------------------------------------------------------------------
-*/
+ |--------------------------------------------------------------------------
+ | Resident + Security — approve/reject pending visitors
+ |--------------------------------------------------------------------------
+ */
 
 router.post(
   "/:id/respond",
@@ -81,17 +88,10 @@ router.post(
 );
 
 /*
-|--------------------------------------------------------------------------
-| Resident + Admin + Security — read-only queries
-|--------------------------------------------------------------------------
-*/
-
-router.get(
-  "/my",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.RESIDENT, UserRole.ADMIN, UserRole.SECURITY),
-  visitorController.listMyVisitors
-);
+ |--------------------------------------------------------------------------
+ | Security + Admin — read-only queries
+ |--------------------------------------------------------------------------
+ */
 
 router.get(
   "/current",
@@ -117,15 +117,15 @@ router.get(
 router.get(
   "/",
   jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN, UserRole.SECURITY, UserRole.RESIDENT),
+  rbacMiddleware(UserRole.ADMIN, UserRole.SECURITY),
   visitorController.listAll
 );
 
 /*
-|--------------------------------------------------------------------------
-| Dynamic /:id Segment Routes
-|--------------------------------------------------------------------------
-*/
+ |--------------------------------------------------------------------------
+ | Resident + Security + Admin — fetch single visitor
+ |--------------------------------------------------------------------------
+ */
 
 router.get(
   "/:id",

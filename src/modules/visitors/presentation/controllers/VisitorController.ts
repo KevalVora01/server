@@ -15,6 +15,7 @@ import { CloudinaryService } from "../../../../shared/services/CloudinaryService
 import { VisitorStatus } from "../../domain/entities/Visitor";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
+import { UserRole } from "../../../auth/domain/entities/User";
 import { SearchPreRegisteredVisitorsUseCase } from "../../application/use-cases/SearchPreRegisteredVisitorsUseCase";
 
 export class VisitorController {
@@ -37,11 +38,26 @@ export class VisitorController {
 
   findById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const authReq = req as AuthenticatedRequest;
       const visitor = await this.visitorRepository.findById(Number(req.params.id));
+
       if (!visitor) {
         res.status(404).json(ApiResponse.error("Visitor not found"));
         return;
       }
+
+      if (authReq.user.role === UserRole.RESIDENT) {
+        const resident = await this.residentRepository.findByUserId(authReq.user.userId);
+        if (!resident) {
+          res.status(404).json(ApiResponse.error("Resident profile not found"));
+          return;
+        }
+        if (visitor.apartmentId !== resident.apartmentId) {
+          res.status(404).json(ApiResponse.error("Visitor not found"));
+          return;
+        }
+      }
+
       res.status(200).json(
         ApiResponse.success(visitor.toResponseObject(), "Visitor fetched successfully")
       );

@@ -1,3 +1,9 @@
+import {
+  VisitorNotPendingError,
+  VisitorNotApprovedError,
+  VisitorNotCheckedInError,
+} from "../errors/VisitorErrors";
+
 export enum VisitorStatus {
   PENDING = "Pending",
   APPROVED = "Approved",
@@ -151,14 +157,14 @@ export class Visitor {
 
   approve(): void {
     if (!this.isPending()) {
-      throw new Error("Only a pending visitor can be approved");
+      throw new VisitorNotPendingError();
     }
     this.props.status = VisitorStatus.APPROVED;
   }
 
   reject(): void {
     if (!this.isPending()) {
-      throw new Error("Only a pending visitor can be rejected");
+      throw new VisitorNotPendingError();
     }
     this.props.status = VisitorStatus.REJECTED;
   }
@@ -176,7 +182,7 @@ export class Visitor {
 
   checkIn(securityUserId: number): void {
     if (this.props.status !== VisitorStatus.APPROVED) {
-      throw new Error("Only an approved visitor can be checked in");
+      throw new VisitorNotApprovedError();
     }
     this.props.status = VisitorStatus.CHECKED_IN;
     this.props.checkedInAt = new Date();
@@ -185,7 +191,7 @@ export class Visitor {
 
   checkOut(): void {
     if (this.props.status !== VisitorStatus.CHECKED_IN) {
-      throw new Error("Only a checked-in visitor can be checked out");
+      throw new VisitorNotCheckedInError();
     }
     this.props.status = VisitorStatus.CHECKED_OUT;
     this.props.checkedOutAt = new Date();

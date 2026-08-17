@@ -7,6 +7,7 @@ import { ApartmentModel } from "../../../apartments/infrastructure/models/Apartm
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 import { PaginatedRequest, PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
 import { VisitorDashboardMetrics } from "../../application/use-cases/GetDashboardMetricsUseCase";
+import { VisitorPersistenceError } from "../../domain/errors/VisitorErrors";
 
 export class VisitorRepository implements IVisitorRepository {
 
@@ -255,7 +256,7 @@ export class VisitorRepository implements IVisitorRepository {
 
     const updated = await this.findById(visitor.id!);
     if (!updated) {
-      throw new Error(`Failed to retrieve updated visitor ${visitor.id}`);
+      throw new VisitorPersistenceError(`Failed to retrieve updated visitor ${visitor.id}`);
     }
     return updated;
   }

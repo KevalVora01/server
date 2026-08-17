@@ -1,6 +1,7 @@
 import { Visitor, VisitorStatus } from "../../domain/entities/Visitor";
 import { IVisitorRepository } from "../../domain/repositories/IVisitorRepository";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
+import { ResidentNotFoundError } from "../../../residents/domain/errors/ResidentErrors";
 import { PaginatedRequest, PaginatedResult } from "../../../../shared/types/Pagination";
 
 export class ListMyVisitorsUseCase {
@@ -17,7 +18,7 @@ export class ListMyVisitorsUseCase {
     const resident = await this.residentRepository.findById(requestingResidentId);
 
     if (!resident) {
-      throw new Error("Resident not found");
+      throw new ResidentNotFoundError();
     }
     
     return this.visitorRepository.findByApartmentId(resident.apartmentId, pagination, { ...filters, residentId: requestingResidentId });

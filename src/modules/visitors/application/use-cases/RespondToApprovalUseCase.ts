@@ -11,7 +11,7 @@ import {
 export class RespondToApprovalUseCase {
   constructor(
     private readonly visitorRepository: IVisitorRepository,
-    private readonly visitorNotifier?: IVisitorNotifier,
+    private readonly visitorNotifier: IVisitorNotifier,
   ) { }
 
   async execute(dto: RespondToApprovalDto): Promise<Visitor> {
@@ -37,14 +37,10 @@ export class RespondToApprovalUseCase {
 
     const updated = await this.visitorRepository.update(visitor);
 
-    if (this.visitorNotifier) {
-      if (dto.decision === "Approve") {
-        await this.visitorNotifier.notifyVisitorApproved(updated);
-      } else {
-        await this.visitorNotifier.notifyVisitorRejected(updated);
-      }
-      await this.visitorNotifier.notifyVisitorUpdated(updated, updated.status);
+    if (dto.decision !== "Approve") {
+      await this.visitorNotifier.notifyVisitorRejected(updated);
     }
+    await this.visitorNotifier.notifyVisitorUpdated(updated, updated.status);
 
     return updated;
   }

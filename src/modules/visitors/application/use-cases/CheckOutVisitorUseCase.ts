@@ -1,7 +1,7 @@
 import { Visitor } from "../../domain/entities/Visitor";
 import { IVisitorRepository } from "../../domain/repositories/IVisitorRepository";
 import { IVisitorNotifier } from "../../domain/services/IVisitorNotifier";
-import { VisitorNotFoundError, VisitorNotCheckedInError } from "../../domain/errors/VisitorErrors";
+import { VisitorNotFoundError } from "../../domain/errors/VisitorErrors";
 
 export class CheckOutVisitorUseCase {
   constructor(
@@ -16,11 +16,7 @@ export class CheckOutVisitorUseCase {
       throw new VisitorNotFoundError(visitorId);
     }
 
-    try {
-      visitor.checkOut();
-    } catch {
-      throw new VisitorNotCheckedInError();
-    }
+    visitor.checkOut();
 
     const updated = await this.visitorRepository.update(visitor);
     await this.visitorNotifier.notifyVisitorUpdated(updated, "CheckedOut");

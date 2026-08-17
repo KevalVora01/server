@@ -3,7 +3,7 @@ import { IVisitorRepository } from "../../domain/repositories/IVisitorRepository
 import { IVisitorNotifier } from "../../domain/services/IVisitorNotifier";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { LogWalkInVisitorDto } from "../dtos/LogWalkInVisitorDto";
-import { ResidentNotOccupantError } from "../../domain/errors/VisitorErrors";
+import { ApartmentOccupantNotFoundError } from "../../domain/errors/VisitorErrors";
 
 export class LogWalkInVisitorUseCase {
   constructor(
@@ -16,7 +16,7 @@ export class LogWalkInVisitorUseCase {
     const occupant = await this.residentRepository.findOccupantByApartmentId(dto.apartmentId);
 
     if (!occupant) {
-      throw new ResidentNotOccupantError();
+      throw new ApartmentOccupantNotFoundError();
     }
 
     const visitor = Visitor.createWalkIn({

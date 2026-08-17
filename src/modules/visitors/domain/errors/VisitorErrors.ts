@@ -53,3 +53,35 @@ export class VisitorPhotoRequiredError extends Error {
     this.name = "VisitorPhotoRequiredError";
   }
 }
+
+export class VisitorNotPreRegisteredError extends Error {
+  public readonly statusCode = 400;
+  constructor() {
+    super("Only pre-registered visitors can be cancelled this way");
+    this.name = "VisitorNotPreRegisteredError";
+  }
+}
+
+export class VisitorAlreadyCheckedInError extends Error {
+  public readonly statusCode = 400;
+  constructor() {
+    super("Cannot cancel a visitor who has already checked in");
+    this.name = "VisitorAlreadyCheckedInError";
+  }
+}
+
+export class ApartmentOccupantNotFoundError extends Error {
+  public readonly statusCode = 404;
+  constructor() {
+    super("No occupant is assigned to this apartment; cannot log a walk-in visitor");
+    this.name = "ApartmentOccupantNotFoundError";
+  }
+}
+
+export class VisitorPersistenceError extends Error {
+  public readonly statusCode = 500;
+  constructor(message = "Failed to persist visitor changes") {
+    super(message);
+    this.name = "VisitorPersistenceError";
+  }
+}
