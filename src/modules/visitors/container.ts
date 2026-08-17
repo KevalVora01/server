@@ -28,12 +28,12 @@ const cloudinaryService = new CloudinaryService();
 const visitorNotifier = new VisitorNotifier(residentRepository);
 
 // Use Cases
-const preRegisterVisitorUseCase = new PreRegisterVisitorUseCase(visitorRepository, residentRepository);
+const preRegisterVisitorUseCase = new PreRegisterVisitorUseCase(visitorRepository, residentRepository, visitorNotifier);
 const logWalkInVisitorUseCase = new LogWalkInVisitorUseCase(visitorRepository, visitorNotifier, residentRepository);
 const respondToApprovalUseCase = new RespondToApprovalUseCase(visitorRepository, visitorNotifier);
 const checkInVisitorUseCase = new CheckInVisitorUseCase(visitorRepository, visitorNotifier);
-const checkOutVisitorUseCase = new CheckOutVisitorUseCase(visitorRepository);
-const cancelPreRegisteredVisitorUseCase = new CancelPreRegisteredVisitorUseCase(visitorRepository);
+const checkOutVisitorUseCase = new CheckOutVisitorUseCase(visitorRepository, visitorNotifier);
+const cancelPreRegisteredVisitorUseCase = new CancelPreRegisteredVisitorUseCase(visitorRepository, visitorNotifier);
 const listVisitorsUseCase = new ListVisitorsUseCase(visitorRepository);
 const listMyVisitorsUseCase = new ListMyVisitorsUseCase(visitorRepository, residentRepository);
 const searchPreRegisteredVisitorsUseCase = new SearchPreRegisteredVisitorsUseCase(visitorRepository);

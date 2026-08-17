@@ -6,4 +6,5 @@ export interface IVisitorNotifier {
   notifyPreRegisteredCheckedIn(visitor: Visitor): Promise<void>;
   notifyVisitorApproved(visitor: Visitor): Promise<void>;
   notifyVisitorRejected(visitor: Visitor): Promise<void>;
+  notifyVisitorUpdated(visitor: Visitor, status: string, type?: "pre_registered" | "walk_in"): Promise<void>;
 }

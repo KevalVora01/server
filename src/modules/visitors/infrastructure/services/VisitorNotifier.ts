@@ -2,6 +2,8 @@ import { IVisitorNotifier } from "../../domain/services/IVisitorNotifier";
 import { Visitor } from "../../domain/entities/Visitor";
 import { notificationService } from "../../../notifications/container";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
+import { getIO } from "../../../../shared/socket/socket.server";
+import { SOCKET_EVENTS } from "../../../../shared/socket/socket.events";
 
 export class VisitorNotifier implements IVisitorNotifier {
   constructor(private readonly residentRepository: IResidentRepository) {}
@@ -69,6 +71,18 @@ export class VisitorNotifier implements IVisitorNotifier {
       `${visitor.name}'s entry request for "${visitor.purpose}" was rejected.`,
       { visitorId: visitor.id, status: "Rejected" }
     );
+  }
+
+  async notifyVisitorUpdated(visitor: Visitor, status: string, type?: "pre_registered" | "walk_in"): Promise<void> {
+    try {
+      getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
+        visitorId: visitor.id,
+        status,
+        type,
+      });
+    } catch {
+      /* socket not initialized */
+    }
   }
 
   private async resolveUserId(residentId: number): Promise<number | null> {

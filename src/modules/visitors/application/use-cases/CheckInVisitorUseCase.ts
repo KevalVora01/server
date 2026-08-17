@@ -32,8 +32,11 @@ export class CheckInVisitorUseCase {
 
     const updated = await this.visitorRepository.update(visitor);
 
-    if (this.visitorNotifier && visitor.isPreRegistered) {
-      await this.visitorNotifier.notifyPreRegisteredCheckedIn(updated);
+    if (this.visitorNotifier) {
+      if (visitor.isPreRegistered) {
+        await this.visitorNotifier.notifyPreRegisteredCheckedIn(updated);
+      }
+      await this.visitorNotifier.notifyVisitorUpdated(updated, "Inside");
     }
 
     return updated;

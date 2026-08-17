@@ -33,6 +33,7 @@ export class LogWalkInVisitorUseCase {
     const saved = await this.visitorRepository.create(visitor);
 
     await this.visitorNotifier.notifyApprovalNeeded(saved);
+    await this.visitorNotifier.notifyVisitorUpdated(saved, "Pending", "walk_in");
 
     return saved;
   }

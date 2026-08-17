@@ -16,9 +16,6 @@ import { VisitorStatus } from "../../domain/entities/Visitor";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
 import { SearchPreRegisteredVisitorsUseCase } from "../../application/use-cases/SearchPreRegisteredVisitorsUseCase";
-import { getIO } from "../../../../shared/socket/socket.server";
-import { Rooms } from "../../../../shared/socket/socket.rooms";
-import { SOCKET_EVENTS } from "../../../../shared/socket/socket.events";
 
 export class VisitorController {
   constructor(
@@ -64,9 +61,8 @@ export class VisitorController {
       }
 
       const file = req.file as Express.Multer.File | undefined;
-      const files = (req.files as Express.Multer.File[]) || (file ? [file] : []);
-      const photoUrl = files.length > 0
-        ? (await this.cloudinaryService.uploadImages(files, "visitors"))[0]
+      const photoUrl = file
+        ? await this.cloudinaryService.uploadImage(file.buffer, "visitors")
         : undefined;
 
       const visitor = await this.preRegisterVisitorUseCase.execute({
@@ -79,15 +75,6 @@ export class VisitorController {
         vehicleNumber: req.body.vehicleNumber,
         photoUrl,
       });
-
-      // Notify security and all connected clients in real-time
-      try {
-        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
-          visitorId: visitor.id,
-          status: "Approved",
-          type: "pre_registered",
-        });
-      } catch { /* socket not initialized */ }
 
       res.status(201).json(
         ApiResponse.success(visitor.toResponseObject(), "Visitor pre-registered successfully")
@@ -103,7 +90,7 @@ export class VisitorController {
 
       const file = req.file as Express.Multer.File | undefined;
       const photoUrl = file
-        ? (await this.cloudinaryService.uploadImages([file], "visitors"))[0]
+        ? await this.cloudinaryService.uploadImage(file.buffer, "visitors")
         : undefined;
 
       const visitor = await this.logWalkInVisitorUseCase.execute({
@@ -115,14 +102,6 @@ export class VisitorController {
         vehicleNumber: req.body.vehicleNumber,
         loggedBySecurityId: authReq.user.userId,
       });
-
-      try {
-        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
-          visitorId: visitor.id,
-          status: "Pending",
-          type: "walk_in",
-        });
-      } catch { /* socket not initialized */ }
 
       res.status(201).json(
         ApiResponse.success(visitor.toResponseObject(), "Visitor logged successfully")
@@ -143,13 +122,6 @@ export class VisitorController {
         residentId: resident?.id,
       });
 
-      try {
-        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
-          visitorId: visitor.id,
-          status: visitor.toResponseObject().status,
-        });
-      } catch { /* socket not initialized */ }
-
       res.status(200).json(
         ApiResponse.success(visitor.toResponseObject(), `Visitor ${req.body.decision.toLowerCase()}d`)
       );
@@ -163,19 +135,11 @@ export class VisitorController {
       const authReq = req as AuthenticatedRequest;
 
       const file = req.file as Express.Multer.File | undefined;
-      const files = (req.files as Express.Multer.File[]) || (file ? [file] : []);
-      const photoUrl = files.length > 0
-        ? (await this.cloudinaryService.uploadImages(files, "visitors"))[0]
+      const photoUrl = file
+        ? await this.cloudinaryService.uploadImage(file.buffer, "visitors")
         : undefined;
 
       const visitor = await this.checkInVisitorUseCase.execute(Number(req.params.id), authReq.user.userId, photoUrl);
-
-      try {
-        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
-          visitorId: visitor.id,
-          status: "Inside",
-        });
-      } catch { /* socket not initialized */ }
 
       res.status(200).json(
         ApiResponse.success(visitor.toResponseObject(), "Visitor checked in successfully")
@@ -188,13 +152,6 @@ export class VisitorController {
   checkOut = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const visitor = await this.checkOutVisitorUseCase.execute(Number(req.params.id));
-
-      try {
-        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
-          visitorId: visitor.id,
-          status: "CheckedOut",
-        });
-      } catch { /* socket not initialized */ }
 
       res.status(200).json(
         ApiResponse.success(visitor.toResponseObject(), "Visitor checked out successfully")
@@ -215,13 +172,6 @@ export class VisitorController {
       }
 
       await this.cancelPreRegisteredVisitorUseCase.execute(Number(req.params.id), resident.id!);
-
-      try {
-        getIO().emit(SOCKET_EVENTS.VISITOR_UPDATED, {
-          visitorId: Number(req.params.id),
-          status: "Cancelled",
-        });
-      } catch { /* socket not initialized */ }
 
       res.status(200).json(
         ApiResponse.success(null, "Visitor registration cancelled")

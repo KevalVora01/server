@@ -16,17 +16,10 @@ const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
 
 /*
 |--------------------------------------------------------------------------
-| Static Segment Routes (declared before any dynamic /:id route)
-|--------------------------------------------------------------------------
-*/
-
-/*
-|--------------------------------------------------------------------------
 | Resident Only — pre-register + cancel + own visitors
 |--------------------------------------------------------------------------
 */
 
-// Pre-register an expected visitor (+ optional photo)
 router.post(
   "/pre-register",
   jwtMiddleware,
@@ -36,7 +29,6 @@ router.post(
   visitorController.preRegister
 );
 
-// Cancel a pre-registered visitor
 router.delete(
   "/:id",
   jwtMiddleware,
@@ -50,7 +42,6 @@ router.delete(
 |--------------------------------------------------------------------------
 */
 
-// Log an unregistered walk-in visitor (+ photo)
 router.post(
   "/walk-in",
   jwtMiddleware,
@@ -60,7 +51,6 @@ router.post(
   visitorController.logWalkIn
 );
 
-// Mark visitor as entered (+ optional photo)
 router.patch(
   "/:id/check-in",
   jwtMiddleware,
@@ -69,7 +59,6 @@ router.patch(
   visitorController.checkIn
 );
 
-// Mark visitor as exited
 router.patch(
   "/:id/check-out",
   jwtMiddleware,
@@ -83,7 +72,6 @@ router.patch(
 |--------------------------------------------------------------------------
 */
 
-// Approve or reject a Pending visitor
 router.post(
   "/:id/respond",
   jwtMiddleware,
@@ -98,7 +86,6 @@ router.post(
 |--------------------------------------------------------------------------
 */
 
-// Own apartment's visitor history
 router.get(
   "/my",
   jwtMiddleware,
@@ -106,7 +93,6 @@ router.get(
   visitorController.listMyVisitors
 );
 
-// Everyone currently inside
 router.get(
   "/current",
   jwtMiddleware,
@@ -114,7 +100,6 @@ router.get(
   visitorController.listCurrentlyInside
 );
 
-// Search pre-registered visitors
 router.get(
   "/search",
   jwtMiddleware,
@@ -122,7 +107,6 @@ router.get(
   visitorController.searchPreRegistered
 );
 
-// Visitor dashboard metrics (today, inside, avg duration)
 router.get(
   "/dashboard",
   jwtMiddleware,
@@ -130,7 +114,6 @@ router.get(
   visitorController.getDashboardMetrics
 );
 
-// Full visitor log, filterable
 router.get(
   "/",
   jwtMiddleware,
@@ -144,7 +127,6 @@ router.get(
 |--------------------------------------------------------------------------
 */
 
-// Get visitor by ID
 router.get(
   "/:id",
   jwtMiddleware,

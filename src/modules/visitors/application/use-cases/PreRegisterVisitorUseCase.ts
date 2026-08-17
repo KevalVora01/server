@@ -1,6 +1,7 @@
 import { Visitor } from "../../domain/entities/Visitor";
 import { IVisitorRepository } from "../../domain/repositories/IVisitorRepository";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
+import { IVisitorNotifier } from "../../domain/services/IVisitorNotifier";
 import { PreRegisterVisitorDto } from "../dtos/PreRegisterVisitorDto";
 import { ResidentNotOccupantError } from "../../domain/errors/VisitorErrors";
 
@@ -8,7 +9,8 @@ export class PreRegisterVisitorUseCase {
   constructor(
     private readonly visitorRepository: IVisitorRepository,
     private readonly residentRepository: IResidentRepository,
-  ) {}
+    private readonly visitorNotifier: IVisitorNotifier,
+  ) { }
 
   async execute(dto: PreRegisterVisitorDto): Promise<Visitor> {
     const resident = await this.residentRepository.findById(dto.residentId);
@@ -28,6 +30,9 @@ export class PreRegisterVisitorUseCase {
       photoUrl: dto.photoUrl,
     });
 
-    return this.visitorRepository.create(visitor);
+    const saved = await this.visitorRepository.create(visitor);
+    await this.visitorNotifier.notifyVisitorUpdated(saved, "Approved", "pre_registered");
+
+    return saved;
   }
 } 

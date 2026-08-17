@@ -43,6 +43,7 @@ export class RespondToApprovalUseCase {
       } else {
         await this.visitorNotifier.notifyVisitorRejected(updated);
       }
+      await this.visitorNotifier.notifyVisitorUpdated(updated, updated.status);
     }
 
     return updated;
