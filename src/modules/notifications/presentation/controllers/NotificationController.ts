@@ -60,7 +60,7 @@ export class NotificationController {
   markAsRead = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const authReq = req as AuthenticatedRequest;
-      await this.markAsReadUseCase.execute(req.body.ids, authReq.user.userId);
+      await this.markAsReadUseCase.execute(req.body.id, authReq.user.userId);
 
       res.status(200).json(
         ApiResponse.success({

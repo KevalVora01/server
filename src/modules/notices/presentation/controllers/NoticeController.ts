@@ -60,7 +60,7 @@ export class NoticeController {
     try {
       const result = await this.listNoticesUseCase.execute({
         pageNumber: Number(req.query.pageNumber) || 1,
-        pageSize: Number(req.query.pageSize) || 5,
+        pageSize: Number(req.query.pageSize) || 10,
         category: req.query.category as string | undefined,
         isPinned: req.query.isPinned !== undefined ? req.query.isPinned === "true" : undefined,
         isActive: req.query.isActive !== undefined ? req.query.isActive === "true" : undefined,

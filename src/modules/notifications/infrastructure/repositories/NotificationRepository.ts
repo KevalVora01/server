@@ -55,10 +55,10 @@ export class NotificationRepository implements INotificationRepository {
     });
   }
 
-  async markAsRead(ids: number[], userId: number): Promise<void> {
+  async markAsRead(id: number, userId: number): Promise<void> {
     await NotificationModel.update(
       { isRead: true },
-      { where: { id: ids, userId } }
+      { where: { id, userId } }
     );
   }
 
