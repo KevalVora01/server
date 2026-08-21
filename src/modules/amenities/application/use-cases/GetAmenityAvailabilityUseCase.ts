@@ -3,20 +3,35 @@ import { IBlackoutRepository } from "../../domain/repositories/IBlackoutReposito
 import { IAmenityRepository } from "../../domain/repositories/IAmenityRepository";
 import { AmenityNotFoundError } from "../../domain/errors/BookingErrors";
 
+export type SlotStatus = "free" | "booked" | "blackout" | "closed";
+
 export interface AvailabilitySlot {
-  startTime: string;
-  endTime: string;
-  status?: string;
-  bookingId?: number;
-  reason?: string;
+  start: string;
+  end: string;
+  status: SlotStatus;
 }
 
 export interface AvailabilityResult {
   amenityId: number;
   date: string;
-  bookings: AvailabilitySlot[];
-  blackouts: AvailabilitySlot[];
+  operatingStart: string;
+  operatingEnd: string;
+  slots: AvailabilitySlot[];
 }
+
+const toMinutes = (t: string): number => {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+};
+
+const fromMinutes = (min: number): string => {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+};
+
+const overlaps = (s1: number, e1: number, s2: number, e2: number): boolean =>
+  s1 < e2 && s2 < e1;
 
 export class GetAmenityAvailabilityUseCase {
   constructor(
@@ -35,20 +50,27 @@ export class GetAmenityAvailabilityUseCase {
     ]);
     const blackouts = await this.blackoutRepository.findByAmenityAndDate(amenityId, date);
 
+    const open = toMinutes(amenity.operatingStart);
+    const close = toMinutes(amenity.operatingEnd);
+    const slots: AvailabilitySlot[] = [];
+
+    for (let start = open; start < close; start += 30) {
+      const end = start + 30;
+      let status: SlotStatus = "free";
+      if (blackouts.some((b) => overlaps(start, end, toMinutes(b.startTime), toMinutes(b.endTime)))) {
+        status = "blackout";
+      } else if (bookings.some((b) => overlaps(start, end, toMinutes(b.startTime), toMinutes(b.endTime)))) {
+        status = "booked";
+      }
+      slots.push({ start: fromMinutes(start), end: fromMinutes(end), status });
+    }
+
     return {
       amenityId,
       date,
-      bookings: bookings.map((b) => ({
-        startTime: b.startTime,
-        endTime: b.endTime,
-        status: b.status,
-        bookingId: b.id,
-      })),
-      blackouts: blackouts.map((b) => ({
-        startTime: b.startTime,
-        endTime: b.endTime,
-        reason: b.reason,
-      })),
+      operatingStart: amenity.operatingStart,
+      operatingEnd: amenity.operatingEnd,
+      slots,
     };
   }
 }

@@ -2,7 +2,6 @@ import type { Request, Response, NextFunction } from "express";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
 import { UserRole } from "../../../auth/domain/entities/User";
-import { RequestingUser } from "../../../../shared/types/RequestingUser";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 
 import { CreateAmenityUseCase } from "../../application/use-cases/CreateAmenityUseCase";
@@ -29,21 +28,8 @@ export class AmenityController {
     private readonly residentRepository: IResidentRepository
   ) {}
 
-  private async buildRequestingUser(authReq: AuthenticatedRequest): Promise<RequestingUser> {
-    const requestingUser: RequestingUser = {
-      userId: authReq.user.userId,
-      role: authReq.user.role,
-    };
-    if (authReq.user.role === UserRole.RESIDENT) {
-      const resident = await this.residentRepository.findByUserId(authReq.user.userId);
-      requestingUser.residentId = resident?.id;
-    }
-    return requestingUser;
-  }
-
   createAmenity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const authReq = req as AuthenticatedRequest;
       const amenity = await this.createAmenityUseCase.execute(req.body);
       res.status(201).json(
         ApiResponse.success(amenity.toResponseObject(), "Amenity created successfully")
@@ -102,19 +88,19 @@ export class AmenityController {
     }
   };
 
-  getAvailability = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const result = await this.getAmenityAvailabilityUseCase.execute(
-        Number(req.params.id),
-        String(req.query.date)
-      );
-      res.status(200).json(
-        ApiResponse.success(result, "Availability fetched successfully")
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
+    getAvailability = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const result = await this.getAmenityAvailabilityUseCase.execute(
+          Number(req.params.id),
+          String(req.query.date)
+        );
+        res.status(200).json(
+          ApiResponse.success(result, "Availability fetched successfully")
+        );
+      } catch (error) {
+        next(error);
+      }
+    };
 
   createBlackout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
