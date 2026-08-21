@@ -11,6 +11,8 @@ import maintenanceRoutes from './modules/maintenance/presentation/routes/mainten
 import tenantRequestRoutes from './modules/tenant-requests/presentation/routes/tenantRequestRoutes';
 import documentRequestRoutes from './modules/document-requests/presentation/routes/documentRequestRoutes';
 import visitorRoutes from './modules/visitors/presentation/routes/visitorRoutes';
+import amenityRoutes from './modules/amenities/presentation/routes/amenityRoutes';
+import bookingRoutes from './modules/amenities/presentation/routes/bookingRoutes';
 
 const router = Router();
 
@@ -38,6 +40,10 @@ router.use("/tenant-requests", tenantRequestRoutes);
 router.use("/document-requests", documentRequestRoutes);
 
 router.use('/visitors', visitorRoutes);
+
+router.use('/amenities', amenityRoutes);
+
+router.use('/bookings', bookingRoutes);
 
 // ─── Add more modules here as you build them ──────────────────────
 // router.use('/invoices',   invoiceRoutes);

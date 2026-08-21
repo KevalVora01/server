@@ -2,11 +2,9 @@ import cron from "node-cron";
 import { sendMaintenanceRemindersJob } from "../../modules/maintenance/container";
 import { promoteOccupantsJob } from "../../modules/residents/container";
 import { autoRejectExpiredApprovalsJob, deleteExpiredVisitorPhotosJob } from "../../modules/visitors/container";
+import { sendBookingRemindersJob } from "../../modules/amenities/container";
 
 export function initScheduledJobs(): void {
-  // --------------------------------------------------------------------------
-  // 1. High Frequency Jobs (Every 1 Minute: * * * * *)
-  // --------------------------------------------------------------------------
 
   // Auto-reject pending walk-in requests (>10m) and visitors past expected date
   cron.schedule("* * * * *", async () => {
@@ -16,10 +14,6 @@ export function initScheduledJobs(): void {
       console.error("[Scheduler] Visitor auto-reject job failed:", err);
     }
   });
-
-  // --------------------------------------------------------------------------
-  // 2. Daily Jobs (At 12:00 AM Midnight: 0 0 * * *)
-  // --------------------------------------------------------------------------
 
   // Promote approved tenants to active occupants once move-in date arrives
   cron.schedule("0 0 * * *", async () => {
@@ -48,6 +42,15 @@ export function initScheduledJobs(): void {
       await deleteExpiredVisitorPhotosJob.execute();
     } catch (err) {
       console.error("[Scheduler] Visitor photo cleanup job failed:", err);
+    }
+  });
+
+  // Send amenity booking reminders ~30 minutes before start time
+  cron.schedule("*/5 * * * *", async () => {
+    try {
+      await sendBookingRemindersJob.execute();
+    } catch (err) {
+      console.error("[Scheduler] Booking reminder job failed:", err);
     }
   });
 }

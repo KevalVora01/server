@@ -17,6 +17,9 @@ import "../../modules/maintenance/infrastructure/models/MaintenanceSettingModel"
 import "../../modules/maintenance/infrastructure/models/InvoiceModel";
 import "../../modules/document-requests/infrastructure/models/DocumentRequestModel";
 import "../../modules/document-requests/infrastructure/models/DocumentRequestVoteModel";
+import "../../modules/amenities/infrastructure/models/AmenityModel";
+import "../../modules/amenities/infrastructure/models/BookingModel";
+import "../../modules/amenities/infrastructure/models/BlackoutModel";
 
 import { runDatabaseSeeders } from '../../../database/seeder/seeder';
 

@@ -22,7 +22,13 @@ export type NotificationType =
   | "visitor_approval_timed_out"
   | "visitor_checked_in"
   | "visitor_approved"
-  | "visitor_rejected";
+  | "visitor_rejected"
+  | "booking_requested"
+  | "booking_confirmed"
+  | "booking_rejected"
+  | "booking_cancelled"
+  | "booking_reminder"
+  | "booking_payment_succeeded";
 
 export interface NotificationDataMap {
   complaint_created: { complaintId: number };
@@ -35,6 +41,12 @@ export interface NotificationDataMap {
   document_request_uploaded: { documentRequestId: number; status: string };
   document_request_rejected: { documentRequestId: number; status: string };
   document_request_cancelled: { documentRequestId: number };
+  booking_requested: { bookingId: number; amenityId: number };
+  booking_confirmed: { bookingId: number; amenityId: number };
+  booking_rejected: { bookingId: number; amenityId: number };
+  booking_cancelled: { bookingId: number; amenityId: number };
+  booking_reminder: { bookingId: number; amenityId: number };
+  booking_payment_succeeded: { bookingId: number; amenityId: number };
 }
 
 export interface NotificationProps {
