@@ -44,12 +44,12 @@ export class BookingRepository implements IBookingRepository {
     const resident: BookingResidentInfo | null =
       rawRes && rawUser
         ? {
-          id: rawRes.id,
-          userId: rawRes.userId,
-          name: rawUser.name,
-          email: rawUser.email,
-          phone: rawUser.phone,
-        }
+            id: rawRes.id,
+            userId: rawRes.userId,
+            name: rawUser.name,
+            email: rawUser.email,
+            phone: rawUser.phone,
+          }
         : null;
 
     let unitFormatted = "";
@@ -67,12 +67,12 @@ export class BookingRepository implements IBookingRepository {
 
     const apartment: BookingApartmentInfo | null = rawApt
       ? {
-        id: rawApt.id,
-        block: rawApt.block,
-        floorNumber: rawApt.floorNumber,
-        unitNumber: rawApt.unitNumber,
-        unitFormatted,
-      }
+          id: rawApt.id,
+          block: rawApt.block,
+          floorNumber: rawApt.floorNumber,
+          unitNumber: rawApt.unitNumber,
+          unitFormatted,
+        }
       : null;
 
     return new Booking({
@@ -90,6 +90,7 @@ export class BookingRepository implements IBookingRepository {
       approvedBySecurityId: model.approvedBySecurityId,
       paidAt: model.paidAt,
       paymentRef: model.paymentRef,
+      receiptUrl: model.receiptUrl,
       resident,
       apartment,
       createdAt: model.createdAt,
@@ -106,6 +107,7 @@ export class BookingRepository implements IBookingRepository {
       endTime: booking.endTime,
       purpose: booking.purpose,
       status: booking.status,
+      receiptUrl: booking.receiptUrl,
     });
     const fetched = await BookingModel.findByPk(created.id, {
       include: bookingIncludes,
@@ -136,6 +138,7 @@ export class BookingRepository implements IBookingRepository {
         approvedBySecurityId: booking.approvedBySecurityId,
         paidAt: booking.paidAt,
         paymentRef: booking.paymentRef,
+        receiptUrl: booking.receiptUrl,
       },
       { where: { id: booking.id } }
     );

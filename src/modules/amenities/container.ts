@@ -4,6 +4,7 @@ import { BlackoutRepository } from "./infrastructure/repositories/BlackoutReposi
 import { BookingVoteRepository } from "./infrastructure/repositories/BookingVoteRepository";
 import { BookingConflictService } from "./infrastructure/services/BookingConflictService";
 import { BookingNotifier } from "./infrastructure/services/BookingNotifier";
+import { BookingPdfService } from "./infrastructure/services/BookingPdfService";
 import { ResidentRepository } from "../residents/infrastructure/repositories/ResidentRepository";
 
 import { CreateAmenityUseCase } from "./application/use-cases/CreateAmenityUseCase";
@@ -27,10 +28,12 @@ import { GetBookingStatsUseCase } from "./application/use-cases/GetBookingStatsU
 import { GetBookingDetailUseCase } from "./application/use-cases/GetBookingDetailUseCase";
 import { BulkRecordBookingVotesUseCase } from "./application/use-cases/BulkRecordBookingVotesUseCase";
 import { FinalizeBookingUseCase } from "./application/use-cases/FinalizeBookingUseCase";
+import { GenerateBookingReceiptUseCase } from "./application/use-cases/GenerateBookingReceiptUseCase";
 import { SendBookingRemindersJob } from "./application/jobs/SendBookingRemindersJob";
 
 import { AmenityController } from "./presentation/controllers/AmenityController";
 import { BookingController } from "./presentation/controllers/BookingController";
+import { CloudinaryService } from "../../shared/services/CloudinaryService";
 
 // Repositories
 const amenityRepository = new AmenityRepository();
@@ -39,11 +42,10 @@ const blackoutRepository = new BlackoutRepository();
 const bookingVoteRepository = new BookingVoteRepository();
 const residentRepository = new ResidentRepository();
 
-import { CloudinaryService } from "../../shared/services/CloudinaryService";
-
 // Services
 const bookingConflictService = new BookingConflictService(blackoutRepository, bookingRepository);
 const bookingNotifier = new BookingNotifier(residentRepository);
+const bookingPdfService = new BookingPdfService();
 const cloudinaryService = new CloudinaryService();
 
 // Amenity use cases
@@ -92,7 +94,8 @@ const rejectBookingUseCase = new RejectBookingUseCase(
 const settleBookingUseCase = new SettleBookingUseCase(
   bookingRepository,
   bookingNotifier,
-  amenityRepository
+  amenityRepository,
+  bookingPdfService
 );
 const getBookingStatsUseCase = new GetBookingStatsUseCase(bookingRepository);
 const getBookingDetailUseCase = new GetBookingDetailUseCase(
@@ -109,6 +112,11 @@ const finalizeBookingUseCase = new FinalizeBookingUseCase(
   bookingVoteRepository,
   bookingNotifier,
   amenityRepository
+);
+const generateBookingReceiptUseCase = new GenerateBookingReceiptUseCase(
+  bookingRepository,
+  amenityRepository,
+  bookingPdfService
 );
 
 // Jobs
@@ -146,5 +154,6 @@ export const bookingController = new BookingController(
   getBookingDetailUseCase,
   bulkRecordBookingVotesUseCase,
   finalizeBookingUseCase,
+  generateBookingReceiptUseCase,
   residentRepository
 );

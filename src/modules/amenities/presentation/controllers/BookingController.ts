@@ -17,6 +17,7 @@ import { GetBookingStatsUseCase } from "../../application/use-cases/GetBookingSt
 import { GetBookingDetailUseCase } from "../../application/use-cases/GetBookingDetailUseCase";
 import { BulkRecordBookingVotesUseCase } from "../../application/use-cases/BulkRecordBookingVotesUseCase";
 import { FinalizeBookingUseCase } from "../../application/use-cases/FinalizeBookingUseCase";
+import { GenerateBookingReceiptUseCase } from "../../application/use-cases/GenerateBookingReceiptUseCase";
 
 export class BookingController {
   constructor(
@@ -32,6 +33,7 @@ export class BookingController {
     private readonly getBookingDetailUseCase: GetBookingDetailUseCase,
     private readonly bulkRecordBookingVotesUseCase: BulkRecordBookingVotesUseCase,
     private readonly finalizeBookingUseCase: FinalizeBookingUseCase,
+    private readonly generateBookingReceiptUseCase: GenerateBookingReceiptUseCase,
     private readonly residentRepository: IResidentRepository
   ) {}
 
@@ -64,16 +66,16 @@ export class BookingController {
     try {
       const authReq = req as AuthenticatedRequest;
       const resident = await this.residentRepository.findByUserId(authReq.user.userId);
-      if (!resident) {
-        res.status(404).json(ApiResponse.error("Resident profile not found for this user"));
+      if (!resident || !resident.id) {
+        res.status(200).json(ApiResponse.success([], "No resident profile found"));
         return;
       }
       const scope = (req.query.scope as "upcoming" | "past") || "upcoming";
-      const bookings = await this.listMyBookingsUseCase.execute(resident.id!, scope);
+      const bookings = await this.listMyBookingsUseCase.execute(resident.id, scope);
       res.status(200).json(
         ApiResponse.success(
           bookings.map((b) => b.toResponseObject()),
-          "Your bookings fetched successfully"
+          "My bookings fetched successfully"
         )
       );
     } catch (error) {
@@ -85,9 +87,8 @@ export class BookingController {
     try {
       const filters: ListBookingsFilters = {
         amenityId: req.query.amenityId ? Number(req.query.amenityId) : undefined,
-        date: req.query.date ? String(req.query.date) : undefined,
-        status: req.query.status ? (String(req.query.status) as ListBookingsFilters["status"]) : undefined,
-        residentId: req.query.residentId ? Number(req.query.residentId) : undefined,
+        status: req.query.status as any,
+        date: (req.query.date as string) || (req.query.fromDate as string),
       };
       const bookings = await this.listBookingsUseCase.execute(filters);
       res.status(200).json(
@@ -101,10 +102,12 @@ export class BookingController {
     }
   };
 
-  getStats = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const stats = await this.getBookingStatsUseCase.execute();
-      res.status(200).json(ApiResponse.success(stats, "Booking stats fetched successfully"));
+      res.status(200).json(
+        ApiResponse.success(stats, "Booking stats fetched successfully")
+      );
     } catch (error) {
       next(error);
     }
@@ -112,9 +115,7 @@ export class BookingController {
 
   getBooking = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const authReq = req as AuthenticatedRequest;
-      const requestingUser = await this.buildRequestingUser(authReq);
-      const booking = await this.getBookingUseCase.execute(Number(req.params.id), requestingUser);
+      const booking = await this.getBookingUseCase.execute(Number(req.params.id));
       res.status(200).json(
         ApiResponse.success(booking.toResponseObject(), "Booking fetched successfully")
       );
@@ -198,6 +199,20 @@ export class BookingController {
           },
           "Booking detail fetched successfully"
         )
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getBookingReceipt = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const requestingUser = await this.buildRequestingUser(authReq);
+      const id = Number(req.params.id);
+      const pdfUrl = await this.generateBookingReceiptUseCase.execute(id, requestingUser);
+      res.status(200).json(
+        ApiResponse.success({ url: pdfUrl }, "Booking receipt generated successfully")
       );
     } catch (error) {
       next(error);

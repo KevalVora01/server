@@ -19,11 +19,15 @@ interface BookingAttributes {
   approvedBySecurityId: number | null;
   paidAt: Date | null;
   paymentRef: string | null;
+  receiptUrl: string | null;
   createdAt: Date;
 }
 
 interface BookingCreationAttributes
-  extends Optional<BookingAttributes, "id" | "createdAt" | "paidAt" | "paymentRef"> {}
+  extends Optional<
+    BookingAttributes,
+    "id" | "createdAt" | "paidAt" | "paymentRef" | "receiptUrl"
+  > {}
 
 export class BookingModel
   extends Model<BookingAttributes, BookingCreationAttributes>
@@ -42,6 +46,7 @@ export class BookingModel
   declare approvedBySecurityId: number | null;
   declare paidAt: Date | null;
   declare paymentRef: string | null;
+  declare receiptUrl: string | null;
   declare createdAt: Date;
 }
 
@@ -107,6 +112,11 @@ BookingModel.init(
     paymentRef: {
       type: DataTypes.STRING(100),
       allowNull: true,
+    },
+    receiptUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: "receipt_url",
     },
     createdAt: {
       type: DataTypes.DATE,

@@ -31,6 +31,7 @@ export interface BookingProps {
   approvedBySecurityId?: number | null;
   paidAt?: Date | null;
   paymentRef?: string | null;      // UPI ref, only set once paid
+  receiptUrl?: string | null;
   resident?: BookingResidentInfo | null;
   apartment?: BookingApartmentInfo | null;
   createdAt?: Date;
@@ -51,6 +52,7 @@ export class Booking {
   approvedBySecurityId: number | null;
   paidAt: Date | null;
   paymentRef: string | null;
+  receiptUrl: string | null;
   readonly resident?: BookingResidentInfo | null;
   readonly apartment?: BookingApartmentInfo | null;
   readonly createdAt: Date;
@@ -70,6 +72,7 @@ export class Booking {
     this.approvedBySecurityId = props.approvedBySecurityId ?? null;
     this.paidAt = props.paidAt ?? null;
     this.paymentRef = props.paymentRef ?? null;
+    this.receiptUrl = props.receiptUrl ?? null;
     this.resident = props.resident ?? null;
     this.apartment = props.apartment ?? null;
     this.createdAt = props.createdAt ?? new Date();
@@ -113,6 +116,10 @@ export class Booking {
     this.paidAt = new Date();
   }
 
+  setReceiptUrl(url: string): void {
+    this.receiptUrl = url;
+  }
+
   isPaid(): boolean {
     return this.paidAt !== null;
   }
@@ -137,6 +144,7 @@ export class Booking {
       approvedBySecurityId: this.approvedBySecurityId,
       paidAt: this.paidAt,
       paymentRef: this.paymentRef,
+      receiptUrl: this.receiptUrl,
       resident: this.resident,
       apartment: this.apartment,
       createdAt: this.createdAt,

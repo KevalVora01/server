@@ -2,6 +2,7 @@ import { Booking } from "../../domain/entities/Booking";
 import { IBookingRepository } from "../../domain/repositories/IBookingRepository";
 import { IAmenityRepository } from "../../domain/repositories/IAmenityRepository";
 import { IBookingNotifier } from "../../domain/services/IBookingNotifier";
+import { BookingPdfService } from "../../infrastructure/services/BookingPdfService";
 import {
   BookingNotFoundError,
   BookingAlreadyPaidError,
@@ -11,13 +12,13 @@ import {
 } from "../../domain/errors/BookingErrors";
 import { SettleBookingDto } from "../dtos/SettleBookingDto";
 import { RequestingUser } from "../../../../shared/types/RequestingUser";
-import { UserRole } from "../../../auth/domain/entities/User";
 
 export class SettleBookingUseCase {
   constructor(
     private readonly bookingRepository: IBookingRepository,
     private readonly notifier: IBookingNotifier,
-    private readonly amenityRepository: IAmenityRepository
+    private readonly amenityRepository: IAmenityRepository,
+    private readonly bookingPdfService?: BookingPdfService
   ) {}
 
   async execute(
@@ -28,11 +29,13 @@ export class SettleBookingUseCase {
     const booking = await this.bookingRepository.findById(id);
     if (!booking) throw new BookingNotFoundError();
 
+    // Only the resident who made the booking request is allowed to pay the fees
     const isOwner =
       requestingUser?.residentId !== undefined &&
       booking.residentId === requestingUser.residentId;
-    const isAdmin = requestingUser?.role === UserRole.ADMIN;
-    if (!isOwner && !isAdmin) throw new UnauthorizedBookingAccessError();
+    if (!isOwner) {
+      throw new UnauthorizedBookingAccessError();
+    }
 
     if (booking.isPaid()) throw new BookingAlreadyPaidError();
 
@@ -45,9 +48,23 @@ export class SettleBookingUseCase {
     }
 
     booking.markPaid(dto.paymentRef);
-    const updated = await this.bookingRepository.update(booking);
 
     const amenity = await this.amenityRepository.findById(booking.amenityId);
+
+    // Automatically generate and attach receipt PDF
+    if (this.bookingPdfService) {
+      try {
+        const receiptUrl = await this.bookingPdfService.generateAndUpload(booking, amenity);
+        if (receiptUrl) {
+          booking.setReceiptUrl(receiptUrl);
+        }
+      } catch (err) {
+        console.warn("Could not generate booking receipt PDF immediately upon payment:", err);
+      }
+    }
+
+    const updated = await this.bookingRepository.update(booking);
+
     if (amenity) await this.notifier.notifyPaymentSucceeded(updated, amenity);
 
     return updated;

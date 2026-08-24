@@ -52,7 +52,7 @@ router.get(
 
 /*
 |--------------------------------------------------------------------------
-| Admin + Resident — create, get & detail (ownership enforced in use-case)
+| Admin + Resident — create, get, receipt & detail (ownership enforced in use-case)
 |--------------------------------------------------------------------------
 */
 
@@ -69,6 +69,13 @@ router.get(
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
   bookingController.getBookingDetail
+);
+
+router.get(
+  "/:id/receipt",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
+  bookingController.getBookingReceipt
 );
 
 router.get(
