@@ -8,12 +8,14 @@ interface AmenityAttributes {
   capacity: number | null;
   operatingStart: string;
   operatingEnd: string;
+  price: number;
+  images: string[];
   isActive: boolean;
   createdAt: Date;
 }
 
 interface AmenityCreationAttributes
-  extends Optional<AmenityAttributes, "id" | "createdAt"> {}
+  extends Optional<AmenityAttributes, "id" | "createdAt" | "price" | "images"> {}
 
 export class AmenityModel
   extends Model<AmenityAttributes, AmenityCreationAttributes>
@@ -24,6 +26,8 @@ export class AmenityModel
   declare capacity: number | null;
   declare operatingStart: string;
   declare operatingEnd: string;
+  declare price: number;
+  declare images: string[];
   declare isActive: boolean;
   declare createdAt: Date;
 }
@@ -54,6 +58,24 @@ AmenityModel.init(
     operatingEnd: {
       type: DataTypes.STRING(8),
       allowNull: false,
+    },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      get() {
+        const rawValue = this.getDataValue("price");
+        return rawValue !== null && rawValue !== undefined ? parseFloat(String(rawValue)) : 0;
+      },
+    },
+    images: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: [],
+      get() {
+        const raw = this.getDataValue("images");
+        return Array.isArray(raw) ? raw : [];
+      },
     },
     isActive: {
       type: DataTypes.BOOLEAN,

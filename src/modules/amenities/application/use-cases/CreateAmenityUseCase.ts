@@ -12,6 +12,8 @@ export class CreateAmenityUseCase {
       capacity: dto.capacity ?? null,
       operatingStart: dto.operatingStart,
       operatingEnd: dto.operatingEnd,
+      price: dto.price ?? 0,
+      images: dto.images ?? [],
       isActive: dto.isActive ?? true,
     });
     return this.amenityRepository.create(amenity);

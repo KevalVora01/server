@@ -39,9 +39,12 @@ const blackoutRepository = new BlackoutRepository();
 const bookingVoteRepository = new BookingVoteRepository();
 const residentRepository = new ResidentRepository();
 
+import { CloudinaryService } from "../../shared/services/CloudinaryService";
+
 // Services
 const bookingConflictService = new BookingConflictService(blackoutRepository, bookingRepository);
 const bookingNotifier = new BookingNotifier(residentRepository);
+const cloudinaryService = new CloudinaryService();
 
 // Amenity use cases
 const createAmenityUseCase = new CreateAmenityUseCase(amenityRepository);
@@ -126,7 +129,8 @@ export const amenityController = new AmenityController(
   createBlackoutUseCase,
   listBlackoutsUseCase,
   deleteBlackoutUseCase,
-  residentRepository
+  residentRepository,
+  cloudinaryService
 );
 
 export const bookingController = new BookingController(

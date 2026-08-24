@@ -4,5 +4,7 @@ export interface CreateAmenityDto {
   capacity?: number | null;
   operatingStart: string;
   operatingEnd: string;
+  price?: number;
+  images?: string[];
   isActive?: boolean;
 }

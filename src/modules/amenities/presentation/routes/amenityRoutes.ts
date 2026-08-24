@@ -10,6 +10,7 @@ import {
   validateCreateBlackout,
   validateGetAvailability,
 } from "../validators/amenityValidators";
+import { uploadMiddleware } from "../../../../shared/middleware/uploadMiddleware";
 
 const router = Router();
 const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
@@ -24,6 +25,7 @@ router.post(
   "/",
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN),
+  uploadMiddleware.array("images", 5),
   validateCreateAmenity,
   amenityController.createAmenity
 );
@@ -32,15 +34,9 @@ router.put(
   "/:id",
   jwtMiddleware,
   rbacMiddleware(UserRole.ADMIN),
+  uploadMiddleware.array("images", 5),
   validateUpdateAmenity,
   amenityController.updateAmenity
-);
-
-router.delete(
-  "/:id",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN),
-  amenityController.deactivateAmenity
 );
 
 /*

@@ -5,6 +5,24 @@ import { AmenityModel } from "../models/AmenityModel";
 
 export class AmenityRepository implements IAmenityRepository {
   private toEntity(model: AmenityModel): Amenity {
+    let images: string[] = [];
+    const rawImages: unknown = model.images ?? (model as unknown as Record<string, unknown>).images;
+    if (Array.isArray(rawImages)) {
+      images = rawImages.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+    } else if (typeof rawImages === "string") {
+      const trimmed = rawImages.trim();
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          images = parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+        } else if (trimmed) {
+          images = [trimmed];
+        }
+      } catch {
+        if (trimmed) images = [trimmed];
+      }
+    }
+
     return new Amenity({
       id: model.id,
       name: model.name,
@@ -12,6 +30,8 @@ export class AmenityRepository implements IAmenityRepository {
       capacity: model.capacity,
       operatingStart: model.operatingStart,
       operatingEnd: model.operatingEnd,
+      price: Number(model.price) || 0,
+      images,
       isActive: model.isActive,
       createdAt: model.createdAt,
     });
@@ -24,6 +44,8 @@ export class AmenityRepository implements IAmenityRepository {
       capacity: amenity.capacity,
       operatingStart: amenity.operatingStart,
       operatingEnd: amenity.operatingEnd,
+      price: amenity.price,
+      images: amenity.images || [],
       isActive: amenity.isActive,
     });
     return this.toEntity(created);
@@ -49,6 +71,8 @@ export class AmenityRepository implements IAmenityRepository {
         capacity: amenity.capacity,
         operatingStart: amenity.operatingStart,
         operatingEnd: amenity.operatingEnd,
+        price: amenity.price,
+        images: amenity.images || [],
         isActive: amenity.isActive,
       },
       { where: { id: amenity.id } }

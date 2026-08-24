@@ -17,6 +17,7 @@ import { ComplaintImageModel } from "../../src/modules/complaints/infrastructure
 import { MaintenanceSettingModel } from "../../src/modules/maintenance/infrastructure/models/MaintenanceSettingModel";
 import { InvoiceModel } from "../../src/modules/maintenance/infrastructure/models/InvoiceModel";
 import { InvoiceStatus } from "../../src/modules/maintenance/domain/entities/Invoice";
+import { AmenityModel } from "../../src/modules/amenities/infrastructure/models/AmenityModel";
 
 const apartments = [
   { block: "A", floorNumber: 1, unitNumber: "01", areaSqft: 850, type: ApartmentType.ONE_BHK },
@@ -886,6 +887,140 @@ const backfillInvoiceResidents = async (): Promise<void> => {
   }
 };
 
+const seedOrUpdateAmenities = async (): Promise<void> => {
+  try {
+    const defaultAmenities = [
+      {
+        name: "Swimming Pool",
+        description: "Olympic-sized temperature-controlled pool with a dedicated kids splash area, lane dividers, and certified lifeguard on duty.",
+        capacity: 30,
+        operatingStart: "06:00",
+        operatingEnd: "21:00",
+        price: 250,
+        images: [
+          "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1572331165267-854da2b10ccc?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1584467735815-f778f274e296?w=800&auto=format&fit=crop&q=80",
+        ],
+        isActive: true,
+      },
+      {
+        name: "Fitness Gymnasium",
+        description: "Fully equipped modern gym with cardio treadmills, ellipticals, free weights, resistance machines, and a certified fitness trainer.",
+        capacity: 25,
+        operatingStart: "05:30",
+        operatingEnd: "22:00",
+        price: 0,
+        images: [
+          "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80",
+        ],
+        isActive: true,
+      },
+      {
+        name: "Clubhouse Banquet Hall",
+        description: "Air-conditioned banquet hall with integrated sound system, HD projector, mood lighting, and catering pantry. Ideal for family celebrations and community gatherings.",
+        capacity: 120,
+        operatingStart: "09:00",
+        operatingEnd: "23:00",
+        price: 2000,
+        images: [
+          "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&auto=format&fit=crop&q=80",
+        ],
+        isActive: true,
+      },
+      {
+        name: "Tennis Court",
+        description: "Synthetic turf floodlit tennis court with equipment rental, baseline netting, and evening play capability.",
+        capacity: 4,
+        operatingStart: "06:00",
+        operatingEnd: "20:00",
+        price: 300,
+        images: [
+          "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&auto=format&fit=crop&q=80",
+        ],
+        isActive: true,
+      },
+      {
+        name: "Badminton Court",
+        description: "Indoor wooden badminton court with non-marking flooring, high anti-glare ceilings, and LED tournament arena lighting.",
+        capacity: 4,
+        operatingStart: "06:00",
+        operatingEnd: "22:00",
+        price: 150,
+        images: [
+          "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1613918431703-aa632b7754b2?w=800&auto=format&fit=crop&q=80",
+        ],
+        isActive: true,
+      },
+      {
+        name: "Community Rooftop BBQ Lounge",
+        description: "Panoramic skyline rooftop terrace with premium BBQ grills, ambient pergolas, fairy lights, and comfortable outdoor seating.",
+        capacity: 40,
+        operatingStart: "16:00",
+        operatingEnd: "22:30",
+        price: 500,
+        images: [
+          "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&auto=format&fit=crop&q=80",
+        ],
+        isActive: true,
+      },
+      {
+        name: "Yoga & Meditation Studio",
+        description: "Peaceful bamboo-floored studio with acoustic soundproofing, yoga mats, meditation blocks, and serene natural ambient light.",
+        capacity: 20,
+        operatingStart: "06:00",
+        operatingEnd: "20:00",
+        price: 0,
+        images: [
+          "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80",
+        ],
+        isActive: true,
+      },
+      {
+        name: "Squash Court",
+        description: "Glass-backed regulation squash court with maple hardwood floor, spectator viewing area, and high-flow air conditioning.",
+        capacity: 2,
+        operatingStart: "06:00",
+        operatingEnd: "21:00",
+        price: 200,
+        images: [
+          "https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80",
+        ],
+        isActive: true,
+      },
+    ];
+
+    for (const item of defaultAmenities) {
+      const existing = await AmenityModel.findOne({ where: { name: item.name } });
+      if (!existing) {
+        await AmenityModel.create(item);
+        console.log(`[Database Seeder]: Created amenity "${item.name}"`);
+      } else {
+        const existingImgs = Array.isArray(existing.images) ? existing.images : [];
+        if (existingImgs.length === 0) {
+          await AmenityModel.update(
+            { images: item.images, price: existing.price || item.price },
+            { where: { id: existing.id } }
+          );
+          console.log(`[Database Seeder]: Updated photos and pricing for "${item.name}"`);
+        }
+      }
+    }
+    console.log("[Database Seeder]: Amenities checked & seeded successfully!");
+  } catch (error) {
+    console.error("[Database Seeder] CRITICAL: Failed to seed/update amenities:", error);
+  }
+};
+
 export const runDatabaseSeeders = async (): Promise<void> => {
   console.log("-----------------------------------------");
   console.log("[Database Seeder]: Initializing data seeding sequence...");
@@ -903,6 +1038,7 @@ export const runDatabaseSeeders = async (): Promise<void> => {
   await seedMaintenanceSetting();
   await seedInvoices();
   await backfillInvoiceResidents();
+  await seedOrUpdateAmenities();
 
   console.log("[Database Seeder]: Seeding sequence complete.");
   console.log("-----------------------------------------");

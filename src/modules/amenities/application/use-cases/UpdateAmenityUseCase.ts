@@ -15,6 +15,10 @@ export class UpdateAmenityUseCase {
     if (dto.capacity !== undefined) amenity.capacity = dto.capacity;
     if (dto.operatingStart !== undefined) amenity.operatingStart = dto.operatingStart;
     if (dto.operatingEnd !== undefined) amenity.operatingEnd = dto.operatingEnd;
+    if (dto.price !== undefined) amenity.price = Number(dto.price);
+    if (dto.images !== undefined) {
+      amenity.images = dto.images.filter(Boolean).slice(0, 5);
+    }
     if (dto.isActive !== undefined) amenity.isActive = dto.isActive;
 
     return this.amenityRepository.update(amenity);

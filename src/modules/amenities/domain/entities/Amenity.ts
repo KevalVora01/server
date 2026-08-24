@@ -2,9 +2,11 @@ export interface AmenityProps {
   id?: number;
   name: string;
   description?: string | null;
-  capacity?: number | null;       // optional: max concurrent people, not slots
-  operatingStart: string;         // "06:00" — 24hr format
-  operatingEnd: string;           // "22:00"
+  capacity?: number | null;
+  operatingStart: string;
+  operatingEnd: string;
+  price?: number;
+  images?: string[];
   isActive: boolean;
   createdAt?: Date;
 }
@@ -16,6 +18,8 @@ export class Amenity {
   capacity: number | null;
   operatingStart: string;
   operatingEnd: string;
+  price: number;
+  images: string[];
   isActive: boolean;
   readonly createdAt: Date;
 
@@ -26,8 +30,17 @@ export class Amenity {
     this.capacity = props.capacity ?? null;
     this.operatingStart = props.operatingStart;
     this.operatingEnd = props.operatingEnd;
+    this.price = props.price !== undefined && props.price !== null ? Number(props.price) : 0;
+    const imgList = Array.isArray(props.images)
+      ? props.images.filter((img) => typeof img === "string" && img.trim().length > 0)
+      : [];
+    this.images = imgList.slice(0, 5);
     this.isActive = props.isActive;
     this.createdAt = props.createdAt ?? new Date();
+  }
+
+  get primaryImageUrl(): string | null {
+    return this.images[0] ?? null;
   }
 
   static create(props: AmenityProps): Amenity {
@@ -36,6 +49,9 @@ export class Amenity {
     }
     if (props.operatingStart >= props.operatingEnd) {
       throw new Error("operatingStart must be before operatingEnd");
+    }
+    if (props.images && props.images.length > 5) {
+      throw new Error("A maximum of 5 images is allowed per amenity");
     }
     return new Amenity({ ...props, isActive: props.isActive ?? true });
   }
@@ -60,6 +76,8 @@ export class Amenity {
       capacity: this.capacity,
       operatingStart: this.operatingStart,
       operatingEnd: this.operatingEnd,
+      price: this.price,
+      images: this.images,
       isActive: this.isActive,
       createdAt: this.createdAt,
     };
