@@ -23,7 +23,6 @@ const createAmenitySchema = Joi.object({
   price: Joi.alternatives().try(Joi.number().min(0), Joi.string().allow("", null)).optional().default(0),
   existingImages: Joi.any().optional(),
   images: Joi.any().optional(),
-  imageUrl: Joi.string().allow("").allow(null).optional(),
   isActive: Joi.alternatives().try(Joi.boolean(), Joi.string().valid("true", "false")).optional(),
 });
 
@@ -36,15 +35,25 @@ const updateAmenitySchema = Joi.object({
   price: Joi.alternatives().try(Joi.number().min(0), Joi.string().allow("", null)).optional(),
   existingImages: Joi.any().optional(),
   images: Joi.any().optional(),
-  imageUrl: Joi.string().allow("").allow(null).optional(),
   isActive: Joi.alternatives().try(Joi.boolean(), Joi.string().valid("true", "false")).optional(),
 });
 
 const createBlackoutSchema = Joi.object({
-  date: Joi.string().pattern(datePattern).required().messages({
-    "string.pattern.base": "date must be in YYYY-MM-DD format",
-    "any.required": "date is required",
-  }),
+  date: Joi.string()
+    .pattern(datePattern)
+    .required()
+    .custom((value, helpers) => {
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      if (value < todayStr) {
+        return helpers.message({ custom: "Blackout date cannot be in the past" });
+      }
+      return value;
+    })
+    .messages({
+      "string.pattern.base": "date must be in YYYY-MM-DD format",
+      "any.required": "date is required",
+    }),
   startTime: Joi.string().pattern(timePattern).required().messages({
     "string.pattern.base": "startTime must be in HH:MM (24h) format",
     "any.required": "startTime is required",
@@ -56,6 +65,20 @@ const createBlackoutSchema = Joi.object({
   reason: Joi.string().trim().min(2).max(500).required().messages({
     "string.empty": "Blackout reason is required",
   }),
+}).custom((obj, helpers) => {
+  if (obj.startTime >= obj.endTime) {
+    return helpers.message({ custom: "Start time must be before end time" });
+  }
+
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const currentTimeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+  if (obj.date === todayStr && obj.startTime < currentTimeStr) {
+    return helpers.message({ custom: "Blackout start time must be in the future" });
+  }
+
+  return obj;
 });
 
 const getAvailabilitySchema = Joi.object({

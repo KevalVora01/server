@@ -35,8 +35,20 @@ export class Blackout {
       throw new Error("Blackout reason is required");
     }
     if (props.startTime >= props.endTime) {
-      throw new Error("startTime must be before endTime");
+      throw new Error("Start time must be before end time");
     }
+
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const currentTimeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+    if (props.date < todayStr) {
+      throw new Error("Blackout date cannot be in the past");
+    }
+    if (props.date === todayStr && props.startTime < currentTimeStr) {
+      throw new Error("Blackout start time must be in the future");
+    }
+
     return new Blackout(props);
   }
 
