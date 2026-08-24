@@ -1,12 +1,15 @@
+export type AmenityBookingType = 'EXCLUSIVE' | 'SHARED_CAPACITY';
+
 export interface AmenityProps {
   id?: number;
   name: string;
   description?: string | null;
-  capacity?: number | null;
-  operatingStart: string;
-  operatingEnd: string;
-  price?: number;
-  images?: string[];
+  capacity?: number | null;       // max concurrent people
+  operatingStart: string;         // "06:00" — 24hr format
+  operatingEnd: string;           // "22:00"
+  price?: number;                 // booking fee (0 if free)
+  images?: string[];              // up to 5 images
+  bookingType?: AmenityBookingType;
   isActive: boolean;
   createdAt?: Date;
 }
@@ -20,6 +23,7 @@ export class Amenity {
   operatingEnd: string;
   price: number;
   images: string[];
+  bookingType: AmenityBookingType;
   isActive: boolean;
   readonly createdAt: Date;
 
@@ -30,13 +34,21 @@ export class Amenity {
     this.capacity = props.capacity ?? null;
     this.operatingStart = props.operatingStart;
     this.operatingEnd = props.operatingEnd;
-    this.price = props.price !== undefined && props.price !== null ? Number(props.price) : 0;
+    this.bookingType = props.bookingType ?? 'EXCLUSIVE';
+    // Shared capacity amenities (Gym, Yoga Studio, Pool) are always 100% Free
+    this.price = this.bookingType === 'SHARED_CAPACITY'
+      ? 0
+      : (props.price !== undefined && props.price !== null ? Number(props.price) : 0);
     const imgList = Array.isArray(props.images)
       ? props.images.filter((img) => typeof img === "string" && img.trim().length > 0)
       : [];
     this.images = imgList.slice(0, 5);
     this.isActive = props.isActive;
     this.createdAt = props.createdAt ?? new Date();
+  }
+
+  get isSharedCapacity(): boolean {
+    return this.bookingType === 'SHARED_CAPACITY';
   }
 
   get primaryImageUrl(): string | null {
@@ -78,6 +90,8 @@ export class Amenity {
       operatingEnd: this.operatingEnd,
       price: this.price,
       images: this.images,
+      bookingType: this.bookingType,
+      isSharedCapacity: this.isSharedCapacity,
       isActive: this.isActive,
       createdAt: this.createdAt,
     };

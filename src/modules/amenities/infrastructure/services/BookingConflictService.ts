@@ -23,7 +23,7 @@ export class BookingConflictService implements IBookingConflictService {
 
     // Reject past dates or past time slots on current date
     const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     if (date < todayStr) {
       throw new PastBookingError("Cannot book an amenity for a past date");
     }
@@ -46,7 +46,9 @@ export class BookingConflictService implements IBookingConflictService {
     );
     for (const blackout of blackouts) {
       if (blackout.overlapsWith(date, startTime, endTime)) {
-        throw new BlackoutConflictError();
+        throw new BlackoutConflictError(
+          blackout.reason ? `Amenity is unavailable due to maintenance: ${blackout.reason}` : "This time slot falls within a blackout period"
+        );
       }
     }
 
@@ -55,10 +57,24 @@ export class BookingConflictService implements IBookingConflictService {
       date,
       ["Pending", "Confirmed"]
     );
-    for (const booking of existing) {
-      if (excludeBookingId && booking.id === excludeBookingId) continue;
-      if (booking.overlapsWith(startTime, endTime)) {
-        throw new SlotConflictError();
+
+    if (amenity.isSharedCapacity) {
+      const maxCap = amenity.capacity && amenity.capacity > 0 ? amenity.capacity : 25;
+      const overlappingCount = existing.filter(
+        (b) => (!excludeBookingId || b.id !== excludeBookingId) && b.overlapsWith(startTime, endTime)
+      ).length;
+
+      if (overlappingCount >= maxCap) {
+        throw new SlotConflictError(
+          `This time slot is full (Maximum capacity of ${maxCap} people reached). Please choose another time.`
+        );
+      }
+    } else {
+      for (const booking of existing) {
+        if (excludeBookingId && booking.id === excludeBookingId) continue;
+        if (booking.overlapsWith(startTime, endTime)) {
+          throw new SlotConflictError("This time slot is already reserved by another resident.");
+        }
       }
     }
   }

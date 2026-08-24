@@ -32,6 +32,7 @@ export class AmenityRepository implements IAmenityRepository {
       operatingEnd: model.operatingEnd,
       price: Number(model.price) || 0,
       images,
+      bookingType: model.bookingType || "EXCLUSIVE",
       isActive: model.isActive,
       createdAt: model.createdAt,
     });
@@ -46,6 +47,7 @@ export class AmenityRepository implements IAmenityRepository {
       operatingEnd: amenity.operatingEnd,
       price: amenity.price,
       images: amenity.images || [],
+      bookingType: amenity.bookingType,
       isActive: amenity.isActive,
     });
     return this.toEntity(created);
@@ -73,6 +75,7 @@ export class AmenityRepository implements IAmenityRepository {
         operatingEnd: amenity.operatingEnd,
         price: amenity.price,
         images: amenity.images || [],
+        bookingType: amenity.bookingType,
         isActive: amenity.isActive,
       },
       { where: { id: amenity.id } }

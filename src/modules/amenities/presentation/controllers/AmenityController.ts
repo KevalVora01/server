@@ -67,9 +67,10 @@ export class AmenityController {
       const capacity = req.body.capacity !== undefined && req.body.capacity !== "" && req.body.capacity !== null
         ? Number(req.body.capacity)
         : null;
-      const price = req.body.price !== undefined && req.body.price !== "" && req.body.price !== null
-        ? Number(req.body.price)
-        : 0;
+      const bookingType = req.body.bookingType === "SHARED_CAPACITY" ? "SHARED_CAPACITY" : "EXCLUSIVE";
+      const price = bookingType === "SHARED_CAPACITY"
+        ? 0
+        : (req.body.price !== undefined && req.body.price !== "" && req.body.price !== null ? Number(req.body.price) : 0);
       const isActive = req.body.isActive === undefined ? true : req.body.isActive === true || req.body.isActive === "true";
 
       const amenity = await this.createAmenityUseCase.execute({
@@ -80,6 +81,7 @@ export class AmenityController {
         operatingEnd: req.body.operatingEnd,
         price,
         images: allImages,
+        bookingType,
         isActive,
       });
 
@@ -136,12 +138,13 @@ export class AmenityController {
         allImages = Array.from(new Set([...existingImages, ...uploadedUrls])).slice(0, 5);
       }
 
+      const bookingType = req.body.bookingType;
       const capacity = req.body.capacity !== undefined
         ? (req.body.capacity === "" || req.body.capacity === null ? null : Number(req.body.capacity))
         : undefined;
-      const price = req.body.price !== undefined
-        ? (req.body.price === "" || req.body.price === null ? 0 : Number(req.body.price))
-        : undefined;
+      const price = bookingType === "SHARED_CAPACITY"
+        ? 0
+        : (req.body.price !== undefined ? (req.body.price === "" || req.body.price === null ? 0 : Number(req.body.price)) : undefined);
       const isActive = req.body.isActive !== undefined
         ? (req.body.isActive === true || req.body.isActive === "true")
         : undefined;
@@ -154,6 +157,7 @@ export class AmenityController {
         operatingEnd: req.body.operatingEnd,
         price,
         images: allImages,
+        bookingType,
         isActive,
       });
 

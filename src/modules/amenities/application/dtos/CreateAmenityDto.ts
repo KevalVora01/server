@@ -1,3 +1,5 @@
+import { AmenityBookingType } from "../../domain/entities/Amenity";
+
 export interface CreateAmenityDto {
   name: string;
   description?: string | null;
@@ -6,5 +8,6 @@ export interface CreateAmenityDto {
   operatingEnd: string;
   price?: number;
   images?: string[];
+  bookingType?: AmenityBookingType;
   isActive?: boolean;
 }

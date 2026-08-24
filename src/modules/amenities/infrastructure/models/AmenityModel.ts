@@ -1,5 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../../../../shared/config/sequelize";
+import { AmenityBookingType } from "../../domain/entities/Amenity";
 
 interface AmenityAttributes {
   id: number;
@@ -10,12 +11,13 @@ interface AmenityAttributes {
   operatingEnd: string;
   price: number;
   images: string[];
+  bookingType: AmenityBookingType;
   isActive: boolean;
   createdAt: Date;
 }
 
 interface AmenityCreationAttributes
-  extends Optional<AmenityAttributes, "id" | "createdAt" | "price" | "images"> {}
+  extends Optional<AmenityAttributes, "id" | "createdAt" | "price" | "images" | "bookingType"> {}
 
 export class AmenityModel
   extends Model<AmenityAttributes, AmenityCreationAttributes>
@@ -28,6 +30,7 @@ export class AmenityModel
   declare operatingEnd: string;
   declare price: number;
   declare images: string[];
+  declare bookingType: AmenityBookingType;
   declare isActive: boolean;
   declare createdAt: Date;
 }
@@ -77,6 +80,11 @@ AmenityModel.init(
         return Array.isArray(raw) ? raw : [];
       },
     },
+    bookingType: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      defaultValue: "EXCLUSIVE",
+    },
     isActive: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -94,6 +102,6 @@ AmenityModel.init(
     timestamps: true,
     updatedAt: false,
     underscored: true,
-    indexes: [{ fields: ["is_active"] }],
+    indexes: [{ fields: ["is_active"] }, { fields: ["booking_type"] }],
   }
 );

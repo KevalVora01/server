@@ -2,6 +2,7 @@ import { IBookingRepository } from "../../domain/repositories/IBookingRepository
 import { IBlackoutRepository } from "../../domain/repositories/IBlackoutRepository";
 import { IAmenityRepository } from "../../domain/repositories/IAmenityRepository";
 import { AmenityNotFoundError } from "../../domain/errors/BookingErrors";
+import { AmenityBookingType } from "../../domain/entities/Amenity";
 
 export type SlotStatus = "free" | "booked" | "blackout" | "closed";
 
@@ -20,13 +21,38 @@ export interface BusyInterval {
   label?: string;
 }
 
+export interface SharedCapacitySlot {
+  startTime: string;
+  endTime: string;
+  totalCapacity: number;
+  currentOccupancy: number;
+  availableSpots: number;
+  occupancyPercent: number;
+  isBlackout: boolean;
+  blackoutReason?: string;
+  status: "Available" | "Moderate" | "Almost Full" | "Full" | "Blackout";
+  isAvailable: boolean;
+}
+
+export interface CurrentCrowdStats {
+  currentHourSlot: string;
+  currentOccupancy: number;
+  totalCapacity: number;
+  availableSpots: number;
+  crowdLevel: "Quiet" | "Moderate" | "Busy" | "Full" | "Closed";
+}
+
 export interface AvailabilityResult {
   amenityId: number;
   date: string;
   operatingStart: string;
   operatingEnd: string;
+  bookingType: AmenityBookingType;
+  totalCapacity: number;
   slots: AvailabilitySlot[];
   busyIntervals: BusyInterval[];
+  sharedSlots?: SharedCapacitySlot[];
+  currentCrowdNow?: CurrentCrowdStats;
 }
 
 const toMinutes = (t: string): number => {
@@ -62,15 +88,26 @@ export class GetAmenityAvailabilityUseCase {
 
     const open = toMinutes(amenity.operatingStart);
     const close = toMinutes(amenity.operatingEnd);
+    const totalCapacity = amenity.capacity && amenity.capacity > 0 ? amenity.capacity : 25;
+
     const slots: AvailabilitySlot[] = [];
 
+    // Standard 30-min intervals
     for (let start = open; start < close; start += 30) {
       const end = start + 30;
       let status: SlotStatus = "free";
       if (blackouts.some((b) => overlaps(start, end, toMinutes(b.startTime), toMinutes(b.endTime)))) {
         status = "blackout";
       } else if (bookings.some((b) => overlaps(start, end, toMinutes(b.startTime), toMinutes(b.endTime)))) {
-        status = "booked";
+        if (!amenity.isSharedCapacity) {
+          status = "booked";
+        } else {
+          // Count overlapping bookings for shared capacity
+          const count = bookings.filter((b) =>
+            overlaps(start, end, toMinutes(b.startTime), toMinutes(b.endTime))
+          ).length;
+          status = count >= totalCapacity ? "booked" : "free";
+        }
       }
       slots.push({ start: fromMinutes(start), end: fromMinutes(end), status });
     }
@@ -93,13 +130,88 @@ export class GetAmenityAvailabilityUseCase {
       })),
     ].sort((a, b) => a.startTime.localeCompare(b.startTime));
 
+    // Shared Capacity 1-hour slots
+    let sharedSlots: SharedCapacitySlot[] | undefined = undefined;
+    let currentCrowdNow: CurrentCrowdStats | undefined = undefined;
+
+    if (amenity.isSharedCapacity) {
+      sharedSlots = [];
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      const isToday = date === todayStr;
+      const currentMinutesNow = now.getHours() * 60 + now.getMinutes();
+
+      for (let start = open; start < close; start += 60) {
+        const end = Math.min(close, start + 60);
+        const startStr = fromMinutes(start);
+        const endStr = fromMinutes(end);
+
+        const activeBlackout = blackouts.find((bl) =>
+          overlaps(start, end, toMinutes(bl.startTime), toMinutes(bl.endTime))
+        );
+        const isBlackout = !!activeBlackout;
+
+        const overlappingBookings = bookings.filter((b) =>
+          overlaps(start, end, toMinutes(b.startTime), toMinutes(b.endTime))
+        );
+        const currentOccupancy = overlappingBookings.length;
+        const availableSpots = Math.max(0, totalCapacity - currentOccupancy);
+        const occupancyPercent = Math.min(100, Math.round((currentOccupancy / totalCapacity) * 100));
+
+        let status: SharedCapacitySlot["status"] = "Available";
+        if (isBlackout) {
+          status = "Blackout";
+        } else if (availableSpots <= 0) {
+          status = "Full";
+        } else if (occupancyPercent >= 80) {
+          status = "Almost Full";
+        } else if (occupancyPercent >= 40) {
+          status = "Moderate";
+        }
+
+        sharedSlots.push({
+          startTime: startStr,
+          endTime: endStr,
+          totalCapacity,
+          currentOccupancy,
+          availableSpots,
+          occupancyPercent,
+          isBlackout,
+          blackoutReason: activeBlackout?.reason,
+          status,
+          isAvailable: !isBlackout && availableSpots > 0,
+        });
+
+        // Compute Live Crowd Stats for right now if slot covers current time
+        if (isToday && currentMinutesNow >= start && currentMinutesNow < end) {
+          let crowdLevel: CurrentCrowdStats["crowdLevel"] = "Quiet";
+          if (isBlackout) crowdLevel = "Closed";
+          else if (availableSpots <= 0) crowdLevel = "Full";
+          else if (occupancyPercent >= 75) crowdLevel = "Busy";
+          else if (occupancyPercent >= 35) crowdLevel = "Moderate";
+
+          currentCrowdNow = {
+            currentHourSlot: `${startStr} – ${endStr}`,
+            currentOccupancy,
+            totalCapacity,
+            availableSpots,
+            crowdLevel,
+          };
+        }
+      }
+    }
+
     return {
       amenityId,
       date,
       operatingStart: amenity.operatingStart,
       operatingEnd: amenity.operatingEnd,
+      bookingType: amenity.bookingType,
+      totalCapacity,
       slots,
       busyIntervals,
+      sharedSlots,
+      currentCrowdNow,
     };
   }
 }

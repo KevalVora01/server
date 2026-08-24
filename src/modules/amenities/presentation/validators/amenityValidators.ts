@@ -23,6 +23,7 @@ const createAmenitySchema = Joi.object({
   price: Joi.alternatives().try(Joi.number().min(0), Joi.string().allow("", null)).optional().default(0),
   existingImages: Joi.any().optional(),
   images: Joi.any().optional(),
+  bookingType: Joi.string().valid("EXCLUSIVE", "SHARED_CAPACITY").optional().default("EXCLUSIVE"),
   isActive: Joi.alternatives().try(Joi.boolean(), Joi.string().valid("true", "false")).optional(),
 });
 
@@ -35,6 +36,7 @@ const updateAmenitySchema = Joi.object({
   price: Joi.alternatives().try(Joi.number().min(0), Joi.string().allow("", null)).optional(),
   existingImages: Joi.any().optional(),
   images: Joi.any().optional(),
+  bookingType: Joi.string().valid("EXCLUSIVE", "SHARED_CAPACITY").optional(),
   isActive: Joi.alternatives().try(Joi.boolean(), Joi.string().valid("true", "false")).optional(),
 });
 

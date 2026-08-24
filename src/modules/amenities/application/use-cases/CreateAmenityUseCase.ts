@@ -14,6 +14,7 @@ export class CreateAmenityUseCase {
       operatingEnd: dto.operatingEnd,
       price: dto.price ?? 0,
       images: dto.images ?? [],
+      bookingType: dto.bookingType ?? "EXCLUSIVE",
       isActive: dto.isActive ?? true,
     });
     return this.amenityRepository.create(amenity);

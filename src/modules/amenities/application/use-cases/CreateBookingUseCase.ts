@@ -35,25 +35,33 @@ export class CreateBookingUseCase {
     if (!amenity) throw new AmenityNotFoundError();
     if (!amenity.isActive) throw new AmenityNotActiveError();
 
-    const booking = Booking.create({
+    await this.conflictService.assertAvailable({
+      amenity,
+      date: dto.bookingDate,
+      startTime: dto.startTime,
+      endTime: dto.endTime,
+    });
+
+    // Shared capacity amenities (Gym, Yoga Studio, Pool) are free and auto-confirmed instantly!
+    const initialStatus = amenity.isSharedCapacity ? "Confirmed" : "Pending";
+
+    const booking = new Booking({
       amenityId: amenity.id!,
       apartmentId,
       residentId,
       bookingDate: dto.bookingDate,
       startTime: dto.startTime,
       endTime: dto.endTime,
-      purpose: dto.purpose ?? null,
-    });
-
-    await this.conflictService.assertAvailable({
-      amenity,
-      date: booking.bookingDate,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
+      purpose: dto.purpose ?? (amenity.isSharedCapacity ? `${amenity.name} Session` : null),
+      status: initialStatus,
     });
 
     const saved = await this.bookingRepository.create(booking);
-    await this.notifier.notifyRequested(saved, amenity);
+    if (saved.status === "Confirmed") {
+      await this.notifier.notifyConfirmed(saved, amenity);
+    } else {
+      await this.notifier.notifyRequested(saved, amenity);
+    }
     return saved;
   }
 }

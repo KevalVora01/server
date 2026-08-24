@@ -896,7 +896,8 @@ const seedOrUpdateAmenities = async (): Promise<void> => {
         capacity: 30,
         operatingStart: "06:00",
         operatingEnd: "21:00",
-        price: 250,
+        price: 0,
+        bookingType: "SHARED_CAPACITY" as const,
         images: [
           "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1572331165267-854da2b10ccc?w=800&auto=format&fit=crop&q=80",
@@ -911,10 +912,25 @@ const seedOrUpdateAmenities = async (): Promise<void> => {
         operatingStart: "05:30",
         operatingEnd: "22:00",
         price: 0,
+        bookingType: "SHARED_CAPACITY" as const,
         images: [
           "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=800&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80",
+        ],
+        isActive: true,
+      },
+      {
+        name: "Yoga & Meditation Studio",
+        description: "Peaceful bamboo-floored studio with acoustic soundproofing, yoga mats, meditation blocks, and serene natural ambient light.",
+        capacity: 20,
+        operatingStart: "06:00",
+        operatingEnd: "20:00",
+        price: 0,
+        bookingType: "SHARED_CAPACITY" as const,
+        images: [
+          "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80",
         ],
         isActive: true,
       },
@@ -925,6 +941,7 @@ const seedOrUpdateAmenities = async (): Promise<void> => {
         operatingStart: "09:00",
         operatingEnd: "23:00",
         price: 2000,
+        bookingType: "EXCLUSIVE" as const,
         images: [
           "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&auto=format&fit=crop&q=80",
@@ -939,6 +956,7 @@ const seedOrUpdateAmenities = async (): Promise<void> => {
         operatingStart: "06:00",
         operatingEnd: "20:00",
         price: 300,
+        bookingType: "EXCLUSIVE" as const,
         images: [
           "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&auto=format&fit=crop&q=80",
@@ -952,6 +970,7 @@ const seedOrUpdateAmenities = async (): Promise<void> => {
         operatingStart: "06:00",
         operatingEnd: "22:00",
         price: 150,
+        bookingType: "EXCLUSIVE" as const,
         images: [
           "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1613918431703-aa632b7754b2?w=800&auto=format&fit=crop&q=80",
@@ -965,22 +984,10 @@ const seedOrUpdateAmenities = async (): Promise<void> => {
         operatingStart: "16:00",
         operatingEnd: "22:30",
         price: 500,
+        bookingType: "EXCLUSIVE" as const,
         images: [
           "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&auto=format&fit=crop&q=80",
-        ],
-        isActive: true,
-      },
-      {
-        name: "Yoga & Meditation Studio",
-        description: "Peaceful bamboo-floored studio with acoustic soundproofing, yoga mats, meditation blocks, and serene natural ambient light.",
-        capacity: 20,
-        operatingStart: "06:00",
-        operatingEnd: "20:00",
-        price: 0,
-        images: [
-          "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800&auto=format&fit=crop&q=80",
-          "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80",
         ],
         isActive: true,
       },
@@ -991,6 +998,7 @@ const seedOrUpdateAmenities = async (): Promise<void> => {
         operatingStart: "06:00",
         operatingEnd: "21:00",
         price: 200,
+        bookingType: "EXCLUSIVE" as const,
         images: [
           "https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=800&auto=format&fit=crop&q=80",
           "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80",
@@ -1003,15 +1011,20 @@ const seedOrUpdateAmenities = async (): Promise<void> => {
       const existing = await AmenityModel.findOne({ where: { name: item.name } });
       if (!existing) {
         await AmenityModel.create(item);
-        console.log(`[Database Seeder]: Created amenity "${item.name}"`);
+        console.log(`[Database Seeder]: Created amenity "${item.name}" (${item.bookingType})`);
       } else {
+        const updateData: Record<string, unknown> = {};
+        if (!existing.bookingType || existing.bookingType !== item.bookingType) {
+          updateData.bookingType = item.bookingType;
+          if (item.bookingType === "SHARED_CAPACITY") updateData.price = 0;
+        }
         const existingImgs = Array.isArray(existing.images) ? existing.images : [];
         if (existingImgs.length === 0) {
-          await AmenityModel.update(
-            { images: item.images, price: existing.price || item.price },
-            { where: { id: existing.id } }
-          );
-          console.log(`[Database Seeder]: Updated photos and pricing for "${item.name}"`);
+          updateData.images = item.images;
+        }
+        if (Object.keys(updateData).length > 0) {
+          await AmenityModel.update(updateData, { where: { id: existing.id } });
+          console.log(`[Database Seeder]: Updated amenity "${item.name}" with ${JSON.stringify(updateData)}`);
         }
       }
     }
