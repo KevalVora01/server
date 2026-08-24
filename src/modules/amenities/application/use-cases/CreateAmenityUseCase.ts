@@ -1,4 +1,4 @@
-import { Amenity } from "../../domain/entities/Amenity";
+import { Amenity, AmenityBookingType } from "../../domain/entities/Amenity";
 import { IAmenityRepository } from "../../domain/repositories/IAmenityRepository";
 import { CreateAmenityDto } from "../dtos/CreateAmenityDto";
 
@@ -14,7 +14,7 @@ export class CreateAmenityUseCase {
       operatingEnd: dto.operatingEnd,
       price: dto.price ?? 0,
       images: dto.images ?? [],
-      bookingType: dto.bookingType ?? "EXCLUSIVE",
+      bookingType: dto.bookingType ?? AmenityBookingType.EXCLUSIVE,
       isActive: dto.isActive ?? true,
     });
     return this.amenityRepository.create(amenity);

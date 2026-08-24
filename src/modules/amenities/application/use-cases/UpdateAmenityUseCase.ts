@@ -1,4 +1,4 @@
-import { Amenity } from "../../domain/entities/Amenity";
+import { Amenity, AmenityBookingType } from "../../domain/entities/Amenity";
 import { IAmenityRepository } from "../../domain/repositories/IAmenityRepository";
 import { AmenityNotFoundError } from "../../domain/errors/BookingErrors";
 import { UpdateAmenityDto } from "../dtos/UpdateAmenityDto";
@@ -16,12 +16,15 @@ export class UpdateAmenityUseCase {
     if (dto.operatingStart !== undefined) amenity.operatingStart = dto.operatingStart;
     if (dto.operatingEnd !== undefined) amenity.operatingEnd = dto.operatingEnd;
     if (dto.bookingType !== undefined) {
-      amenity.bookingType = dto.bookingType;
-      if (dto.bookingType === "SHARED_CAPACITY") {
+      amenity.bookingType =
+        dto.bookingType === AmenityBookingType.SHARED_CAPACITY
+          ? AmenityBookingType.SHARED_CAPACITY
+          : AmenityBookingType.EXCLUSIVE;
+      if (amenity.isSharedCapacity) {
         amenity.price = 0; // Shared capacity is always free
       }
     }
-    if (dto.price !== undefined && amenity.bookingType !== "SHARED_CAPACITY") {
+    if (dto.price !== undefined && !amenity.isSharedCapacity) {
       amenity.price = Number(dto.price);
     }
     if (dto.images !== undefined) {

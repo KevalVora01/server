@@ -9,6 +9,7 @@ import {
   BlackoutConflictError,
   OutsideOperatingHoursError,
   SlotConflictError,
+  DuplicateResidentBookingError,
   PastBookingError,
 } from "../../domain/errors/BookingErrors";
 
@@ -19,7 +20,7 @@ export class BookingConflictService implements IBookingConflictService {
   ) {}
 
   async assertAvailable(input: BookingConflictCheckInput): Promise<void> {
-    const { amenity, date, startTime, endTime, excludeBookingId } = input;
+    const { amenity, date, startTime, endTime, residentId, apartmentId, excludeBookingId } = input;
 
     // Reject past dates or past time slots on current date
     const now = new Date();
@@ -57,6 +58,22 @@ export class BookingConflictService implements IBookingConflictService {
       date,
       ["Pending", "Confirmed"]
     );
+
+    // Check if THIS resident/apartment already has an active booking for this amenity during the overlapping time
+    if (residentId || apartmentId) {
+      const duplicate = existing.find(
+        (b) =>
+          (!excludeBookingId || b.id !== excludeBookingId) &&
+          ((residentId && b.residentId === residentId) || (apartmentId && b.apartmentId === apartmentId)) &&
+          b.overlapsWith(startTime, endTime)
+      );
+
+      if (duplicate) {
+        throw new DuplicateResidentBookingError(
+          `You already have an active booking (${duplicate.startTime} – ${duplicate.endTime}) for ${amenity.name} on this date. A resident cannot book overlapping slots for the same facility.`
+        );
+      }
+    }
 
     if (amenity.isSharedCapacity) {
       const maxCap = amenity.capacity && amenity.capacity > 0 ? amenity.capacity : 25;

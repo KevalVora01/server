@@ -81,9 +81,9 @@ AmenityModel.init(
       },
     },
     bookingType: {
-      type: DataTypes.STRING(20),
+      type: DataTypes.ENUM(AmenityBookingType.EXCLUSIVE, AmenityBookingType.SHARED_CAPACITY),
       allowNull: false,
-      defaultValue: "EXCLUSIVE",
+      defaultValue: AmenityBookingType.EXCLUSIVE,
     },
     isActive: {
       type: DataTypes.BOOLEAN,

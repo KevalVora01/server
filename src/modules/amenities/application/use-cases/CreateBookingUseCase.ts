@@ -40,6 +40,8 @@ export class CreateBookingUseCase {
       date: dto.bookingDate,
       startTime: dto.startTime,
       endTime: dto.endTime,
+      residentId,
+      apartmentId,
     });
 
     // Shared capacity amenities (Gym, Yoga Studio, Pool) are free and auto-confirmed instantly!

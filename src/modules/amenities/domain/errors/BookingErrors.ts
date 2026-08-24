@@ -6,6 +6,14 @@ export class SlotConflictError extends Error {
   }
 }
 
+export class DuplicateResidentBookingError extends Error {
+  readonly statusCode = 409;
+  constructor(message = "You already have an active booking for this amenity during this time slot") {
+    super(message);
+    this.name = "DuplicateResidentBookingError";
+  }
+}
+
 export class PastBookingError extends Error {
   readonly statusCode = 400;
   constructor(message = "Cannot book an amenity for past dates or times") {

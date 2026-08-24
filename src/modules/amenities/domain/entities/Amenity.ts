@@ -1,4 +1,7 @@
-export type AmenityBookingType = 'EXCLUSIVE' | 'SHARED_CAPACITY';
+export enum AmenityBookingType {
+  EXCLUSIVE = "EXCLUSIVE",
+  SHARED_CAPACITY = "SHARED_CAPACITY",
+}
 
 export interface AmenityProps {
   id?: number;
@@ -34,9 +37,9 @@ export class Amenity {
     this.capacity = props.capacity ?? null;
     this.operatingStart = props.operatingStart;
     this.operatingEnd = props.operatingEnd;
-    this.bookingType = props.bookingType ?? 'EXCLUSIVE';
+    this.bookingType = props.bookingType ?? AmenityBookingType.EXCLUSIVE;
     // Shared capacity amenities (Gym, Yoga Studio, Pool) are always 100% Free
-    this.price = this.bookingType === 'SHARED_CAPACITY'
+    this.price = this.bookingType === AmenityBookingType.SHARED_CAPACITY
       ? 0
       : (props.price !== undefined && props.price !== null ? Number(props.price) : 0);
     const imgList = Array.isArray(props.images)
@@ -48,7 +51,7 @@ export class Amenity {
   }
 
   get isSharedCapacity(): boolean {
-    return this.bookingType === 'SHARED_CAPACITY';
+    return this.bookingType === AmenityBookingType.SHARED_CAPACITY;
   }
 
   get primaryImageUrl(): string | null {

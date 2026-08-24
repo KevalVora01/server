@@ -5,6 +5,7 @@ import { UserRole } from "../../../auth/domain/entities/User";
 import { IResidentRepository } from "../../../residents/domain/repositories/IResidentRepository";
 import { CloudinaryService } from "../../../../shared/services/CloudinaryService";
 
+import { AmenityBookingType } from "../../domain/entities/Amenity";
 import { CreateAmenityUseCase } from "../../application/use-cases/CreateAmenityUseCase";
 import { ListAmenitiesUseCase } from "../../application/use-cases/ListAmenitiesUseCase";
 import { GetAmenityUseCase } from "../../application/use-cases/GetAmenityUseCase";
@@ -67,8 +68,10 @@ export class AmenityController {
       const capacity = req.body.capacity !== undefined && req.body.capacity !== "" && req.body.capacity !== null
         ? Number(req.body.capacity)
         : null;
-      const bookingType = req.body.bookingType === "SHARED_CAPACITY" ? "SHARED_CAPACITY" : "EXCLUSIVE";
-      const price = bookingType === "SHARED_CAPACITY"
+      const bookingType = req.body.bookingType === AmenityBookingType.SHARED_CAPACITY
+        ? AmenityBookingType.SHARED_CAPACITY
+        : AmenityBookingType.EXCLUSIVE;
+      const price = bookingType === AmenityBookingType.SHARED_CAPACITY
         ? 0
         : (req.body.price !== undefined && req.body.price !== "" && req.body.price !== null ? Number(req.body.price) : 0);
       const isActive = req.body.isActive === undefined ? true : req.body.isActive === true || req.body.isActive === "true";
@@ -138,11 +141,13 @@ export class AmenityController {
         allImages = Array.from(new Set([...existingImages, ...uploadedUrls])).slice(0, 5);
       }
 
-      const bookingType = req.body.bookingType;
+      const bookingType = req.body.bookingType !== undefined
+        ? (req.body.bookingType === AmenityBookingType.SHARED_CAPACITY ? AmenityBookingType.SHARED_CAPACITY : AmenityBookingType.EXCLUSIVE)
+        : undefined;
       const capacity = req.body.capacity !== undefined
         ? (req.body.capacity === "" || req.body.capacity === null ? null : Number(req.body.capacity))
         : undefined;
-      const price = bookingType === "SHARED_CAPACITY"
+      const price = bookingType === AmenityBookingType.SHARED_CAPACITY
         ? 0
         : (req.body.price !== undefined ? (req.body.price === "" || req.body.price === null ? 0 : Number(req.body.price)) : undefined);
       const isActive = req.body.isActive !== undefined
