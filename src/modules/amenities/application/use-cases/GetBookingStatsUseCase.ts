@@ -13,14 +13,24 @@ export class GetBookingStatsUseCase {
   constructor(private readonly bookingRepository: IBookingRepository) {}
 
   async execute(): Promise<BookingStats> {
-    const all = await this.bookingRepository.findAll();
+    const [pending, confirmed, rejected, cancelled, all] = await Promise.all([
+      this.bookingRepository.countByStatus("Pending"),
+      this.bookingRepository.countByStatus("Confirmed"),
+      this.bookingRepository.countByStatus("Rejected"),
+      this.bookingRepository.countByStatus("Cancelled"),
+      this.bookingRepository.findAll(),
+    ]);
+
+    const total = pending + confirmed + rejected + cancelled;
+    const paid = all.filter((b) => b.isPaid()).length;
+
     return {
-      total: all.length,
-      pending: all.filter((b) => b.status === "Pending").length,
-      confirmed: all.filter((b) => b.status === "Confirmed").length,
-      rejected: all.filter((b) => b.status === "Rejected").length,
-      cancelled: all.filter((b) => b.status === "Cancelled").length,
-      paid: all.filter((b) => b.isPaid()).length,
+      total,
+      pending,
+      confirmed,
+      rejected,
+      cancelled,
+      paid,
     };
   }
 }

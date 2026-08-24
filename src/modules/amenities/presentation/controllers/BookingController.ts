@@ -14,6 +14,9 @@ import { ApproveBookingUseCase } from "../../application/use-cases/ApproveBookin
 import { RejectBookingUseCase } from "../../application/use-cases/RejectBookingUseCase";
 import { SettleBookingUseCase } from "../../application/use-cases/SettleBookingUseCase";
 import { GetBookingStatsUseCase } from "../../application/use-cases/GetBookingStatsUseCase";
+import { GetBookingDetailUseCase } from "../../application/use-cases/GetBookingDetailUseCase";
+import { BulkRecordBookingVotesUseCase } from "../../application/use-cases/BulkRecordBookingVotesUseCase";
+import { FinalizeBookingUseCase } from "../../application/use-cases/FinalizeBookingUseCase";
 
 export class BookingController {
   constructor(
@@ -26,6 +29,9 @@ export class BookingController {
     private readonly rejectBookingUseCase: RejectBookingUseCase,
     private readonly settleBookingUseCase: SettleBookingUseCase,
     private readonly getBookingStatsUseCase: GetBookingStatsUseCase,
+    private readonly getBookingDetailUseCase: GetBookingDetailUseCase,
+    private readonly bulkRecordBookingVotesUseCase: BulkRecordBookingVotesUseCase,
+    private readonly finalizeBookingUseCase: FinalizeBookingUseCase,
     private readonly residentRepository: IResidentRepository
   ) {}
 
@@ -171,6 +177,64 @@ export class BookingController {
       );
       res.status(200).json(
         ApiResponse.success(booking.toResponseObject(), "Booking payment recorded successfully")
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getBookingDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      const detail = await this.getBookingDetailUseCase.execute(id);
+      res.status(200).json(
+        ApiResponse.success(
+          {
+            ...detail.booking.toResponseObject(),
+            amenity: detail.amenity ? detail.amenity.toResponseObject() : null,
+            resident: detail.resident,
+            votes: detail.votes.map((v) => v.toResponseObject()),
+            committeeMembers: detail.committeeMembers,
+          },
+          "Booking detail fetched successfully"
+        )
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  bulkRecordVotes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const id = Number(req.params.id);
+      const { votes, adminVote } = req.body;
+
+      const recorded = await this.bulkRecordBookingVotesUseCase.execute(
+        id,
+        { votes: votes ?? [], adminVote },
+        authReq.user.userId
+      );
+
+      res.status(200).json(
+        ApiResponse.success(
+          recorded.map((v) => v.toResponseObject()),
+          "Votes recorded successfully"
+        )
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  finalizeBooking = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const id = Number(req.params.id);
+      const booking = await this.finalizeBookingUseCase.execute(id, authReq.user.userId);
+
+      res.status(200).json(
+        ApiResponse.success(booking.toResponseObject(), "Booking request finalized successfully")
       );
     } catch (error) {
       next(error);

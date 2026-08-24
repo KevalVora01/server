@@ -88,7 +88,7 @@ router.post(
 router.get(
   "/:id/blackouts",
   jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN),
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
   amenityController.listBlackouts
 );
 

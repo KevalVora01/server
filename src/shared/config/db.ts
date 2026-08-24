@@ -20,6 +20,7 @@ import "../../modules/document-requests/infrastructure/models/DocumentRequestVot
 import "../../modules/amenities/infrastructure/models/AmenityModel";
 import "../../modules/amenities/infrastructure/models/BookingModel";
 import "../../modules/amenities/infrastructure/models/BlackoutModel";
+import "../../modules/amenities/infrastructure/models/BookingVoteModel";
 
 import { runDatabaseSeeders } from '../../../database/seeder/seeder';
 

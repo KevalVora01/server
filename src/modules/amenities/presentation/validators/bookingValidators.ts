@@ -51,8 +51,35 @@ const listBookingsQuerySchema = Joi.object({
   scope: Joi.string().valid("upcoming", "past"),
 }).unknown(true);
 
+const bulkRecordVotesSchema = Joi.object({
+  votes: Joi.array()
+    .items(
+      Joi.object({
+        committeeMemberId: Joi.number().integer().positive().required().messages({
+          "number.base": "Committee member ID must be a number",
+          "any.required": "Committee member ID is required",
+        }),
+        vote: Joi.string().valid("Approve", "Reject").required().messages({
+          "any.only": "Vote must be 'Approve' or 'Reject'",
+          "any.required": "Vote is required",
+        }),
+      })
+    )
+    .min(0)
+    .optional()
+    .messages({
+      "array.min": "At least one vote must be provided",
+    }),
+  adminVote: Joi.string().valid("Approve", "Reject").optional().messages({
+    "any.only": "Admin vote must be 'Approve' or 'Reject'",
+  }),
+}).or("votes", "adminVote").messages({
+  "object.missing": "At least one vote or admin vote must be provided.",
+});
+
 export const validateCreateBooking = [handleValidationError(createBookingSchema, "body")];
 export const validateCancelBooking = [handleValidationError(cancelBookingSchema, "body")];
 export const validateRejectBooking = [handleValidationError(rejectBookingSchema, "body")];
 export const validateSettleBooking = [handleValidationError(settleBookingSchema, "body")];
 export const validateListBookingsQuery = [handleValidationError(listBookingsQuerySchema, "query")];
+export const validateBulkRecordVotes = [handleValidationError(bulkRecordVotesSchema, "body")];

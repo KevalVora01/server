@@ -1,6 +1,7 @@
 import { AmenityRepository } from "./infrastructure/repositories/AmenityRepository";
 import { BookingRepository } from "./infrastructure/repositories/BookingRepository";
 import { BlackoutRepository } from "./infrastructure/repositories/BlackoutRepository";
+import { BookingVoteRepository } from "./infrastructure/repositories/BookingVoteRepository";
 import { BookingConflictService } from "./infrastructure/services/BookingConflictService";
 import { BookingNotifier } from "./infrastructure/services/BookingNotifier";
 import { ResidentRepository } from "../residents/infrastructure/repositories/ResidentRepository";
@@ -23,6 +24,9 @@ import { ApproveBookingUseCase } from "./application/use-cases/ApproveBookingUse
 import { RejectBookingUseCase } from "./application/use-cases/RejectBookingUseCase";
 import { SettleBookingUseCase } from "./application/use-cases/SettleBookingUseCase";
 import { GetBookingStatsUseCase } from "./application/use-cases/GetBookingStatsUseCase";
+import { GetBookingDetailUseCase } from "./application/use-cases/GetBookingDetailUseCase";
+import { BulkRecordBookingVotesUseCase } from "./application/use-cases/BulkRecordBookingVotesUseCase";
+import { FinalizeBookingUseCase } from "./application/use-cases/FinalizeBookingUseCase";
 import { SendBookingRemindersJob } from "./application/jobs/SendBookingRemindersJob";
 
 import { AmenityController } from "./presentation/controllers/AmenityController";
@@ -32,6 +36,7 @@ import { BookingController } from "./presentation/controllers/BookingController"
 const amenityRepository = new AmenityRepository();
 const bookingRepository = new BookingRepository();
 const blackoutRepository = new BlackoutRepository();
+const bookingVoteRepository = new BookingVoteRepository();
 const residentRepository = new ResidentRepository();
 
 // Services
@@ -87,6 +92,21 @@ const settleBookingUseCase = new SettleBookingUseCase(
   amenityRepository
 );
 const getBookingStatsUseCase = new GetBookingStatsUseCase(bookingRepository);
+const getBookingDetailUseCase = new GetBookingDetailUseCase(
+  bookingRepository,
+  bookingVoteRepository,
+  amenityRepository
+);
+const bulkRecordBookingVotesUseCase = new BulkRecordBookingVotesUseCase(
+  bookingRepository,
+  bookingVoteRepository
+);
+const finalizeBookingUseCase = new FinalizeBookingUseCase(
+  bookingRepository,
+  bookingVoteRepository,
+  bookingNotifier,
+  amenityRepository
+);
 
 // Jobs
 export const sendBookingRemindersJob = new SendBookingRemindersJob(
@@ -119,5 +139,8 @@ export const bookingController = new BookingController(
   rejectBookingUseCase,
   settleBookingUseCase,
   getBookingStatsUseCase,
+  getBookingDetailUseCase,
+  bulkRecordBookingVotesUseCase,
+  finalizeBookingUseCase,
   residentRepository
 );

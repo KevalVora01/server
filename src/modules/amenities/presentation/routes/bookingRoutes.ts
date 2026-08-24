@@ -10,6 +10,7 @@ import {
   validateRejectBooking,
   validateSettleBooking,
   validateListBookingsQuery,
+  validateBulkRecordVotes,
 } from "../validators/bookingValidators";
 
 const router = Router();
@@ -51,7 +52,7 @@ router.get(
 
 /*
 |--------------------------------------------------------------------------
-| Admin + Resident — create & detail (ownership enforced in use-case)
+| Admin + Resident — create, get & detail (ownership enforced in use-case)
 |--------------------------------------------------------------------------
 */
 
@@ -61,6 +62,13 @@ router.post(
   rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
   validateCreateBooking,
   bookingController.createBooking
+);
+
+router.get(
+  "/:id/detail",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
+  bookingController.getBookingDetail
 );
 
 router.get(
@@ -88,9 +96,24 @@ router.patch(
 
 /*
 |--------------------------------------------------------------------------
-| Admin Only — approve & reject
+| Admin Only — approve, reject & committee voting
 |--------------------------------------------------------------------------
 */
+
+router.post(
+  "/:id/votes",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  validateBulkRecordVotes,
+  bookingController.bulkRecordVotes
+);
+
+router.post(
+  "/:id/finalize",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN),
+  bookingController.finalizeBooking
+);
 
 router.patch(
   "/:id/approve",
