@@ -74,7 +74,7 @@ export class GetAmenityAvailabilityUseCase {
     private readonly amenityRepository: IAmenityRepository,
     private readonly bookingRepository: IBookingRepository,
     private readonly blackoutRepository: IBlackoutRepository
-  ) {}
+  ) { }
 
   async execute(amenityId: number, date: string): Promise<AvailabilityResult> {
     const amenity = await this.amenityRepository.findById(amenityId);
@@ -119,14 +119,14 @@ export class GetAmenityAvailabilityUseCase {
         endTime: b.endTime,
         type: "booking" as const,
         status: b.status,
-        label: b.purpose ? `Reserved (${b.purpose})` : "Reserved Booking",
+        label: b.purpose ? b.purpose : "Private Booking",
       })),
       ...blackouts.map((bl) => ({
         id: bl.id,
         startTime: bl.startTime,
         endTime: bl.endTime,
         type: "blackout" as const,
-        label: bl.reason ? `Blackout: ${bl.reason}` : "Maintenance Blackout",
+        label: bl.reason ? bl.reason : "Maintenance Blackout",
       })),
     ].sort((a, b) => a.startTime.localeCompare(b.startTime));
 

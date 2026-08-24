@@ -1,5 +1,21 @@
 export type BookingStatus = "Pending" | "Confirmed" | "Rejected" | "Cancelled";
 
+export interface BookingResidentInfo {
+  id: number;
+  userId: number;
+  name: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface BookingApartmentInfo {
+  id: number;
+  block: string;
+  floorNumber: number;
+  unitNumber: string;
+  unitFormatted?: string;
+}
+
 export interface BookingProps {
   id?: number;
   amenityId: number;
@@ -15,6 +31,8 @@ export interface BookingProps {
   approvedBySecurityId?: number | null;
   paidAt?: Date | null;
   paymentRef?: string | null;      // UPI ref, only set once paid
+  resident?: BookingResidentInfo | null;
+  apartment?: BookingApartmentInfo | null;
   createdAt?: Date;
 }
 
@@ -33,6 +51,8 @@ export class Booking {
   approvedBySecurityId: number | null;
   paidAt: Date | null;
   paymentRef: string | null;
+  readonly resident?: BookingResidentInfo | null;
+  readonly apartment?: BookingApartmentInfo | null;
   readonly createdAt: Date;
 
   constructor(props: BookingProps) {
@@ -50,6 +70,8 @@ export class Booking {
     this.approvedBySecurityId = props.approvedBySecurityId ?? null;
     this.paidAt = props.paidAt ?? null;
     this.paymentRef = props.paymentRef ?? null;
+    this.resident = props.resident ?? null;
+    this.apartment = props.apartment ?? null;
     this.createdAt = props.createdAt ?? new Date();
   }
 
@@ -115,6 +137,8 @@ export class Booking {
       approvedBySecurityId: this.approvedBySecurityId,
       paidAt: this.paidAt,
       paymentRef: this.paymentRef,
+      resident: this.resident,
+      apartment: this.apartment,
       createdAt: this.createdAt,
     };
   }

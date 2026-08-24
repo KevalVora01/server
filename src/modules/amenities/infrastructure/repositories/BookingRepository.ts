@@ -1,10 +1,80 @@
 import { Op } from "sequelize";
 import { IBookingRepository } from "../../domain/repositories/IBookingRepository";
-import { Booking, BookingStatus } from "../../domain/entities/Booking";
+import {
+  Booking,
+  BookingStatus,
+  BookingResidentInfo,
+  BookingApartmentInfo,
+} from "../../domain/entities/Booking";
 import { BookingModel } from "../models/BookingModel";
+import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
+import { UserModel } from "../../../auth/infrastructure/models/UserModel";
+import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
+
+const bookingIncludes = [
+  {
+    model: ResidentModel,
+    as: "resident",
+    include: [
+      {
+        model: UserModel,
+        as: "user",
+        attributes: ["id", "name", "email", "phone"],
+      },
+      {
+        model: ApartmentModel,
+        as: "apartment",
+        attributes: ["id", "block", "floorNumber", "unitNumber"],
+      },
+    ],
+  },
+  {
+    model: ApartmentModel,
+    as: "apartment",
+    attributes: ["id", "block", "floorNumber", "unitNumber"],
+  },
+];
 
 export class BookingRepository implements IBookingRepository {
-  private toEntity(model: BookingModel): Booking {
+  private toEntity(model: any): Booking {
+    const rawRes = model.resident;
+    const rawUser = rawRes?.user;
+    const rawApt = model.apartment || rawRes?.apartment;
+
+    const resident: BookingResidentInfo | null =
+      rawRes && rawUser
+        ? {
+          id: rawRes.id,
+          userId: rawRes.userId,
+          name: rawUser.name,
+          email: rawUser.email,
+          phone: rawUser.phone,
+        }
+        : null;
+
+    let unitFormatted = "";
+    if (rawApt) {
+      const floorStr =
+        rawApt.floorNumber !== undefined && rawApt.floorNumber !== null
+          ? String(rawApt.floorNumber)
+          : "";
+      const unitStr = String(rawApt.unitNumber || "");
+      const fullUnit = unitStr.startsWith(floorStr)
+        ? unitStr
+        : `${floorStr}${unitStr}`;
+      unitFormatted = `${rawApt.block}-${fullUnit}`;
+    }
+
+    const apartment: BookingApartmentInfo | null = rawApt
+      ? {
+        id: rawApt.id,
+        block: rawApt.block,
+        floorNumber: rawApt.floorNumber,
+        unitNumber: rawApt.unitNumber,
+        unitFormatted,
+      }
+      : null;
+
     return new Booking({
       id: model.id,
       amenityId: model.amenityId,
@@ -20,6 +90,8 @@ export class BookingRepository implements IBookingRepository {
       approvedBySecurityId: model.approvedBySecurityId,
       paidAt: model.paidAt,
       paymentRef: model.paymentRef,
+      resident,
+      apartment,
       createdAt: model.createdAt,
     });
   }
@@ -35,11 +107,16 @@ export class BookingRepository implements IBookingRepository {
       purpose: booking.purpose,
       status: booking.status,
     });
-    return this.toEntity(created);
+    const fetched = await BookingModel.findByPk(created.id, {
+      include: bookingIncludes,
+    });
+    return this.toEntity(fetched ?? created);
   }
 
   async findById(id: number): Promise<Booking | null> {
-    const model = await BookingModel.findByPk(id);
+    const model = await BookingModel.findByPk(id, {
+      include: bookingIncludes,
+    });
     return model ? this.toEntity(model) : null;
   }
 
@@ -62,7 +139,9 @@ export class BookingRepository implements IBookingRepository {
       },
       { where: { id: booking.id } }
     );
-    const updated = await BookingModel.findByPk(booking.id);
+    const updated = await BookingModel.findByPk(booking.id, {
+      include: bookingIncludes,
+    });
     return this.toEntity(updated!);
   }
 
@@ -77,6 +156,7 @@ export class BookingRepository implements IBookingRepository {
         bookingDate: date,
         status: { [Op.in]: statuses },
       },
+      include: bookingIncludes,
     });
     return rows.map((row) => this.toEntity(row));
   }
@@ -84,6 +164,7 @@ export class BookingRepository implements IBookingRepository {
   async findByApartment(apartmentId: number): Promise<Booking[]> {
     const rows = await BookingModel.findAll({
       where: { apartmentId },
+      include: bookingIncludes,
       order: [["bookingDate", "DESC"], ["startTime", "ASC"]],
     });
     return rows.map((row) => this.toEntity(row));
@@ -92,6 +173,7 @@ export class BookingRepository implements IBookingRepository {
   async findByResident(residentId: number): Promise<Booking[]> {
     const rows = await BookingModel.findAll({
       where: { residentId },
+      include: bookingIncludes,
       order: [["bookingDate", "DESC"], ["startTime", "ASC"]],
     });
     return rows.map((row) => this.toEntity(row));
@@ -114,6 +196,7 @@ export class BookingRepository implements IBookingRepository {
     }
     const rows = await BookingModel.findAll({
       where,
+      include: bookingIncludes,
       order: [["bookingDate", "DESC"], ["startTime", "ASC"]],
     });
     return rows.map((row) => this.toEntity(row));
@@ -132,6 +215,7 @@ export class BookingRepository implements IBookingRepository {
           ],
         },
       },
+      include: bookingIncludes,
       order: [["bookingDate", "ASC"], ["startTime", "ASC"]],
     });
     return rows.map((row) => this.toEntity(row));
