@@ -6,6 +6,14 @@ export class SlotConflictError extends Error {
   }
 }
 
+export class PastBookingError extends Error {
+  readonly statusCode = 400;
+  constructor(message = "Cannot book an amenity for past dates or times") {
+    super(message);
+    this.name = "PastBookingError";
+  }
+}
+
 export class OutsideOperatingHoursError extends Error {
   readonly statusCode = 400;
   constructor(message = "Requested time is outside the amenity's operating hours") {

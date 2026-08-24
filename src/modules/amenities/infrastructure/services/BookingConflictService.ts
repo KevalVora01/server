@@ -9,6 +9,7 @@ import {
   BlackoutConflictError,
   OutsideOperatingHoursError,
   SlotConflictError,
+  PastBookingError,
 } from "../../domain/errors/BookingErrors";
 
 export class BookingConflictService implements IBookingConflictService {
@@ -19,6 +20,21 @@ export class BookingConflictService implements IBookingConflictService {
 
   async assertAvailable(input: BookingConflictCheckInput): Promise<void> {
     const { amenity, date, startTime, endTime, excludeBookingId } = input;
+
+    // Reject past dates or past time slots on current date
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    if (date < todayStr) {
+      throw new PastBookingError("Cannot book an amenity for a past date");
+    }
+    if (date === todayStr) {
+      const currentH = String(now.getHours()).padStart(2, "0");
+      const currentM = String(now.getMinutes()).padStart(2, "0");
+      const currentTimeStr = `${currentH}:${currentM}`;
+      if (startTime < currentTimeStr) {
+        throw new PastBookingError("Cannot book an amenity for a past time today");
+      }
+    }
 
     if (!amenity.isWithinOperatingHours(startTime, endTime)) {
       throw new OutsideOperatingHoursError();
