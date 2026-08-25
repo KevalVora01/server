@@ -125,3 +125,11 @@ export class ResidentNotFoundError extends Error {
     this.name = "ResidentNotFoundError";
   }
 }
+
+export class ResidentNotOccupantError extends Error {
+  readonly statusCode = 403;
+  constructor(message = "Only active occupants residing in the apartment can book amenities") {
+    super(message);
+    this.name = "ResidentNotOccupantError";
+  }
+}

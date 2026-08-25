@@ -9,6 +9,7 @@ import {
   AmenityNotFoundError,
   AmenityNotActiveError,
   ResidentNotFoundError,
+  ResidentNotOccupantError,
 } from "../../domain/errors/BookingErrors";
 import { RequestingUser } from "../../../../shared/types/RequestingUser";
 
@@ -27,6 +28,11 @@ export class CreateBookingUseCase {
 
     const resident = await this.residentRepository.findById(residentId);
     if (!resident) throw new ResidentNotFoundError();
+
+    // Only active occupants residing in the apartment can book amenities
+    if (!resident.isOccupant) {
+      throw new ResidentNotOccupantError();
+    }
 
     const apartmentId = dto.apartmentId ?? resident.apartmentId;
     if (!apartmentId) throw new ResidentNotFoundError();
