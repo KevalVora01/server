@@ -97,6 +97,11 @@ export class BookingPdfService {
       }
     })();
 
+    const isShared = amenity?.bookingType === "SHARED_CAPACITY" || amenity?.isSharedCapacity;
+    const attendeesText = isShared
+      ? ` &bull; Attendees: ${booking.memberCount || 1} Person${(booking.memberCount || 1) > 1 ? "s" : ""}`
+      : "";
+
     return `
     <!DOCTYPE html>
     <html>
@@ -213,7 +218,7 @@ export class BookingPdfService {
                   <td>
                     <strong>${amenityName}</strong>
                     <div style="font-size:11px; color:#64748b; margin-top:2px;">
-                      Slot: ${booking.startTime} to ${booking.endTime} (${formattedBookingDate}) &bull; Attendees: ${booking.memberCount || 1} Person${(booking.memberCount || 1) > 1 ? 's' : ''}
+                      Slot: ${booking.startTime} to ${booking.endTime} (${formattedBookingDate})${attendeesText}
                     </div>
                   </td>
                   <td class="amt">₹${Number(amenityPrice).toFixed(2)}</td>
