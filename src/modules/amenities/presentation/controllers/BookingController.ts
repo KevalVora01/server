@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { v2 as cloudinary } from "cloudinary";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { AuthenticatedRequest } from "../../../../shared/types/AuthenticatedRequest";
 import { UserRole } from "../../../auth/domain/entities/User";
@@ -211,9 +212,49 @@ export class BookingController {
       const requestingUser = await this.buildRequestingUser(authReq);
       const id = Number(req.params.id);
       const pdfUrl = await this.generateBookingReceiptUseCase.execute(id, requestingUser);
-      res.status(200).json(
-        ApiResponse.success({ url: pdfUrl }, "Booking receipt generated successfully")
-      );
+
+      if (!pdfUrl) {
+        res.status(404).json(ApiResponse.error("Booking receipt not found"));
+        return;
+      }
+
+      if (req.query.format === "json") {
+        res.status(200).json(ApiResponse.success({ url: pdfUrl }, "Booking receipt generated successfully"));
+        return;
+      }
+
+      const cloudUrl = pdfUrl.includes("fl_attachment")
+        ? pdfUrl.replace("fl_attachment/", "")
+        : pdfUrl;
+
+      let response = await fetch(cloudUrl);
+
+      if (!response.ok) {
+        const isRaw = cloudUrl.includes("/raw/");
+        const uploadMarker = isRaw ? "/raw/upload/" : "/image/upload/";
+        const pathPart = cloudUrl.split(uploadMarker)[1];
+        if (pathPart) {
+          const publicId = pathPart.replace(/^v\d+\//, "").replace(/\.[^.]+$/, "");
+          const signedUrl = cloudinary.url(publicId, {
+            resource_type: isRaw ? "raw" : "image",
+            type: "upload",
+            sign_url: true,
+            expires_at: Math.floor(Date.now() / 1000) + 3600,
+          });
+          response = await fetch(signedUrl);
+        }
+      }
+
+      if (!response.ok) {
+        res.status(502).json(ApiResponse.error("Failed to fetch receipt from storage"));
+        return;
+      }
+
+      const pdfBuffer = Buffer.from(await response.arrayBuffer());
+      const filename = `booking-receipt-${id}.pdf`;
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.send(pdfBuffer);
     } catch (error) {
       next(error);
     }

@@ -18,7 +18,7 @@ const jwtMiddleware = createJwtMiddleware(new JwtTokenService());
 
 /*
 |--------------------------------------------------------------------------
-| Resident Only — my bookings
+| 1. Collection-Level & Static Routes (MUST be defined before /:id)
 |--------------------------------------------------------------------------
 */
 
@@ -28,12 +28,6 @@ router.get(
   rbacMiddleware(UserRole.RESIDENT),
   bookingController.listMyBookings
 );
-
-/*
-|--------------------------------------------------------------------------
-| Admin Only — stats & filtered list
-|--------------------------------------------------------------------------
-*/
 
 router.get(
   "/stats",
@@ -50,12 +44,6 @@ router.get(
   bookingController.listBookings
 );
 
-/*
-|--------------------------------------------------------------------------
-| Admin + Resident — create, get, receipt & detail (ownership enforced in use-case)
-|--------------------------------------------------------------------------
-*/
-
 router.post(
   "/",
   jwtMiddleware,
@@ -64,48 +52,18 @@ router.post(
   bookingController.createBooking
 );
 
+/*
+|--------------------------------------------------------------------------
+| 2. Admin-Only Booking Actions & Detailed View
+|--------------------------------------------------------------------------
+*/
+
 router.get(
   "/:id/detail",
   jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
+  rbacMiddleware(UserRole.ADMIN),
   bookingController.getBookingDetail
 );
-
-router.get(
-  "/:id/receipt",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
-  bookingController.getBookingReceipt
-);
-
-router.get(
-  "/:id",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
-  bookingController.getBooking
-);
-
-router.patch(
-  "/:id/cancel",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
-  validateCancelBooking,
-  bookingController.cancelBooking
-);
-
-router.patch(
-  "/:id/settle",
-  jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
-  validateSettleBooking,
-  bookingController.settleBooking
-);
-
-/*
-|--------------------------------------------------------------------------
-| Admin Only — approve, reject & committee voting
-|--------------------------------------------------------------------------
-*/
 
 router.post(
   "/:id/votes",
@@ -135,6 +93,48 @@ router.patch(
   rbacMiddleware(UserRole.ADMIN),
   validateRejectBooking,
   bookingController.rejectBooking
+);
+
+/*
+|--------------------------------------------------------------------------
+| 3. Shared Booking Sub-Resource Actions (Receipt, Cancel, Settle)
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+  "/:id/receipt",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
+  bookingController.getBookingReceipt
+);
+
+router.patch(
+  "/:id/cancel",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
+  validateCancelBooking,
+  bookingController.cancelBooking
+);
+
+router.patch(
+  "/:id/settle",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
+  validateSettleBooking,
+  bookingController.settleBooking
+);
+
+/*
+|--------------------------------------------------------------------------
+| 4. Generic Parameterized Route (MUST be at the very bottom)
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+  "/:id",
+  jwtMiddleware,
+  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
+  bookingController.getBooking
 );
 
 export default router;

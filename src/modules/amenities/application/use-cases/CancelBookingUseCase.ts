@@ -28,6 +28,25 @@ export class CancelBookingUseCase {
       booking.residentId === requestingUser.residentId;
     if (!isAdmin && !isOwner) throw new UnauthorizedBookingAccessError();
 
+    // Check if the booking is in the past
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const todayStr = `${year}-${month}-${day}`;
+
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const nowTimeStr = `${hours}:${minutes}`;
+
+    const isPast =
+      booking.bookingDate < todayStr ||
+      (booking.bookingDate === todayStr && booking.startTime <= nowTimeStr);
+
+    if (isPast) {
+      throw new Error("Past bookings cannot be cancelled");
+    }
+
     booking.cancel(dto.reason);
     const updated = await this.bookingRepository.update(booking);
 
