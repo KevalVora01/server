@@ -12,6 +12,7 @@ interface BookingAttributes {
   bookingDate: string;
   startTime: string;
   endTime: string;
+  memberCount: number;
   purpose: string | null;
   status: "Pending" | "Confirmed" | "Rejected" | "Cancelled";
   rejectionReason: string | null;
@@ -26,7 +27,7 @@ interface BookingAttributes {
 interface BookingCreationAttributes
   extends Optional<
     BookingAttributes,
-    "id" | "createdAt" | "paidAt" | "paymentRef" | "receiptUrl"
+    "id" | "createdAt" | "paidAt" | "paymentRef" | "receiptUrl" | "memberCount"
   > {}
 
 export class BookingModel
@@ -39,6 +40,7 @@ export class BookingModel
   declare bookingDate: string;
   declare startTime: string;
   declare endTime: string;
+  declare memberCount: number;
   declare purpose: string | null;
   declare status: "Pending" | "Confirmed" | "Rejected" | "Cancelled";
   declare rejectionReason: string | null;
@@ -83,6 +85,12 @@ BookingModel.init(
     endTime: {
       type: DataTypes.STRING(8),
       allowNull: false,
+    },
+    memberCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      field: "member_count",
     },
     purpose: {
       type: DataTypes.TEXT,

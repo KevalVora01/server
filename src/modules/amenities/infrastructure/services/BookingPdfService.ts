@@ -213,7 +213,7 @@ export class BookingPdfService {
                   <td>
                     <strong>${amenityName}</strong>
                     <div style="font-size:11px; color:#64748b; margin-top:2px;">
-                      Slot: ${booking.startTime} to ${booking.endTime} (${formattedBookingDate})
+                      Slot: ${booking.startTime} to ${booking.endTime} (${formattedBookingDate}) &bull; Attendees: ${booking.memberCount || 1} Person${(booking.memberCount || 1) > 1 ? 's' : ''}
                     </div>
                   </td>
                   <td class="amt">₹${Number(amenityPrice).toFixed(2)}</td>

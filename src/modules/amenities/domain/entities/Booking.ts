@@ -16,6 +16,14 @@ export interface BookingApartmentInfo {
   unitFormatted?: string;
 }
 
+export interface BookingAmenityInfo {
+  id: number;
+  name: string;
+  price?: number;
+  bookingType?: string;
+  isSharedCapacity?: boolean;
+}
+
 export interface BookingProps {
   id?: number;
   amenityId: number;
@@ -24,6 +32,7 @@ export interface BookingProps {
   bookingDate: string;             // "2026-08-25" — the calendar date
   startTime: string;               // "18:00"
   endTime: string;                 // "19:00"
+  memberCount?: number;            // Number of attendees/family members (default: 1)
   purpose?: string | null;
   status?: BookingStatus;
   rejectionReason?: string | null;
@@ -34,6 +43,7 @@ export interface BookingProps {
   receiptUrl?: string | null;
   resident?: BookingResidentInfo | null;
   apartment?: BookingApartmentInfo | null;
+  amenity?: BookingAmenityInfo | null;
   createdAt?: Date;
 }
 
@@ -45,6 +55,7 @@ export class Booking {
   readonly bookingDate: string;
   readonly startTime: string;
   readonly endTime: string;
+  readonly memberCount: number;
   purpose: string | null;
   status: BookingStatus;
   rejectionReason: string | null;
@@ -55,6 +66,7 @@ export class Booking {
   receiptUrl: string | null;
   readonly resident?: BookingResidentInfo | null;
   readonly apartment?: BookingApartmentInfo | null;
+  readonly amenity?: BookingAmenityInfo | null;
   readonly createdAt: Date;
 
   constructor(props: BookingProps) {
@@ -65,6 +77,7 @@ export class Booking {
     this.bookingDate = props.bookingDate;
     this.startTime = props.startTime;
     this.endTime = props.endTime;
+    this.memberCount = props.memberCount && props.memberCount > 0 ? props.memberCount : 1;
     this.purpose = props.purpose ?? null;
     this.status = props.status ?? "Pending";
     this.rejectionReason = props.rejectionReason ?? null;
@@ -75,6 +88,7 @@ export class Booking {
     this.receiptUrl = props.receiptUrl ?? null;
     this.resident = props.resident ?? null;
     this.apartment = props.apartment ?? null;
+    this.amenity = props.amenity ?? null;
     this.createdAt = props.createdAt ?? new Date();
   }
 
@@ -137,6 +151,7 @@ export class Booking {
       bookingDate: this.bookingDate,
       startTime: this.startTime,
       endTime: this.endTime,
+      memberCount: this.memberCount,
       purpose: this.purpose,
       status: this.status,
       rejectionReason: this.rejectionReason,
@@ -147,6 +162,7 @@ export class Booking {
       receiptUrl: this.receiptUrl,
       resident: this.resident,
       apartment: this.apartment,
+      amenity: this.amenity,
       createdAt: this.createdAt,
     };
   }

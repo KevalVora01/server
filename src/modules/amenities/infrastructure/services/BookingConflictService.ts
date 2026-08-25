@@ -20,7 +20,16 @@ export class BookingConflictService implements IBookingConflictService {
   ) {}
 
   async assertAvailable(input: BookingConflictCheckInput): Promise<void> {
-    const { amenity, date, startTime, endTime, residentId, apartmentId, excludeBookingId } = input;
+    const {
+      amenity,
+      date,
+      startTime,
+      endTime,
+      requestedMemberCount,
+      residentId,
+      apartmentId,
+      excludeBookingId,
+    } = input;
 
     // Reject past dates or past time slots on current date
     const now = new Date();
@@ -48,7 +57,9 @@ export class BookingConflictService implements IBookingConflictService {
     for (const blackout of blackouts) {
       if (blackout.overlapsWith(date, startTime, endTime)) {
         throw new BlackoutConflictError(
-          blackout.reason ? `Amenity is unavailable due to maintenance: ${blackout.reason}` : "This time slot falls within a blackout period"
+          blackout.reason
+            ? `Amenity is unavailable due to maintenance: ${blackout.reason}`
+            : "This time slot falls within a blackout period"
         );
       }
     }
@@ -64,7 +75,8 @@ export class BookingConflictService implements IBookingConflictService {
       const duplicate = existing.find(
         (b) =>
           (!excludeBookingId || b.id !== excludeBookingId) &&
-          ((residentId && b.residentId === residentId) || (apartmentId && b.apartmentId === apartmentId)) &&
+          ((residentId && b.residentId === residentId) ||
+            (apartmentId && b.apartmentId === apartmentId)) &&
           b.overlapsWith(startTime, endTime)
       );
 
@@ -75,22 +87,40 @@ export class BookingConflictService implements IBookingConflictService {
       }
     }
 
-    if (amenity.isSharedCapacity) {
-      const maxCap = amenity.capacity && amenity.capacity > 0 ? amenity.capacity : 25;
-      const overlappingCount = existing.filter(
-        (b) => (!excludeBookingId || b.id !== excludeBookingId) && b.overlapsWith(startTime, endTime)
-      ).length;
+    const requestedCount =
+      requestedMemberCount && requestedMemberCount > 0 ? requestedMemberCount : 1;
 
-      if (overlappingCount >= maxCap) {
-        throw new SlotConflictError(
-          `This time slot is full (Maximum capacity of ${maxCap} people reached). Please choose another time.`
-        );
+    if (amenity.isSharedCapacity) {
+      const maxCap =
+        amenity.capacity && amenity.capacity > 0 ? amenity.capacity : 25;
+      const currentOccupancy = existing
+        .filter(
+          (b) =>
+            (!excludeBookingId || b.id !== excludeBookingId) &&
+            b.overlapsWith(startTime, endTime)
+        )
+        .reduce((sum, b) => sum + (b.memberCount || 1), 0);
+
+      const availableSpots = Math.max(0, maxCap - currentOccupancy);
+
+      if (currentOccupancy + requestedCount > maxCap) {
+        if (availableSpots <= 0) {
+          throw new SlotConflictError(
+            `This time slot is full (Maximum capacity of ${maxCap} reached). Please choose another time.`
+          );
+        } else {
+          throw new SlotConflictError(
+            `Only ${availableSpots} spot${availableSpots > 1 ? "s" : ""} remaining for this time slot (requested ${requestedCount}). Please reduce the number of family members or choose another time.`
+          );
+        }
       }
     } else {
       for (const booking of existing) {
         if (excludeBookingId && booking.id === excludeBookingId) continue;
         if (booking.overlapsWith(startTime, endTime)) {
-          throw new SlotConflictError("This time slot is already reserved by another resident.");
+          throw new SlotConflictError(
+            "This time slot is already reserved by another resident."
+          );
         }
       }
     }

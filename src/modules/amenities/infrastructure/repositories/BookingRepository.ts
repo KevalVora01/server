@@ -5,13 +5,20 @@ import {
   BookingStatus,
   BookingResidentInfo,
   BookingApartmentInfo,
+  BookingAmenityInfo,
 } from "../../domain/entities/Booking";
 import { BookingModel } from "../models/BookingModel";
+import { AmenityModel } from "../models/AmenityModel";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
 import { UserModel } from "../../../auth/infrastructure/models/UserModel";
 import { ApartmentModel } from "../../../apartments/infrastructure/models/ApartmentModel";
 
 const bookingIncludes = [
+  {
+    model: AmenityModel,
+    as: "amenity",
+    attributes: ["id", "name", "price", "bookingType"],
+  },
   {
     model: ResidentModel,
     as: "resident",
@@ -40,6 +47,7 @@ export class BookingRepository implements IBookingRepository {
     const rawRes = model.resident;
     const rawUser = rawRes?.user;
     const rawApt = model.apartment || rawRes?.apartment;
+    const rawAmenity = model.amenity;
 
     const resident: BookingResidentInfo | null =
       rawRes && rawUser
@@ -75,6 +83,16 @@ export class BookingRepository implements IBookingRepository {
         }
       : null;
 
+    const amenity: BookingAmenityInfo | null = rawAmenity
+      ? {
+          id: rawAmenity.id,
+          name: rawAmenity.name,
+          price: rawAmenity.price,
+          bookingType: rawAmenity.bookingType,
+          isSharedCapacity: rawAmenity.bookingType === "SHARED_CAPACITY",
+        }
+      : null;
+
     return new Booking({
       id: model.id,
       amenityId: model.amenityId,
@@ -83,6 +101,7 @@ export class BookingRepository implements IBookingRepository {
       bookingDate: model.bookingDate,
       startTime: model.startTime,
       endTime: model.endTime,
+      memberCount: model.memberCount ?? 1,
       purpose: model.purpose,
       status: model.status,
       rejectionReason: model.rejectionReason,
@@ -93,6 +112,7 @@ export class BookingRepository implements IBookingRepository {
       receiptUrl: model.receiptUrl,
       resident,
       apartment,
+      amenity,
       createdAt: model.createdAt,
     });
   }
@@ -105,6 +125,7 @@ export class BookingRepository implements IBookingRepository {
       bookingDate: booking.bookingDate,
       startTime: booking.startTime,
       endTime: booking.endTime,
+      memberCount: booking.memberCount,
       purpose: booking.purpose,
       status: booking.status,
       receiptUrl: booking.receiptUrl,
@@ -131,6 +152,7 @@ export class BookingRepository implements IBookingRepository {
         bookingDate: booking.bookingDate,
         startTime: booking.startTime,
         endTime: booking.endTime,
+        memberCount: booking.memberCount,
         purpose: booking.purpose,
         status: booking.status,
         rejectionReason: booking.rejectionReason,

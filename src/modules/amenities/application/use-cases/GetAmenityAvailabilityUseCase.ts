@@ -19,6 +19,7 @@ export interface BusyInterval {
   type: "booking" | "blackout";
   status?: string;
   label?: string;
+  memberCount?: number;
 }
 
 export interface SharedCapacitySlot {
@@ -58,7 +59,7 @@ export interface AvailabilityResult {
 const toMinutes = (t: string): number => {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
-};
+  };
 
 const fromMinutes = (min: number): string => {
   const h = Math.floor(min / 60);
@@ -102,10 +103,10 @@ export class GetAmenityAvailabilityUseCase {
         if (!amenity.isSharedCapacity) {
           status = "booked";
         } else {
-          // Count overlapping bookings for shared capacity
-          const count = bookings.filter((b) =>
-            overlaps(start, end, toMinutes(b.startTime), toMinutes(b.endTime))
-          ).length;
+          // Count total persons booked for shared capacity
+          const count = bookings
+            .filter((b) => overlaps(start, end, toMinutes(b.startTime), toMinutes(b.endTime)))
+            .reduce((sum, b) => sum + (b.memberCount || 1), 0);
           status = count >= totalCapacity ? "booked" : "free";
         }
       }
@@ -119,7 +120,14 @@ export class GetAmenityAvailabilityUseCase {
         endTime: b.endTime,
         type: "booking" as const,
         status: b.status,
-        label: b.purpose ? b.purpose : "Private Booking",
+        memberCount: b.memberCount,
+        label: b.purpose
+          ? b.memberCount && b.memberCount > 1
+            ? `${b.purpose} (${b.memberCount} Persons)`
+            : b.purpose
+          : b.memberCount && b.memberCount > 1
+          ? `Booking (${b.memberCount} Persons)`
+          : "Private Booking",
       })),
       ...blackouts.map((bl) => ({
         id: bl.id,
@@ -154,7 +162,10 @@ export class GetAmenityAvailabilityUseCase {
         const overlappingBookings = bookings.filter((b) =>
           overlaps(start, end, toMinutes(b.startTime), toMinutes(b.endTime))
         );
-        const currentOccupancy = overlappingBookings.length;
+        const currentOccupancy = overlappingBookings.reduce(
+          (sum, b) => sum + (b.memberCount || 1),
+          0
+        );
         const availableSpots = Math.max(0, totalCapacity - currentOccupancy);
         const occupancyPercent = Math.min(100, Math.round((currentOccupancy / totalCapacity) * 100));
 

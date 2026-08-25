@@ -5,6 +5,7 @@ export interface BookingConflictCheckInput {
   date: string;
   startTime: string;
   endTime: string;
+  requestedMemberCount?: number;
   residentId?: number;
   apartmentId?: number;
   excludeBookingId?: number; // when re-checking an existing booking (e.g. on edit)

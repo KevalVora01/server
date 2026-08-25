@@ -35,11 +35,14 @@ export class CreateBookingUseCase {
     if (!amenity) throw new AmenityNotFoundError();
     if (!amenity.isActive) throw new AmenityNotActiveError();
 
+    const memberCount = dto.memberCount && dto.memberCount > 0 ? dto.memberCount : 1;
+
     await this.conflictService.assertAvailable({
       amenity,
       date: dto.bookingDate,
       startTime: dto.startTime,
       endTime: dto.endTime,
+      requestedMemberCount: memberCount,
       residentId,
       apartmentId,
     });
@@ -54,6 +57,7 @@ export class CreateBookingUseCase {
       bookingDate: dto.bookingDate,
       startTime: dto.startTime,
       endTime: dto.endTime,
+      memberCount,
       purpose: dto.purpose ?? (amenity.isSharedCapacity ? `${amenity.name} Session` : null),
       status: initialStatus,
     });

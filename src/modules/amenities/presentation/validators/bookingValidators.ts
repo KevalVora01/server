@@ -21,6 +21,7 @@ const createBookingSchema = Joi.object({
     "any.required": "endTime is required",
   }),
   purpose: Joi.string().allow("").allow(null).max(500),
+  memberCount: Joi.number().integer().min(1).max(50).optional(),
   residentId: Joi.number().integer().optional(),
   apartmentId: Joi.number().integer().optional(),
 });
