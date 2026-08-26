@@ -7,6 +7,7 @@ import {
   BookingApartmentInfo,
   BookingAmenityInfo,
 } from "../../domain/entities/Booking";
+import { PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
 import { BookingModel } from "../models/BookingModel";
 import { AmenityModel } from "../models/AmenityModel";
 import { ResidentModel } from "../../../residents/infrastructure/models/ResidentModel";
@@ -248,5 +249,43 @@ export class BookingRepository implements IBookingRepository {
 
   async countByStatus(status: BookingStatus): Promise<number> {
     return BookingModel.count({ where: { status } });
+  }
+
+  async findAllPaginated(filters: {
+    amenityId?: number;
+    status?: BookingStatus;
+    fromDate?: string;
+    toDate?: string;
+    residentId?: number;
+    pageNumber: number;
+    pageSize: number;
+  }): Promise<PaginatedResult<Booking>> {
+    const where: Record<string, unknown> = {};
+    if (filters.amenityId) where.amenityId = filters.amenityId;
+    if (filters.status) where.status = filters.status;
+    if (filters.residentId) where.residentId = filters.residentId;
+    if (filters.fromDate || filters.toDate) {
+      const dateWhere: Record<string | symbol, unknown> = {};
+      if (filters.fromDate) dateWhere[Op.gte] = filters.fromDate;
+      if (filters.toDate) dateWhere[Op.lte] = filters.toDate;
+      where.bookingDate = dateWhere;
+    }
+
+    const offset = (filters.pageNumber - 1) * filters.pageSize;
+
+    const { count, rows } = await BookingModel.findAndCountAll({
+      where,
+      include: bookingIncludes,
+      limit: filters.pageSize,
+      offset,
+      order: [["bookingDate", "DESC"], ["startTime", "ASC"]],
+    });
+
+    return buildPaginatedResult(
+      rows.map((row) => this.toEntity(row)),
+      count,
+      filters.pageNumber,
+      filters.pageSize
+    );
   }
 }

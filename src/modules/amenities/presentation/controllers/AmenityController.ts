@@ -62,7 +62,6 @@ export class AmenityController {
         ...this.parseExistingImages(req.body.images),
       ];
 
-      // Remove duplicates and limit to 5
       const allImages = Array.from(new Set([...existingImages, ...uploadedUrls])).slice(0, 5);
 
       const capacity = req.body.capacity !== undefined && req.body.capacity !== "" && req.body.capacity !== null

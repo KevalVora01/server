@@ -50,6 +50,8 @@ const listBookingsQuerySchema = Joi.object({
   status: Joi.string().valid("Pending", "Confirmed", "Rejected", "Cancelled"),
   residentId: Joi.number().integer(),
   scope: Joi.string().valid("upcoming", "past"),
+  pageNumber: Joi.number().integer().min(1).default(1),
+  pageSize: Joi.number().integer().min(1).max(100).default(10),
 }).unknown(true);
 
 const bulkRecordVotesSchema = Joi.object({

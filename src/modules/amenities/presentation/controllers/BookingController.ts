@@ -72,10 +72,12 @@ export class BookingController {
         return;
       }
       const scope = (req.query.scope as "upcoming" | "past") || "upcoming";
-      const bookings = await this.listMyBookingsUseCase.execute(resident.id, scope);
+      const pageNumber = Number(req.query.pageNumber) || 1;
+      const pageSize = Number(req.query.pageSize) || 10;
+      const result = await this.listMyBookingsUseCase.execute(resident.id, scope, { pageNumber, pageSize });
       res.status(200).json(
         ApiResponse.success(
-          bookings.map((b) => b.toResponseObject()),
+          { ...result, items: result.items.map((b) => b.toResponseObject()) },
           "My bookings fetched successfully"
         )
       );
@@ -90,11 +92,14 @@ export class BookingController {
         amenityId: req.query.amenityId ? Number(req.query.amenityId) : undefined,
         status: req.query.status as any,
         date: (req.query.date as string) || (req.query.fromDate as string),
+        residentId: req.query.residentId ? Number(req.query.residentId) : undefined,
+        pageNumber: Number(req.query.pageNumber) || 1,
+        pageSize: Number(req.query.pageSize) || 10,
       };
-      const bookings = await this.listBookingsUseCase.execute(filters);
+      const result = await this.listBookingsUseCase.execute(filters);
       res.status(200).json(
         ApiResponse.success(
-          bookings.map((b) => b.toResponseObject()),
+          { ...result, items: result.items.map((b) => b.toResponseObject()) },
           "Bookings fetched successfully"
         )
       );

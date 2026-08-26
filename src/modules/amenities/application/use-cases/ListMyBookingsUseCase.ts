@@ -1,13 +1,15 @@
 import { Booking } from "../../domain/entities/Booking";
 import { IBookingRepository } from "../../domain/repositories/IBookingRepository";
+import { PaginatedRequest, PaginatedResult, buildPaginatedResult } from "../../../../shared/types/Pagination";
 
 export class ListMyBookingsUseCase {
-  constructor(private readonly bookingRepository: IBookingRepository) {}
+  constructor(private readonly bookingRepository: IBookingRepository) { }
 
   async execute(
     residentId: number,
-    scope: "upcoming" | "past" = "upcoming"
-  ): Promise<Booking[]> {
+    scope: "upcoming" | "past" = "upcoming",
+    pagination: PaginatedRequest = { pageNumber: 1, pageSize: 10 }
+  ): Promise<PaginatedResult<Booking>> {
     const bookings = await this.bookingRepository.findByResident(residentId);
 
     // Compute local date (YYYY-MM-DD) and time (HH:mm)
@@ -37,24 +39,36 @@ export class ListMyBookingsUseCase {
       return false;
     };
 
+    let sorted: Booking[];
     if (scope === "upcoming") {
-      return bookings
+      sorted = bookings
         .filter((b) => !isPast(b))
         .sort((a, b) => {
           if (a.bookingDate !== b.bookingDate) {
-            return a.bookingDate.localeCompare(b.bookingDate);
+            return a.bookingDate < b.bookingDate ? -1 : 1;
           }
-          return a.startTime.localeCompare(b.startTime);
+          return a.startTime < b.startTime ? -1 : 1;
         });
     } else {
-      return bookings
+      sorted = bookings
         .filter((b) => isPast(b))
         .sort((a, b) => {
           if (a.bookingDate !== b.bookingDate) {
-            return b.bookingDate.localeCompare(a.bookingDate);
+            return b.bookingDate < a.bookingDate ? -1 : 1;
           }
-          return b.startTime.localeCompare(a.startTime);
+          return b.startTime < a.startTime ? -1 : 1;
         });
     }
+
+    const totalCount = sorted.length;
+    const offset = (pagination.pageNumber - 1) * pagination.pageSize;
+    const items = sorted.slice(offset, offset + pagination.pageSize);
+
+    return buildPaginatedResult(
+      items,
+      totalCount,
+      pagination.pageNumber,
+      pagination.pageSize
+    );
   }
 }
