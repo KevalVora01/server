@@ -210,22 +210,48 @@ export class BookingRepository implements IBookingRepository {
     status?: BookingStatus;
     fromDate?: string;
     toDate?: string;
-  }): Promise<Booking[]> {
+    residentId?: number;
+    pageNumber?: number;
+    pageSize?: number;
+  }): Promise<PaginatedResult<Booking>> {
     const where: Record<string, unknown> = {};
     if (filters?.amenityId) where.amenityId = filters.amenityId;
     if (filters?.status) where.status = filters.status;
+    if (filters?.residentId) where.residentId = filters.residentId;
     if (filters?.fromDate || filters?.toDate) {
       const dateWhere: Record<string | symbol, unknown> = {};
       if (filters.fromDate) dateWhere[Op.gte] = filters.fromDate;
       if (filters.toDate) dateWhere[Op.lte] = filters.toDate;
       where.bookingDate = dateWhere;
     }
-    const rows = await BookingModel.findAll({
+
+    const pageNumber = filters?.pageNumber ?? 1;
+    const pageSize = filters?.pageSize;
+    const usePagination = typeof pageSize === "number" && pageSize > 0;
+
+    const { count, rows } = await BookingModel.findAndCountAll({
       where,
       include: bookingIncludes,
+      limit: usePagination ? pageSize : undefined,
+      offset: usePagination ? (pageNumber - 1) * pageSize : undefined,
       order: [["bookingDate", "DESC"], ["startTime", "ASC"]],
     });
-    return rows.map((row) => this.toEntity(row));
+
+    const items = rows.map((row) => this.toEntity(row));
+
+    if (usePagination) {
+      return buildPaginatedResult(items, count, pageNumber, pageSize);
+    }
+
+    return {
+      items,
+      totalCount: count,
+      pageNumber: 1,
+      pageSize: count,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    };
   }
 
   async findUpcomingConfirmed(withinMinutes: number): Promise<Booking[]> {
@@ -249,43 +275,5 @@ export class BookingRepository implements IBookingRepository {
 
   async countByStatus(status: BookingStatus): Promise<number> {
     return BookingModel.count({ where: { status } });
-  }
-
-  async findAllPaginated(filters: {
-    amenityId?: number;
-    status?: BookingStatus;
-    fromDate?: string;
-    toDate?: string;
-    residentId?: number;
-    pageNumber: number;
-    pageSize: number;
-  }): Promise<PaginatedResult<Booking>> {
-    const where: Record<string, unknown> = {};
-    if (filters.amenityId) where.amenityId = filters.amenityId;
-    if (filters.status) where.status = filters.status;
-    if (filters.residentId) where.residentId = filters.residentId;
-    if (filters.fromDate || filters.toDate) {
-      const dateWhere: Record<string | symbol, unknown> = {};
-      if (filters.fromDate) dateWhere[Op.gte] = filters.fromDate;
-      if (filters.toDate) dateWhere[Op.lte] = filters.toDate;
-      where.bookingDate = dateWhere;
-    }
-
-    const offset = (filters.pageNumber - 1) * filters.pageSize;
-
-    const { count, rows } = await BookingModel.findAndCountAll({
-      where,
-      include: bookingIncludes,
-      limit: filters.pageSize,
-      offset,
-      order: [["bookingDate", "DESC"], ["startTime", "ASC"]],
-    });
-
-    return buildPaginatedResult(
-      rows.map((row) => this.toEntity(row)),
-      count,
-      filters.pageNumber,
-      filters.pageSize
-    );
   }
 }

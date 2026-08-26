@@ -13,7 +13,7 @@ export class GetBookingStatsUseCase {
   constructor(private readonly bookingRepository: IBookingRepository) {}
 
   async execute(): Promise<BookingStats> {
-    const [pending, confirmed, rejected, cancelled, all] = await Promise.all([
+    const [pending, confirmed, rejected, cancelled, allPage] = await Promise.all([
       this.bookingRepository.countByStatus("Pending"),
       this.bookingRepository.countByStatus("Confirmed"),
       this.bookingRepository.countByStatus("Rejected"),
@@ -22,7 +22,7 @@ export class GetBookingStatsUseCase {
     ]);
 
     const total = pending + confirmed + rejected + cancelled;
-    const paid = all.filter((b) => b.isPaid()).length;
+    const paid = allPage.items.filter((b) => b.isPaid()).length;
 
     return {
       total,

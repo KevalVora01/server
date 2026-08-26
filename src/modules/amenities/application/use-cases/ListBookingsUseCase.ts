@@ -13,7 +13,7 @@ export class ListBookingsUseCase {
   constructor(private readonly bookingRepository: IBookingRepository) {}
 
   async execute(filters: ListBookingsFilters): Promise<PaginatedResult<Booking>> {
-    return this.bookingRepository.findAllPaginated({
+    return this.bookingRepository.findAll({
       amenityId: filters.amenityId,
       status: filters.status,
       fromDate: filters.date,

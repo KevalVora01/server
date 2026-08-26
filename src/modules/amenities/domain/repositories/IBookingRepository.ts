@@ -1,5 +1,5 @@
 import { Booking, BookingStatus } from "../entities/Booking";
-import { PaginatedRequest, PaginatedResult } from "../../../../shared/types/Pagination";
+import { PaginatedResult } from "../../../../shared/types/Pagination";
 
 export interface IBookingRepository {
   create(booking: Booking): Promise<Booking>;
@@ -26,15 +26,10 @@ export interface IBookingRepository {
     status?: BookingStatus;
     fromDate?: string;
     toDate?: string;
-  }): Promise<Booking[]>;
-
-  findAllPaginated(filters: {
-    amenityId?: number;
-    status?: BookingStatus;
-    fromDate?: string;
-    toDate?: string;
     residentId?: number;
-  } & PaginatedRequest): Promise<PaginatedResult<Booking>>;
+    pageNumber?: number;
+    pageSize?: number;
+  }): Promise<PaginatedResult<Booking>>;
 
   /** For SendBookingRemindersJob — confirmed bookings starting soon, not yet reminded */
   findUpcomingConfirmed(withinMinutes: number): Promise<Booking[]>;

@@ -15,11 +15,11 @@ export class SendBookingRemindersJob {
     tomorrow.setDate(today.getDate() + 1);
     const dateStr = tomorrow.toISOString().slice(0, 10);
 
-    const bookings = await this.bookingRepository.findAll({
+    const bookings = (await this.bookingRepository.findAll({
       fromDate: dateStr,
       toDate: dateStr,
       status: "Confirmed",
-    });
+    })).items;
 
     let reminded = 0;
     for (const booking of bookings) {
