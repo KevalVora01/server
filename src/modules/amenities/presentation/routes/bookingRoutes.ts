@@ -47,7 +47,7 @@ router.get(
 router.post(
   "/",
   jwtMiddleware,
-  rbacMiddleware(UserRole.ADMIN, UserRole.RESIDENT),
+  rbacMiddleware(UserRole.RESIDENT),
   validateCreateBooking,
   bookingController.createBooking
 );

@@ -17,7 +17,7 @@ export class BookingConflictService implements IBookingConflictService {
   constructor(
     private readonly blackoutRepository: IBlackoutRepository,
     private readonly bookingRepository: IBookingRepository
-  ) {}
+  ) { }
 
   async assertAvailable(input: BookingConflictCheckInput): Promise<void> {
     const {

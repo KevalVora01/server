@@ -12,7 +12,7 @@ export class FinalizeBookingUseCase {
     private readonly bookingVoteRepository: IBookingVoteRepository,
     private readonly notifier: IBookingNotifier,
     private readonly amenityRepository: IAmenityRepository
-  ) {}
+  ) { }
 
   async execute(bookingId: number, adminUserId: number): Promise<Booking> {
     const booking = await this.bookingRepository.findById(bookingId);

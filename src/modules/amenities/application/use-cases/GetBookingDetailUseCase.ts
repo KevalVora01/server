@@ -40,7 +40,7 @@ export class GetBookingDetailUseCase {
     const residentModel = await ResidentModel.findByPk(booking.residentId, {
       include: [
         { model: UserModel, as: "user", attributes: ["id", "name", "email", "phone"] },
-        { model: ApartmentModel, as: "apartment" },
+        { model: ApartmentModel, as: "apartment", attributes: ["id", "block", "floorNumber", "unitNumber"] },
       ],
     });
 

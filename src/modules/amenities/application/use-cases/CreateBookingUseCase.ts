@@ -20,7 +20,7 @@ export class CreateBookingUseCase {
     private readonly residentRepository: IResidentRepository,
     private readonly conflictService: IBookingConflictService,
     private readonly notifier: IBookingNotifier
-  ) {}
+  ) { }
 
   async execute(dto: CreateBookingDto, requestingUser?: RequestingUser): Promise<Booking> {
     const residentId = dto.residentId ?? requestingUser?.residentId;

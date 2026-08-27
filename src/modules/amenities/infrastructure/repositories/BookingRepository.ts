@@ -226,32 +226,19 @@ export class BookingRepository implements IBookingRepository {
     }
 
     const pageNumber = filters?.pageNumber ?? 1;
-    const pageSize = filters?.pageSize;
-    const usePagination = typeof pageSize === "number" && pageSize > 0;
+    const pageSize = filters?.pageSize ?? 10;
 
     const { count, rows } = await BookingModel.findAndCountAll({
       where,
       include: bookingIncludes,
-      limit: usePagination ? pageSize : undefined,
-      offset: usePagination ? (pageNumber - 1) * pageSize : undefined,
+      limit: pageSize,
+      offset: (pageNumber - 1) * pageSize,
       order: [["bookingDate", "DESC"], ["startTime", "ASC"]],
     });
 
     const items = rows.map((row) => this.toEntity(row));
 
-    if (usePagination) {
-      return buildPaginatedResult(items, count, pageNumber, pageSize);
-    }
-
-    return {
-      items,
-      totalCount: count,
-      pageNumber: 1,
-      pageSize: count,
-      totalPages: 1,
-      hasNextPage: false,
-      hasPreviousPage: false,
-    };
+    return buildPaginatedResult(items, count, pageNumber, pageSize);
   }
 
   async findUpcomingConfirmed(withinMinutes: number): Promise<Booking[]> {
