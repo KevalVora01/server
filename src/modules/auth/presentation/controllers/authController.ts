@@ -63,7 +63,7 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
+      const refreshToken = req.body.refreshToken;
 
       const result = await this.refreshTokenUseCase.execute(refreshToken);
 
@@ -79,7 +79,7 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
+      const refreshToken = req.body.refreshToken;
 
       await this.logoutUseCase.execute(refreshToken);
 
