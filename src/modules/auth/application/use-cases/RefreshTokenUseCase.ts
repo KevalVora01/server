@@ -85,6 +85,7 @@ export class RefreshTokenUseCase {
       refreshToken: newRefreshTokenString,
       authResponse: {
         accessToken: newAccessToken,
+        refreshToken: newRefreshTokenString,
         user: user.toResponseObject(), 
       },
     };

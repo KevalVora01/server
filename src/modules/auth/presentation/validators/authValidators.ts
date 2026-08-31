@@ -103,6 +103,12 @@ const changePasswordSchema = Joi.object({
     }),
 });
 
+const refreshTokenSchema = Joi.object({
+  refreshToken: Joi.string().required().messages({
+    'string.empty': 'Refresh token is required',
+  }),
+});
+
 // ─── Exported validators ──────────────────────────────────────────
 export const validateRegister = [handleValidationError(registerSchema, 'body')];
 export const validateLogin = [handleValidationError(loginSchema, 'body')];
@@ -112,3 +118,5 @@ export const validateResetPassword = [handleValidationError(resetPasswordSchema,
 
 export const validateUpdateProfile = [handleValidationError(updateProfileSchema, 'body')];
 export const validateChangePassword = [handleValidationError(changePasswordSchema, 'body')];
+
+export const validateRefreshToken = [handleValidationError(refreshTokenSchema, 'body')];

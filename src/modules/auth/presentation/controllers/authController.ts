@@ -5,7 +5,6 @@ import { LoginUseCase } from "../../application/use-cases/LoginUseCase";
 import { RefreshTokenUseCase } from "../../application/use-cases/RefreshTokenUseCase";
 import { LogoutUseCase } from "../../application/use-cases/LogoutUseCase";
 import { GetCurrentUserUseCase } from "../../application/use-cases/GetCurrentUserUseCase";
-import { refreshTokenCookieOptions } from "../config/cookieOptions";
 import { ApiResponse } from "../../../../shared/utils/apiResponse";
 import { ForgotPasswordUseCase } from "../../application/use-cases/ForgotPasswordUseCase";
 import { ResetPasswordUseCase } from "../../application/use-cases/ResetPasswordUseCase";
@@ -52,12 +51,6 @@ export class AuthController {
     try {
       const result = await this.loginUseCase.execute(req.body);
 
-      res.cookie(
-        "refreshToken",
-        result.refreshToken,
-        refreshTokenCookieOptions
-      );
-
       res.status(200).json(ApiResponse.success(result.authResponse));
     } catch (error) {
       next(error);
@@ -70,15 +63,9 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const refreshToken = req.cookies?.refreshToken;
+      const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
 
       const result = await this.refreshTokenUseCase.execute(refreshToken);
-
-      res.cookie(
-        "refreshToken",
-        result.refreshToken,
-        refreshTokenCookieOptions
-      );
 
       res.status(200).json(ApiResponse.success(result.authResponse));
     } catch (error) {
@@ -92,11 +79,9 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const refreshToken = req.cookies?.refreshToken;
+      const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
 
       await this.logoutUseCase.execute(refreshToken);
-
-      res.clearCookie("refreshToken");
 
       res.status(200).json(
         ApiResponse.success({ message: "Logged out successfully" })
@@ -150,18 +135,11 @@ export class AuthController {
     try {
       const result = await this.resetPasswordUseCase.execute(req.body);
 
-      res.cookie(
-        "refreshToken",
-        result.refreshToken,
-        refreshTokenCookieOptions
-      );
-
-      res.status(200).json(
-        ApiResponse.success({
-          accessToken: result.accessToken,
-          user: result.user,
-        }, "Password reset successfully.")
-      );
+      res.status(200).json(ApiResponse.success({
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        user: result.user,
+      }, "Password reset successfully."));
     } catch (error) {
       next(error);
     }

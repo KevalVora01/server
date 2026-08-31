@@ -7,7 +7,15 @@ import { JwtTokenService } from "../../infrastructure/services/JwtTokenService";
 
 import { rbacMiddleware } from "../../../../shared/middleware/rbacMiddleware";
 import { UserRole } from "../../domain/entities/User";
-import { validateChangePassword, validateForgotPassword, validateLogin, validateRegister, validateResetPassword, validateUpdateProfile } from '../validators/authValidators';
+import {
+  validateChangePassword,
+  validateForgotPassword,
+  validateLogin,
+  validateRefreshToken,
+  validateRegister,
+  validateResetPassword,
+  validateUpdateProfile,
+} from '../validators/authValidators';
 
 const router = Router();
 
@@ -27,11 +35,13 @@ router.post(
 
 router.post(
   "/refresh",
+  validateRefreshToken,
   authController.refreshToken
 );
 
 router.post(
   "/logout",
+  validateRefreshToken,
   authController.logout
 );
 

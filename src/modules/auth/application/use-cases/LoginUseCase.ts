@@ -104,6 +104,7 @@ export class LoginUseCase {
       refreshToken: refreshTokenString,
       authResponse: {
         accessToken,
+        refreshToken: refreshTokenString,
         user: {
           ...user.toResponseObject(),
           resetToken,
