@@ -16,12 +16,7 @@ export class RefreshTokenUseCase {
     private readonly tokenService: ITokenService
   ) {}
 
-  async execute(
-    refreshToken: string
-  ): Promise<{
-    authResponse: AuthResponseDto;
-    refreshToken: string;
-  }> {
+  async execute(refreshToken: string): Promise<AuthResponseDto> {
     // 1. Structural Check: Confirm a token string was actually provided
     if (!refreshToken) {
       throw new InvalidRefreshTokenError();
@@ -82,12 +77,9 @@ export class RefreshTokenUseCase {
 
     // 8. Output Mapping
     return {
+      accessToken: newAccessToken,
       refreshToken: newRefreshTokenString,
-      authResponse: {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshTokenString,
-        user: user.toResponseObject(), 
-      },
+      user: user.toResponseObject(),
     };
   }
 }

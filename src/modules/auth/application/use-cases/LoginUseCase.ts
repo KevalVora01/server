@@ -23,12 +23,7 @@ export class LoginUseCase {
     private readonly tokenService: ITokenService
   ) { }
 
-  async execute(
-    dto: LoginDto
-  ): Promise<{
-    authResponse: AuthResponseDto;
-    refreshToken: string;
-  }> {
+  async execute(dto: LoginDto): Promise<AuthResponseDto> {
     const isEmail = EMAIL_PATTERN.test(dto.identifier);
 
     // 1. Core Lookup: resolve by email or phone depending on the identifier's shape
@@ -101,14 +96,11 @@ export class LoginUseCase {
     await this.refreshTokenRepository.create(refreshTokenInstance);
 
     return {
+      accessToken,
       refreshToken: refreshTokenString,
-      authResponse: {
-        accessToken,
-        refreshToken: refreshTokenString,
-        user: {
-          ...user.toResponseObject(),
-          resetToken,
-        },
+      user: {
+        ...user.toResponseObject(),
+        resetToken,
       },
     };
   }
