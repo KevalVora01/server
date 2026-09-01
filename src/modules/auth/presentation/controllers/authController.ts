@@ -135,11 +135,9 @@ export class AuthController {
     try {
       const result = await this.resetPasswordUseCase.execute(req.body);
 
-      res.status(200).json(ApiResponse.success({
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        user: result.user,
-      }, "Password reset successfully."));
+      res.status(200).json(
+        ApiResponse.success(result, "Password reset successfully.")
+      );
     } catch (error) {
       next(error);
     }
